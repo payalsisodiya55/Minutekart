@@ -407,16 +407,15 @@ export default function Home() {
               />
             </Suspense>
 
+            {/* Hiding Custom Cake card as requested
             <div className="px-4 py-4 md:py-6 mt-2 mx-auto max-w-7xl">
               <motion.div 
                 whileHover={{ scale: 1.01 }}
                 className="bg-gradient-to-r from-fuchsia-600 via-pink-500 to-rose-500 rounded-2xl p-5 sm:p-6 md:p-8 flex flex-col-reverse lg:flex-row items-center justify-between gap-6 sm:gap-8 shadow-[0_8px_30px_rgb(236,72,153,0.3)] relative overflow-hidden"
               >
-                {/* Background Decor */}
                 <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-                {/* Left Side: Text Content & Button */}
                 <div className="flex-1 z-10 flex flex-col items-center lg:items-start text-center lg:text-left gap-4 w-full">
                   <div className="flex flex-col gap-1 sm:gap-2">
                     <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white drop-shadow-md tracking-tight leading-tight">
@@ -442,7 +441,6 @@ export default function Home() {
                   </Button>
                 </div>
                 
-                {/* Right Side: Logo Container (No box, larger) */}
                 <motion.div 
                   initial={{ rotate: -5, scale: 0.9 }}
                   animate={{ rotate: 0, scale: 1 }}
@@ -457,6 +455,7 @@ export default function Home() {
                 </motion.div>
               </motion.div>
             </div>
+            */}
 
             <Suspense fallback={<RestaurantGridSkeleton count={3} />}>
               <RestaurantGrid

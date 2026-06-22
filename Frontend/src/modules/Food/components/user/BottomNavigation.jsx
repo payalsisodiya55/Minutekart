@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Tag, User, Truck, Cake } from "lucide-react"
+import { Tag, User, Truck, ChevronRight } from "lucide-react"
 import { useAuth } from "@core/context/AuthContext"
 import DraggableModuleSwitcher from "../../../common/components/DraggableModuleSwitcher"
 
@@ -9,8 +9,9 @@ export default function BottomNavigation() {
   const { isAuthenticated } = useAuth()
   const pathname = location.pathname
   const profileSource = new URLSearchParams(location.search).get("from")
-  const redirectTo = `${location.pathname || "/food/user"}${location.search || ""}${location.hash || ""}`
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
 
   useEffect(() => {
     let initialHeight = window.innerHeight
@@ -30,6 +31,23 @@ export default function BottomNavigation() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      if (Math.abs(currentScrollY - lastScrollY) < 5) return
+
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsVisible(false)
+      } else {
+        setIsVisible(true)
+      }
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [lastScrollY])
 
   // Check active routes - support both /user/* and /* paths
   const isBakery = pathname.startsWith("/food/user/bakery")
@@ -56,95 +74,69 @@ export default function BottomNavigation() {
   if (isKeyboardOpen) return null
 
   return (
-    <div
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50"
-    >
+    <>
       <DraggableModuleSwitcher />
-
-      <div
-        className="relative bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-gray-800 shadow-lg"
-      >
-      <div className="flex items-center justify-around h-auto px-2 sm:px-4">
+      <div className={`md:hidden fixed bottom-4 left-4 right-4 z-50 transition-all duration-300 ease-in-out ${isVisible ? "translate-y-0 opacity-100" : "translate-y-28 opacity-0 pointer-events-none"}`}>
+        <div className="bg-white dark:bg-[#1a1a1a] rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-gray-800 px-3 py-1.5 flex items-center justify-between gap-1">
         {/* Delivery Tab */}
         <Link
           to="/food/user"
           replace
-          className={`flex flex-1 flex-col items-center gap-1.5 px-2 sm:px-3 py-2 transition-all duration-200 relative ${isDelivery
-              ? "text-red-600 dark:text-red-500"
-              : "text-gray-600 dark:text-gray-400"
-            }`}
+          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
+            isDelivery
+              ? "bg-[#0c831f]/10 text-[#0c831f] font-semibold"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
+          }`}
         >
-          < Truck className={`h-5 w-5 ${isDelivery ? "text-red-600 dark:text-red-500 fill-red-600 dark:fill-red-500" : "text-gray-600 dark:text-gray-400"}`} strokeWidth={2} />
-          <span className={`text-xs sm:text-sm font-medium ${isDelivery ? "text-red-600 dark:text-red-500 font-semibold" : "text-gray-600 dark:text-gray-400"}`}>
+          <Truck className="h-5 w-5" strokeWidth={2.5} />
+          <span className="text-[9px] font-black tracking-wider uppercase">
             Delivery
           </span>
-          {isDelivery && (
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-600 dark:bg-red-500 rounded-b-full" />
-          )}
         </Link>
-
-        {/* Divider */}
-        <div className="h-8 w-px bg-gray-300 dark:bg-gray-700" />
-
-        {/* Bakery Tab */}
-        <Link
-          to="/food/user/bakery/list"
-          className={`flex flex-1 flex-col items-center gap-1.5 px-2 sm:px-3 py-2 transition-all duration-200 relative ${isBakery
-              ? "text-red-600 dark:text-red-500"
-              : "text-gray-600 dark:text-gray-400"
-            }`}
-        >
-          <Cake className={`h-5 w-5 ${isBakery ? "text-red-600 dark:text-red-500" : "text-gray-600 dark:text-gray-400"}`} strokeWidth={2} />
-          <span className={`text-xs sm:text-sm font-medium ${isBakery ? "text-red-600 dark:text-red-500 font-semibold" : "text-gray-600 dark:text-gray-400"}`}>
-            Bakery
-          </span>
-          {isBakery && (
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-600 dark:bg-red-500 rounded-b-full" />
-          )}
-        </Link>
-
-        {/* Divider */}
-        <div className="h-8 w-px bg-gray-300 dark:bg-gray-700" />
 
         {/* Under 250 Tab */}
         <Link
           to="/food/user/under-250"
-          className={`flex flex-1 flex-col items-center gap-1.5 px-2 sm:px-3 py-2 transition-all duration-200 relative ${isUnder250
-              ? "text-red-600 dark:text-red-500"
-              : "text-gray-600 dark:text-gray-400"
-            }`}
+          replace
+          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
+            isUnder250
+              ? "bg-[#0c831f]/10 text-[#0c831f] font-semibold"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
+          }`}
         >
-          <Tag className={`h-5 w-5 ${isUnder250 ? "text-red-600 dark:text-red-500 fill-red-600 dark:fill-red-500" : "text-gray-600 dark:text-gray-400"}`} strokeWidth={2} />
-          <span className={`text-xs sm:text-sm font-medium ${isUnder250 ? "text-red-600 dark:text-red-500 font-semibold" : "text-gray-600 dark:text-gray-400"}`}>
+          <Tag className="h-5 w-5" strokeWidth={2.5} />
+          <span className="text-[9px] font-black tracking-wider uppercase">
             Under 250
           </span>
-          {isUnder250 && (
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-600 dark:bg-red-500 rounded-b-full" />
-          )}
         </Link>
-
-        {/* Divider */}
-        <div className="h-8 w-px bg-gray-300 dark:bg-gray-700" />
 
         {/* Profile Tab */}
         <Link
           to={isAuthenticated ? "/food/user/profile" : "/user/auth/login"}
           state={!isAuthenticated ? { redirectTo: "/food/user/profile" } : undefined}
-          className={`flex flex-1 flex-col items-center gap-1.5 px-2 sm:px-3 py-2 transition-all duration-200 relative ${isProfile
-              ? "text-red-600 dark:text-red-500"
-              : "text-gray-600 dark:text-gray-400"
-            }`}
+          replace
+          className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
+            isProfile
+              ? "bg-[#0c831f]/10 text-[#0c831f] font-semibold"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
+          }`}
         >
-          <User className={`h-5 w-5 ${isProfile ? "text-red-600 dark:text-red-500 fill-red-600 dark:fill-red-500" : "text-gray-600 dark:text-gray-400"}`} />
-          <span className={`text-xs sm:text-sm font-medium ${isProfile ? "text-red-600 dark:text-red-500 font-semibold" : "text-gray-600 dark:text-gray-400"}`}>
+          <User className="h-5 w-5" strokeWidth={2.5} />
+          <span className="text-[9px] font-black tracking-wider uppercase">
             Profile
           </span>
-          {isProfile && (
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-red-600 dark:bg-red-500 rounded-b-full" />
-          )}
+        </Link>
+
+        {/* Instamart Link Button */}
+        <Link
+          to="/quick"
+          className="flex items-center gap-0.5 bg-[#0c831f] text-white px-3.5 py-2 rounded-full font-black text-[10px] shadow-sm transition-all active:scale-95 hover:opacity-90 tracking-wide uppercase shrink-0"
+        >
+          <span>Instamart</span>
+          <ChevronRight className="h-3 w-3" strokeWidth={4} />
         </Link>
       </div>
-      </div>
     </div>
+    </>
   )
 }
