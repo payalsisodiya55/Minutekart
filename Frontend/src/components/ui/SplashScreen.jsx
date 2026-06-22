@@ -1,6 +1,6 @@
 import React, { useEffect } from "react"
 import { motion } from "framer-motion"
-import LogoImage from "@/assets/Logo.png"
+import LogoImage from "@/assets/logo_1.png"
 
 // Import the generated funky dark transparent PNG icons (perfectly segmented)
 import icon0 from '@/assets/funky/icon_0.png'
