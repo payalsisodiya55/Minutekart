@@ -486,8 +486,8 @@ const Orders = () => {
       // Add title
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(12, 131, 31); // OyeChotuu Green
-      doc.text('OyeChotuu', 148, 15, { align: 'center' });
+      doc.setTextColor(12, 131, 31); // Minutekart Green
+      doc.text('Minutekart', 148, 15, { align: 'center' });
 
       doc.setFontSize(14);
       doc.setTextColor(30, 30, 30);

@@ -1691,7 +1691,7 @@ const CheckoutPage = () => {
               amount: razorpayData.amount,
               currency: razorpayData.currency || "INR",
               order_id: razorpayData.orderId,
-              name: companyName || "Oye Chotuu",
+              name: companyName || "Minutekart",
               description: `Order ${placedOrderId} - ₹${(razorpayData.amount / 100).toFixed(2)}`,
               prefill: {
                 name: userName,

@@ -1093,7 +1093,7 @@ Order again from this restaurant in the ${companyName} app.`
 
       {/* Footer Branding */}
       <div className="flex justify-center mt-8 mb-4">
-        <h1 className="text-4xl font-black text-gray-200 dark:text-gray-700 tracking-tighter italic">OyeChotuu</h1>
+        <h1 className="text-4xl font-black text-gray-200 dark:text-gray-700 tracking-tighter italic">Minutekart</h1>
       </div>
 
       {/* Rating & Feedback Modal */}

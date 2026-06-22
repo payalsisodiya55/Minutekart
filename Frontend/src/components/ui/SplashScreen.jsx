@@ -266,7 +266,7 @@ export default function SplashScreen({ onComplete }) {
           >
             <img
               src={LogoImage}
-              alt="OyeChotuu Logo"
+              alt="Minutekart Logo"
               className="w-64 h-64 md:w-80 md:h-80 object-contain drop-shadow-[0_10px_25px_rgba(198,40,40,0.15)]"
             />
           </motion.div>

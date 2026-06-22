@@ -122,7 +122,7 @@ const DudhwalaHomeScreen = () => {
             {whyConfigs.length > 0 && (
                 <div className="mt-6 px-4 mb-0">
                     <div className="rounded-[28px] bg-white p-5 dark:bg-[#1a1a1a] shadow-sm border border-slate-100 dark:border-slate-800">
-                        <h3 className="font-bold text-[10px] mb-4 uppercase tracking-widest text-slate-400 ml-1">Why Chotuu Dudhwala?</h3>
+                        <h3 className="font-bold text-[10px] mb-4 uppercase tracking-widest text-slate-400 ml-1">Why Minutekart Dudhwala?</h3>
                         <ul className="space-y-3">
                             {whyConfigs.map((benefit, idx) => {
                                 const theme = PASTEL_THEMES[idx % PASTEL_THEMES.length];
@@ -152,7 +152,7 @@ const DudhwalaHomeScreen = () => {
             {/* App Watermark */}
             <div className="flex justify-center items-center pt-4 pb-2 opacity-40">
                 <span className="text-xl font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.25em]">
-                    OyeChotuu
+                    Minutekart
                 </span>
             </div>
 

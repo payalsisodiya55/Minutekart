@@ -293,7 +293,7 @@ export default function UserOrderDetails() {
       // Title
       doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
-      doc.text('OyeChotuu Order: Summary and Receipt', 105, 20, { align: 'center' })
+      doc.text(`${companyName} Order: Summary and Receipt`, 105, 20, { align: 'center' })
       
       // Store/Restaurant Name (Subtitle)
       doc.setFontSize(12)

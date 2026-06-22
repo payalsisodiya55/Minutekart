@@ -55,7 +55,7 @@ const SAFE_RESTAURANT_PIN = typeof RESTAURANT_PIN_SVG !== 'undefined' ? RESTAURA
 const debugLog = (...args) => console.log('[OrderTracking]', ...args)
 const debugWarn = (...args) => console.warn('[OrderTracking]', ...args)
 const debugError = (...args) => console.error('[OrderTracking]', ...args)
-const INVOICE_BRAND_NAME = "OyeChotuu"
+const INVOICE_BRAND_NAME = "Minutekart"
 
 
 // Animated checkmark component

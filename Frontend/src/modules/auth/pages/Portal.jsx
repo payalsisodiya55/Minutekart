@@ -60,7 +60,7 @@ export default function SuperAppPortal() {
     quickCommerce: true,
   })
   const [logoUrl, setLogoUrl] = React.useState(null)
-  const [companyName, setCompanyName] = React.useState("OyeChotuu")
+  const [companyName, setCompanyName] = React.useState("Minutekart")
 
   React.useEffect(() => {
     const loadSettings = async () => {
@@ -296,7 +296,7 @@ export default function SuperAppPortal() {
       <div className="mt-4 hidden sm:flex flex-col items-center gap-3 opacity-50">
         <div className="flex items-center gap-1.5 grayscale">
           <ShieldCheck className="w-4 h-4" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Secure by OyeChotuu</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Secure by Minutekart</span>
         </div>
       </div>
     </div>

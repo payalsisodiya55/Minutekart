@@ -579,7 +579,7 @@ export default function RestaurantOnboarding() {
                 }))
 
                 if (!matchedZoneId) {
-                  toast.warning("Your current location is outside OyeChotuu service zones.")
+                  toast.warning("Your current location is outside Minutekart service zones.")
                 } else {
                   toast.success("Location updated successfully!")
                 }
@@ -1925,7 +1925,7 @@ export default function RestaurantOnboarding() {
           }))
 
           if (!matchedZoneId) {
-            toast.warning("Selected address is outside OyeChotuu service zones.")
+            toast.warning("Selected address is outside Minutekart service zones.")
           } else {
             toast.success("Zone auto-selected based on address!")
           }

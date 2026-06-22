@@ -199,7 +199,7 @@ const SubscriptionFlow = () => {
                     key: import.meta.env.VITE_RAZORPAY_KEY_ID || key,
                     amount: amount,
                     currency: 'INR',
-                    name: "Oye Chotuu",
+                    name: "Minutekart",
                     description: `Subscription: ${productObj?.label || "Milk"}`,
                     order_id: razorpayOrderId,
                     handler: async (response) => {
