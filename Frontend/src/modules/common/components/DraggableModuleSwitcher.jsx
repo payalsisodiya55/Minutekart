@@ -9,26 +9,26 @@ const DraggableModuleSwitcher = () => {
     const pathname = location.pathname;
 
     let targetPath = "/food/user";
-    let targetName = "Chotuu FoodWala";
+    let targetName = "Food";
     let themeColor = "text-red-600";
     let bgColor = "bg-red-50";
     let icon = <UtensilsCrossed className="h-3 w-3" strokeWidth={2.6} />;
 
     if (pathname.startsWith('/food')) {
         targetPath = "/quick/user";
-        targetName = "ChotuuMart";
+        targetName = "Instamart";
         themeColor = "text-green-600";
         bgColor = "bg-green-50";
         icon = <ShoppingBag className="h-3 w-3" strokeWidth={2.6} />;
     } else if (pathname.startsWith('/quick')) {
-        targetPath = "/dudhwala";
-        targetName = "Chotuu Dudhwala";
-        themeColor = "text-sky-600";
-        bgColor = "bg-sky-50";
-        icon = <Milk className="h-3 w-3" strokeWidth={2.6} />;
+        targetPath = "/food/user";
+        targetName = "Food";
+        themeColor = "text-red-600";
+        bgColor = "bg-red-50";
+        icon = <UtensilsCrossed className="h-3 w-3" strokeWidth={2.6} />;
     } else if (pathname.startsWith('/dudhwala')) {
         targetPath = "/food/user";
-        targetName = "Chotuu FoodWala";
+        targetName = "Food";
         themeColor = "text-red-600";
         bgColor = "bg-red-50";
         icon = <UtensilsCrossed className="h-3 w-3" strokeWidth={2.6} />;
