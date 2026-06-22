@@ -346,7 +346,7 @@ export default function HomeHeader({
         >
           <>
             <Navigation
-              className="h-[14px] w-[14px] rotate-[15deg] mt-[5px] shrink-0"
+              className="h-[18px] w-[18px] rotate-[15deg] mt-[3px] shrink-0"
               style={{ color: theme.accent, fill: theme.accent }}
               strokeWidth={2.5}
             />
@@ -552,11 +552,10 @@ export default function HomeHeader({
             style={{ backgroundColor: (isSticky && !disableSticky) ? withAlpha(theme.accent, 0.85) : "transparent" }}
           >
             <div
-              className="flex-1 rounded-[12px] h-[46px] flex items-center px-3 cursor-pointer relative overflow-hidden bg-white shadow-[0_6px_18px_rgba(15,23,42,0.10)] border-0 text-left"
+              className="flex-1 rounded-full h-[48px] flex items-center px-4 cursor-pointer relative overflow-hidden bg-white shadow-[0_6px_18px_rgba(15,23,42,0.10)] border-0 text-left"
               onClick={handleSearchFocus}
             >
-              <div className="absolute left-0 top-0 bottom-0 w-[2.5px] rounded-l-[12px]" style={{ background: theme.accent }} />
-              <Search className="h-[16px] w-[16px] ml-1.5 mr-2 flex-shrink-0" style={{ color: theme.accent }} strokeWidth={2.3} />
+              <Search className="h-[18px] w-[18px] ml-1 mr-2 flex-shrink-0 text-gray-400" strokeWidth={2.3} />
               <div className="flex-1 overflow-hidden relative h-[20px]">
                 <AnimatePresence mode="wait">
                   <motion.span
@@ -572,7 +571,6 @@ export default function HomeHeader({
                 </AnimatePresence>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="w-[1px] h-[16px] bg-gray-200" />
                 <button
                   type="button"
                   onClick={handleVoiceSearch}
