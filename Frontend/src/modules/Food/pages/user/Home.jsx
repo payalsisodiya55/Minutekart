@@ -177,6 +177,7 @@ export default function Home() {
   const [quickThemeColor, setQuickThemeColor] = useState("#cc2532");
   const [showToast, setShowToast] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [showStickyCategories, setShowStickyCategories] = useState(false);
   const [dishesUnder250, setDishesUnder250] = useState([]);
   const [loadingDishesUnder250, setLoadingDishesUnder250] = useState(true);
 
@@ -214,23 +215,13 @@ export default function Home() {
 
   const finalExploreItemsFiltered = useMemo(() => {
     const items = landing?.exploreMore || [];
-    const settings = getCachedSettings();
-    const isHomeBakeryEnabled = settings?.modules?.homeBakery;
-    if (isHomeBakeryEnabled) {
-      const hasBakery = items.some(item => item.id === "home-bakery" || item.href?.includes("bakery"));
-      if (!hasBakery) {
-        return [
-          ...items,
-          {
-            id: "home-bakery",
-            label: "Home Bakery",
-            href: "/food/user/bakery/list",
-            image: bakeryIcon,
-          }
-        ];
-      }
-    }
-    return items;
+    // Hide home bakery from this section as requested
+    return items.filter(
+      (item) =>
+        item.id !== "home-bakery" &&
+        !item.href?.includes("bakery") &&
+        !item.label?.toLowerCase().includes("bakery")
+    );
   }, [landing?.exploreMore]);
 
   // --- UI Effects ---
@@ -339,6 +330,33 @@ export default function Home() {
       cancelled = true;
     };
   }, [effectiveZoneId, location?.latitude, location?.longitude]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerWidth >= 768) {
+        setShowStickyCategories(false);
+        return;
+      }
+      const categoryRailElement = document.getElementById("category-rail-section");
+      if (categoryRailElement) {
+        const rect = categoryRailElement.getBoundingClientRect();
+        // Toggle sticky state based on category rail bottom position
+        setShowStickyCategories(rect.bottom <= 0);
+      } else {
+        setShowStickyCategories(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+    // Initial check
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, []);
 
 
   // Prevent body scroll when popups are open
@@ -487,6 +505,7 @@ export default function Home() {
             headerVideoUrl={landing.videoUrl}
             quickThemeColor={quickThemeColor}
             hideExtras={hideExtras}
+            disableSticky={showStickyCategories}
             bannerComponent={
               <div className="h-[130px] sm:h-36 md:h-44 mt-3 relative z-10 w-full bg-transparent" />
             }
@@ -518,15 +537,17 @@ export default function Home() {
             transition={{ duration: 0.16, ease: "easeOut" }}
             className="bg-white dark:bg-[#0a0a0a]"
           >
-            <Suspense fallback={<CategoryChipRowSkeleton className="py-1" />}>
-              <CategoryRail
-                displayCategories={categories.display}
-                showCategorySkeleton={categories.loading}
-                navigate={navigate}
-                setShowAllCategoriesModal={setShowAllCategoriesModal}
-                backendOrigin={BACKEND_ORIGIN}
-              />
-            </Suspense>
+            <div id="category-rail-section">
+              <Suspense fallback={<CategoryChipRowSkeleton className="py-1" />}>
+                <CategoryRail
+                  displayCategories={categories.display}
+                  showCategorySkeleton={categories.loading}
+                  navigate={navigate}
+                  setShowAllCategoriesModal={setShowAllCategoriesModal}
+                  backendOrigin={BACKEND_ORIGIN}
+                />
+              </Suspense>
+            </div>
 
             {/* Meals under ₹250 section */}
             <section className="px-4 py-4 space-y-3 bg-white dark:bg-[#0a0a0a]">
@@ -882,6 +903,42 @@ export default function Home() {
 
       {activeTab === "food" && hasFoodCartItems && !hideExtras && <Suspense fallback={null}><MiniCart /></Suspense>}
       {!hideExtras && <Suspense fallback={null}><OrderTrackingCard hasBottomNav /></Suspense>}
+
+      {/* Sticky Categories & Filters Header */}
+      <AnimatePresence>
+        {showStickyCategories && (
+          <motion.div
+            initial={{ y: -120, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -120, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="md:hidden fixed top-0 left-0 right-0 z-[150] bg-white dark:bg-[#1a1a1a] shadow-[0_4px_12px_rgba(0,0,0,0.08)] border-b border-gray-100 dark:border-gray-800 pt-4 pb-4 flex flex-col gap-2"
+          >
+            {/* Category horizontal rail */}
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide px-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {categories.display.map((category, index) => (
+                <Link
+                  key={category.id || index}
+                  to={`/user/category/${category.slug || category.name.toLowerCase().replace(/\s+/g, "-")}`}
+                  className="flex-shrink-0 flex flex-col items-center gap-1 group w-[92px]"
+                >
+                  <div className="w-[72px] h-[72px] rounded-full overflow-hidden shadow-sm border border-gray-100 transition-transform group-hover:scale-105 bg-white">
+                    <OptimizedImage
+                      src={category.image}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                      backendOrigin={BACKEND_ORIGIN}
+                    />
+                  </div>
+                  <span className="text-[12px] font-black text-gray-700 dark:text-gray-300 truncate w-full text-center uppercase tracking-wide">
+                    {category.name}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
