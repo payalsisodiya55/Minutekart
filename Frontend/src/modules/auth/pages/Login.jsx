@@ -376,7 +376,7 @@ export default function UnifiedOTPFastLogin() {
               animate={{ opacity: 1, y: 0 }}
               className="text-2xl md:text-3xl font-bold tracking-tight mb-2"
             >
-              OyeChotuu
+              Minutekart
             </motion.h1>
             <div className="flex items-center gap-2 justify-center">
                <div className="h-[1px] w-6 md:w-8 bg-white/70" />
