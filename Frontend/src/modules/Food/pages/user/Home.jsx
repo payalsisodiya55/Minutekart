@@ -27,6 +27,7 @@ import {
   BadgePercent,
   X,
   ArrowDownUp,
+  ArrowRight,
   Timer,
   CalendarClock,
   ShieldCheck,
@@ -36,6 +37,7 @@ import {
   AlertCircle,
   Loader2,
   Plus,
+  Minus,
   Check,
   Share2,
   Cake,
@@ -102,6 +104,9 @@ import PromoRow from "@food/components/user/home/PromoRow";
 import { optimizeCloudinaryUrl } from "../../../../shared/utils/cloudinaryUtils";
 import VegModePopups from "@food/components/user/VegModePopups";
 
+import { toast } from "sonner";
+import { FOOD_THEME_COLOR, FOOD_VEG_COLOR } from "@food/constants/theme";
+import { flattenMenuItems, getMenuFromResponse } from "@food/utils/menuItems";
 import * as imgUtils from "@food/utils/imageUtils";
 import { useFoodHomeData } from "@food/hooks/useFoodHomeData";
 import { getCachedSettings } from "@/modules/common/utils/businessSettings";
@@ -154,7 +159,7 @@ export default function Home() {
   const { openSearch, closeSearch, searchValue, setSearchValue } = useSearchOverlay();
   const { openLocationSelector } = useLocationSelector();
   const { vegMode, setVegMode: setVegModeContext, isFavorite, addFavorite, removeFavorite, getDefaultAddress } = useProfile();
-  const { cart } = useCart();
+  const { cart, addToCart, updateQuantity, getCartItem } = useCart();
   const hasFoodCartItems = useMemo(
     () => cart.some((item) => (item?.orderType || "food") !== "quick"),
     [cart],
@@ -172,6 +177,9 @@ export default function Home() {
   const [quickThemeColor, setQuickThemeColor] = useState("#cc2532");
   const [showToast, setShowToast] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [dishesUnder250, setDishesUnder250] = useState([]);
+  const [loadingDishesUnder250, setLoadingDishesUnder250] = useState(true);
+
 
   const heroShellRef = useRef(null);
   const restaurantLoadMoreRef = useRef(null);
@@ -252,6 +260,87 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [activeBannerImages.length]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const fetchDishes = async () => {
+      try {
+        setLoadingDishesUnder250(true);
+        const response = await restaurantAPI.getRestaurants(effectiveZoneId ? { zoneId: effectiveZoneId } : {});
+        const restaurantsRaw = Array.isArray(response?.data?.data?.restaurants)
+          ? response.data.data.restaurants
+          : [];
+        
+        const allDishes = [];
+        await Promise.all(
+          restaurantsRaw.map(async (restaurant) => {
+            const restaurantId = restaurant?.restaurantId || restaurant?._id;
+            if (!restaurantId) return;
+            try {
+              const menuResponse = await restaurantAPI.getMenuByRestaurantId(restaurantId);
+              const menu = getMenuFromResponse(menuResponse);
+              const menuItems = flattenMenuItems(menu)
+                .filter((item) => Number(item?.price || 0) <= 250 && item?.isAvailable !== false)
+                .map((item) => {
+                  const foodType = String(item?.foodType || "").toLowerCase();
+                  const isVeg = foodType.includes("veg") && !foodType.includes("non");
+                  return {
+                    ...item,
+                    id: String(item?.id || item?._id || `${restaurantId}-${item?.name || "dish"}`),
+                    price: Number(item?.price || 0),
+                    isVeg,
+                    restaurant: restaurant?.restaurantName || restaurant?.name || "Restaurant",
+                    restaurantId: String(restaurantId),
+                    rating: Number(restaurant?.rating || 4.2),
+                    image:
+                      item?.image ||
+                      restaurant?.coverImages?.[0]?.url ||
+                      restaurant?.coverImages?.[0] ||
+                      restaurant?.menuImages?.[0]?.url ||
+                      restaurant?.menuImages?.[0] ||
+                      restaurant?.profileImage?.url ||
+                      "",
+                  };
+                });
+              allDishes.push(...menuItems);
+            } catch (err) {
+              // Ignore single restaurant menu fetch errors
+            }
+          })
+        );
+
+        if (!cancelled) {
+          const uniqueDishes = [];
+          const seenNames = new Set();
+          for (const dish of allDishes) {
+            const nameKey = dish.name.toLowerCase().trim();
+            if (!seenNames.has(nameKey)) {
+              seenNames.add(nameKey);
+              uniqueDishes.push(dish);
+            }
+          }
+          setDishesUnder250(uniqueDishes.slice(0, 15));
+        }
+      } catch (error) {
+        console.error("Error fetching dynamic dishes under 250:", error);
+      } finally {
+        if (!cancelled) {
+          setLoadingDishesUnder250(false);
+        }
+      }
+    };
+
+    if (effectiveZoneId) {
+      fetchDishes();
+    } else {
+      setLoadingDishesUnder250(false);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [effectiveZoneId, location?.latitude, location?.longitude]);
+
+
   // Prevent body scroll when popups are open
   useEffect(() => {
     if (showVegModePopup || showSwitchOffPopup || showAllCategoriesModal) {
@@ -300,6 +389,79 @@ export default function Home() {
     if (activeTab === "quick") navigate("/quick/search");
     else navigate("/food/user/search");
   }, [activeTab, navigate]);
+
+  const handleAddToCart = (dish, event = null) => {
+    if (isEffectiveOutOfService) {
+      toast.error("You are outside the service zone. Please select a location within the service area.");
+      return;
+    }
+
+    const rect = event ? event.currentTarget.getBoundingClientRect() : null;
+    const sourcePosition = rect ? {
+      x: rect.left + rect.width / 2 + window.scrollX,
+      y: rect.top + rect.height / 2 + window.scrollY,
+      viewportX: rect.left + rect.width / 2,
+      viewportY: rect.top + rect.height / 2,
+      scrollX: window.scrollX,
+      scrollY: window.scrollY
+    } : null;
+
+    const existing = getCartItem(dish.id);
+    if (existing) {
+      updateQuantity(dish.id, existing.quantity + 1, sourcePosition, {
+        id: dish.id,
+        name: dish.name,
+        imageUrl: dish.image,
+      });
+      toast.success(`Increased ${dish.name} quantity to ${existing.quantity + 1}`);
+    } else {
+      const result = addToCart({
+        id: dish.id,
+        name: dish.name,
+        price: dish.price,
+        image: dish.image,
+        restaurant: dish.restaurant,
+        description: dish.description || "",
+        originalPrice: dish.originalPrice || dish.price,
+      }, sourcePosition);
+      if (result?.ok === false) {
+        toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.');
+      } else {
+        toast.success(`Added ${dish.name} to cart!`);
+      }
+    }
+  };
+
+  const handleIncreaseQuantity = (dish, event = null) => {
+    handleAddToCart(dish, event);
+  };
+
+  const handleDecreaseQuantity = (dish, event = null) => {
+    const rect = event ? event.currentTarget.getBoundingClientRect() : null;
+    const sourcePosition = rect ? {
+      x: rect.left + rect.width / 2 + window.scrollX,
+      y: rect.top + rect.height / 2 + window.scrollY,
+      viewportX: rect.left + rect.width / 2,
+      viewportY: rect.top + rect.height / 2,
+      scrollX: window.scrollX,
+      scrollY: window.scrollY
+    } : null;
+
+    const existing = getCartItem(dish.id);
+    if (existing) {
+      updateQuantity(dish.id, existing.quantity - 1, sourcePosition, {
+        id: dish.id,
+        name: dish.name,
+        imageUrl: dish.image,
+      });
+      if (existing.quantity - 1 === 0) {
+        toast.success(`Removed ${dish.name} from cart`);
+      } else {
+        toast.success(`Decreased ${dish.name} quantity to ${existing.quantity - 1}`);
+      }
+    }
+  };
+
 
   // --- Render ---
   return (
@@ -365,6 +527,159 @@ export default function Home() {
                 backendOrigin={BACKEND_ORIGIN}
               />
             </Suspense>
+
+            {/* Meals under ₹250 section */}
+            <section className="px-4 py-4 space-y-3 bg-white dark:bg-[#0a0a0a]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+                    Meals under
+                  </h2>
+                  <span className="flex items-center justify-center border-[1.5px] border-gray-900 dark:border-white rounded-full px-2 py-0.5 text-xs sm:text-sm font-black text-gray-900 dark:text-white leading-none">
+                    ₹250
+                  </span>
+                </div>
+                <Link
+                  to="/food/user/under-250"
+                  className="text-xs sm:text-sm font-bold flex items-center gap-0.5 transition-all hover:opacity-80 active:scale-95"
+                  style={{ color: FOOD_THEME_COLOR }}
+                >
+                  See All <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+
+              {loadingDishesUnder250 ? (
+                <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex-shrink-0 w-[150px] flex flex-col gap-2">
+                      <div className="w-full h-[115px] rounded-2xl bg-gray-100 dark:bg-neutral-800 animate-pulse" />
+                      <div className="h-3 w-12 bg-gray-100 dark:bg-neutral-800 animate-pulse rounded" />
+                      <div className="h-4 w-full bg-gray-100 dark:bg-neutral-800 animate-pulse rounded" />
+                      <div className="h-4 w-1/2 bg-gray-100 dark:bg-neutral-800 animate-pulse rounded" />
+                    </div>
+                  ))}
+                </div>
+              ) : dishesUnder250.length === 0 ? (
+                <div className="text-xs text-gray-400 text-center py-4 w-full">No meals under ₹250 available currently</div>
+              ) : (
+                <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {dishesUnder250.map((dish) => {
+                    return (
+                      <div
+                        key={dish.id}
+                        className="flex-shrink-0 w-[150px] flex flex-col gap-2 group"
+                      >
+                        {/* Image container */}
+                        <div className="relative w-full h-[115px] rounded-2xl bg-gray-50 border border-gray-100 dark:border-gray-800">
+                          <div className="w-full h-full rounded-2xl overflow-hidden">
+                            <img
+                              src={dish.image}
+                              alt={dish.name}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              loading="lazy"
+                            />
+                          </div>
+                          
+                          {/* Popular Badge */}
+                          <div className="absolute top-2 left-2 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md shadow-sm" style={{ backgroundColor: FOOD_VEG_COLOR }}>
+                            Popular
+                          </div>
+
+                          {/* Rating Badge Overlay */}
+                          <div className="absolute bottom-0 left-2 translate-y-1/2 flex items-center gap-0.5 bg-[#eaf7e6] dark:bg-emerald-950/90 text-gray-800 dark:text-gray-200 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-sm border border-[#d0edd1]/80">
+                            <span className="text-[10px]" style={{ color: FOOD_VEG_COLOR }}>★</span>
+                            <span>{dish.rating}</span>
+                          </div>
+
+                          {/* Plus Button or Quantity Selector Overlay (Inside the image) */}
+                          {(() => {
+                            const cartItem = getCartItem(dish.id);
+                            const quantity = cartItem ? cartItem.quantity : 0;
+                            if (quantity > 0) {
+                              return (
+                                <div
+                                  className="absolute bottom-2 right-2 h-8 rounded-full bg-white shadow-md flex items-center justify-between border px-1.5 gap-1.5"
+                                  style={{ borderColor: `${FOOD_THEME_COLOR}33` }}
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleDecreaseQuantity(dish, e)}
+                                    className="w-5 h-5 flex items-center justify-center hover:opacity-80 transition-all active:scale-75"
+                                    style={{ color: FOOD_THEME_COLOR }}
+                                  >
+                                    <Minus className="h-3.5 w-3.5" strokeWidth={3.5} />
+                                  </button>
+                                  <span className="text-[12px] font-black text-gray-950 min-w-[12px] text-center select-none">
+                                    {quantity}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleIncreaseQuantity(dish, e)}
+                                    className="w-5 h-5 flex items-center justify-center hover:opacity-80 transition-all active:scale-75"
+                                    style={{ color: FOOD_THEME_COLOR }}
+                                  >
+                                    <Plus className="h-3.5 w-3.5" strokeWidth={3.5} />
+                                  </button>
+                                </div>
+                              );
+                            }
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => handleAddToCart(dish, e)}
+                                className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center border transition-all active:scale-90"
+                                style={{ borderColor: `${FOOD_THEME_COLOR}33` }}
+                              >
+                                <Plus className="h-4 w-4" style={{ color: FOOD_THEME_COLOR }} strokeWidth={3} />
+                              </button>
+                            );
+                          })()}
+                        </div>
+
+                        {/* Content info */}
+                        <div className="flex flex-col gap-1 min-w-0 mt-2.5">
+                          {/* Restaurant */}
+                          <div className="flex items-center min-w-0">
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold truncate">
+                              {dish.restaurant}
+                            </span>
+                          </div>
+
+                          {/* Veg/Non-veg Dot & Name */}
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <div className="shrink-0 w-3.5 h-3.5 border border-gray-300 dark:border-gray-700 rounded flex items-center justify-center p-[2.5px] bg-white">
+                              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: dish.isVeg ? FOOD_VEG_COLOR : "#dc2626" }} />
+                            </div>
+                            <span className="text-[12px] font-bold text-gray-900 dark:text-white truncate">
+                              {dish.name}
+                            </span>
+                          </div>
+
+                          {/* Price */}
+                          <div className="flex items-center gap-1.5">
+                            {dish.originalPrice ? (
+                              <>
+                                <span className="text-[10px] text-gray-400 line-through">
+                                  ₹{dish.originalPrice}
+                                </span>
+                                <span className="text-[11px] font-black px-1.5 py-0.5 rounded-md" style={{ color: FOOD_THEME_COLOR, backgroundColor: `${FOOD_THEME_COLOR}15` }}>
+                                  ₹{dish.price}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-[12px] font-black text-gray-950 dark:text-white">
+                                  ₹{dish.price}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
 
             <Suspense fallback={null}>
               <RecommendedSection recommendedForYouRestaurants={meta.recommended} />
