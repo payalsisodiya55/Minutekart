@@ -5,6 +5,7 @@ import { CategoryChipRowSkeleton } from "@food/components/ui/loading-skeletons";
 import OptimizedImage from "@food/components/OptimizedImage";
 import foodPattern from "@food/assets/food_pattern_background.png";
 import { FOOD_VEG_COLOR } from "@food/constants/theme";
+import allIcon from "@/assets/c0a633fa42582f2a3752d4341dcfa5a2-removebg-preview.png";
 
 const CategoryRail = memo(({ 
   displayCategories, 
@@ -35,6 +36,24 @@ const CategoryRail = memo(({
           </div>
           <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Offers</span>
         </div>
+
+        {/* All section linking to All Categories page, placed next to the categories list */}
+        <Link
+          to="/user/category/all"
+          className="flex-shrink-0 flex flex-col items-center gap-2 group"
+        >
+          <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] rounded-full overflow-hidden shadow-sm border border-gray-100 bg-white transition-transform group-hover:scale-110">
+            <img
+              src={allIcon}
+              alt="All"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 truncate w-full text-center">
+            All
+          </span>
+        </Link>
+
 
         {!showCategorySkeleton && displayCategories.map((category, index) => (
           <Link
