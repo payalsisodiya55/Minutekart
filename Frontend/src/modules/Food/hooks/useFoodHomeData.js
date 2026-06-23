@@ -189,7 +189,8 @@ export const useFoodHomeData = ({
             mongoId: r._id || item.restaurantId,
             name: r.restaurantName || r.name || "Restaurant",
             image: normalizeImageUrl(item.imageUrl || r.profileImage?.url || r.profileImage),
-            estimatedDeliveryTime: r.estimatedDeliveryTime || "15-20 mins"
+            estimatedDeliveryTime: r.estimatedDeliveryTime || "15-20 mins",
+            pureVegRestaurant: r.pureVegRestaurant === true
           };
         });
         setPopularRestaurantsFromSettings(transformed);
@@ -381,15 +382,23 @@ export const useFoodHomeData = ({
 
   const recommendedForYouRestaurants = useMemo(() => {
     const fetchedByMongoId = new Map(restaurantsData.map(r => [String(r.mongoId || r.id), r]));
-    return recommendedRestaurantsFromSettings
+    let list = recommendedRestaurantsFromSettings
       .map(r => fetchedByMongoId.get(String(r._id || r.restaurantId)))
-      .filter(Boolean)
-      .slice(0, 12);
-  }, [restaurantsData, recommendedRestaurantsFromSettings]);
+      .filter(Boolean);
+
+    if (vegMode === "pure") {
+      list = list.filter(r => r.pureVegRestaurant);
+    }
+    return list.slice(0, 12);
+  }, [restaurantsData, recommendedRestaurantsFromSettings, vegMode]);
 
   const popularForYouRestaurants = useMemo(() => {
-    return popularRestaurantsFromSettings.slice(0, 12);
-  }, [popularRestaurantsFromSettings]);
+    let list = popularRestaurantsFromSettings;
+    if (vegMode === "pure") {
+      list = list.filter(r => r.pureVegRestaurant);
+    }
+    return list.slice(0, 12);
+  }, [popularRestaurantsFromSettings, vegMode]);
 
   // --- Actions ---
   const toggleFilter = useCallback((filterId) => {

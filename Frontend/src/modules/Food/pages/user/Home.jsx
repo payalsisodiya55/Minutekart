@@ -332,6 +332,11 @@ export default function Home() {
     };
   }, [effectiveZoneId, location?.latitude, location?.longitude]);
 
+  const displayedDishesUnder250 = useMemo(() => {
+    if (!vegMode) return dishesUnder250;
+    return dishesUnder250.filter((dish) => dish.isVeg);
+  }, [dishesUnder250, vegMode]);
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.innerWidth >= 768) {
@@ -581,11 +586,11 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-              ) : dishesUnder250.length === 0 ? (
+              ) : displayedDishesUnder250.length === 0 ? (
                 <div className="text-xs text-gray-400 text-center py-4 w-full">No meals under ₹250 available currently</div>
               ) : (
                 <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                  {dishesUnder250.map((dish) => {
+                  {displayedDishesUnder250.map((dish) => {
                     return (
                       <div
                         key={dish.id}

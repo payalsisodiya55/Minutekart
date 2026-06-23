@@ -7,6 +7,8 @@ import { getRestaurantAvailabilityStatus } from "@food/utils/restaurantAvailabil
 import { restaurantAPI } from "@food/api";
 import { flattenMenuItems, getMenuFromResponse } from "@food/utils/menuItems";
 
+import { useProfile } from "@food/context/ProfileContext";
+
 export default function RestaurantPreviewCard({
   restaurant,
   index,
@@ -19,8 +21,9 @@ export default function RestaurantPreviewCard({
 }) {
   const navigate = useNavigate();
   const { addToCart, updateQuantity, getCartItem } = useCart();
-  const [dishes, setDishes] = useState([]);
+  const [allDishes, setAllDishes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { vegMode } = useProfile();
 
   const nameStr = typeof restaurant?.name === "string" ? restaurant.name.trim() : "";
   const fallbackSlugSource =
@@ -85,7 +88,7 @@ export default function RestaurantPreviewCard({
           return 0;
         });
 
-        setDishes(sorted.slice(0, 3));
+        setAllDishes(sorted);
         if (onMenuLoaded) {
           onMenuLoaded(restaurantId, sorted.length > 0);
         }
@@ -104,6 +107,11 @@ export default function RestaurantPreviewCard({
       active = false;
     };
   }, [restaurant]);
+
+  const dishes = React.useMemo(() => {
+    const filtered = vegMode ? allDishes.filter((dish) => dish.isVeg) : allDishes;
+    return filtered.slice(0, 3);
+  }, [allDishes, vegMode]);
 
   const handleAddToCart = (dish, event) => {
     event.preventDefault();

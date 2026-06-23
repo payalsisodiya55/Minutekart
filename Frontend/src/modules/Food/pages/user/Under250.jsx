@@ -10,6 +10,7 @@ import { useLocationSelector } from "@food/components/user/UserLayout"
 import { useLocation } from "@food/hooks/useLocation"
 import { useZone } from "@food/hooks/useZone"
 import { useCart } from "@food/context/CartContext"
+import { useProfile } from "@food/context/ProfileContext"
 import PageNavbar from "@food/components/user/PageNavbar"
 import offerImage from "@food/assets/offerimage.png"
 import AddToCartAnimation from "@food/components/user/AddToCartAnimation"
@@ -67,6 +68,7 @@ export default function Under250() {
   const { zoneId, zoneStatus, isInService, isOutOfService } = useZone(location)
   const navigate = useNavigate()
   const { addToCart, updateQuantity, removeFromCart, getCartItem, cart } = useCart()
+  const { vegMode } = useProfile()
   const [activeCategory, setActiveCategory] = useState(initialFiltersRef.current.activeCategory)
   const [showSortPopup, setShowSortPopup] = useState(false)
   const [selectedSort, setSelectedSort] = useState(initialFiltersRef.current.selectedSort)
@@ -159,6 +161,21 @@ export default function Under250() {
   const sortedAndFilteredRestaurants = useMemo(() => {
     let filtered = under250Restaurants.map(r => ({ ...r, menuItems: [...(r.menuItems || [])] }))
 
+    // Apply Veg Mode filter: Pure Veg restaurant filter (does not show non-veg restaurants)
+    if (vegMode === "pure") {
+      filtered = filtered.filter(restaurant => restaurant.pureVegRestaurant)
+    }
+
+    // Apply Veg Mode filter: Veg dishes only filter (Case 1 & Case 2 both only show veg dishes)
+    if (vegMode) {
+      filtered = filtered
+        .map(restaurant => ({
+          ...restaurant,
+          menuItems: restaurant.menuItems.filter(item => item.isVeg)
+        }))
+        .filter(restaurant => restaurant.menuItems.length > 0)
+    }
+
     // Apply category filter
     if (activeCategory) {
       const selectedCat = categories.find(cat => cat.id === activeCategory)
@@ -234,7 +251,7 @@ export default function Under250() {
     });
 
     return filtered
-  }, [under250Restaurants, selectedSort, under30MinsFilter, activeCategory, categories])
+  }, [under250Restaurants, selectedSort, under30MinsFilter, activeCategory, categories, vegMode])
 
   // Fetch under-250 banner from public API
   useEffect(() => {
@@ -431,6 +448,7 @@ export default function Under250() {
                 originalIndex: index,
                 menuItems,
                 isOffline: !availabilityStatus.isOpen,
+                pureVegRestaurant: restaurant.pureVegRestaurant === true,
               }
             } catch {
               return null
