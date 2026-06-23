@@ -131,7 +131,7 @@ const DudhwalaHomeScreen = lazy(() => import("../../../Dudhwala/screens/HomeScre
 
 // Animated placeholder for search - moved outside component to prevent recreation
 const placeholders = [
-  'Search "burger"', 'Search "biryani"', 'Search "pizza"', 'Search "desserts"',
+  'Search restaurant', 'Search "burger"', 'Search "biryani"', 'Search "pizza"', 'Search "desserts"',
   'Search "chinese"', 'Search "thali"', 'Search "momos"', 'Search "dosa"', 'Search "thali"',
 ];
 
