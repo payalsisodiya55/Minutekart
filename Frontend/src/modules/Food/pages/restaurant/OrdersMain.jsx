@@ -1291,11 +1291,13 @@ export default function OrdersMain() {
     normalizedBusinessType === "home_bakery" ||
     normalizedBusinessType === "home bakery" ||
     normalizedBusinessType.includes("bakery");
-  const tabsToRender = [
-    ...filterTabs.slice(0, 1),
-    { id: "custom-cake", label: "Custom Cake" },
-    ...filterTabs.slice(1),
-  ];
+  const tabsToRender = isHomeBakeryAccount
+    ? [
+        ...filterTabs.slice(0, 1),
+        { id: "custom-cake", label: "Custom Cake" },
+        ...filterTabs.slice(1),
+      ]
+    : filterTabs;
   const [isReverifying, setIsReverifying] = useState(false);
   // Fetch restaurant verification status
   useEffect(() => {
