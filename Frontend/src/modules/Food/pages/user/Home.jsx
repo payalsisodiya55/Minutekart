@@ -122,6 +122,7 @@ const RecommendedSection = lazy(() => import("@food/components/user/home/Recomme
 const RestaurantGrid = lazy(() => import("@food/components/user/home/RestaurantGrid"));
 const SortFilterSection = lazy(() => import("@food/components/user/home/SortFilterSection"));
 const ExploreMoreSection = lazy(() => import("@food/components/user/home/ExploreMoreSection"));
+const PopularRestaurantSection = lazy(() => import("@food/components/user/home/PopularRestaurantSection"));
 
 const MiniCart = lazy(() => import("@food/components/user/MiniCart"));
 const OrderTrackingCard = lazy(() => import("@food/components/user/OrderTrackingCard"));
@@ -701,6 +702,10 @@ export default function Home() {
                 </div>
               )}
             </section>
+
+            <Suspense fallback={null}>
+              <PopularRestaurantSection popularRestaurants={meta.popular} />
+            </Suspense>
 
             <Suspense fallback={null}>
               <RecommendedSection recommendedForYouRestaurants={meta.recommended} />

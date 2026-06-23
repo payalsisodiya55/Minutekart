@@ -48,6 +48,7 @@ export const useFoodHomeData = ({
   const [headerVideoUrl, setHeaderVideoUrl] = useState(globalHomeCache.bootstrap?.settings?.videoUrl || "");
   const [recommendedRestaurantIds, setRecommendedRestaurantIds] = useState(globalHomeCache.bootstrap?.settings?.recommendedIds || []);
   const [recommendedRestaurantsFromSettings, setRecommendedRestaurantsFromSettings] = useState(globalHomeCache.bootstrap?.settings?.recommendedRaw || []);
+  const [popularRestaurantsFromSettings, setPopularRestaurantsFromSettings] = useState(globalHomeCache.bootstrap?.settings?.popularRaw || []);
   const [loadingLandingConfig, setLoadingLandingConfig] = useState(!hasValidCache);
 
   // --- Restaurants State ---
@@ -113,6 +114,7 @@ export const useFoodHomeData = ({
         })(),
         publicGetOnce("/food/explore-icons/public"),
         publicGetOnce("/food/landing/settings/public"),
+        publicGetOnce("/food/hero-banners/popular-restaurants/public"),
       ]);
 
       if (cancelled) return;
@@ -174,6 +176,24 @@ export const useFoodHomeData = ({
           recommendedIds: settings.recommendedRestaurantIds,
           recommendedRaw: settings.recommendedRestaurants,
         };
+      }
+
+      if (results[4] && results[4].status === "fulfilled") {
+        const popData = results[4].value?.data?.data || {};
+        const list = Array.isArray(popData.restaurants) ? popData.restaurants : (Array.isArray(popData) ? popData : []);
+        const transformed = list.map(item => {
+          const r = item.restaurant || {};
+          return {
+            ...r,
+            id: r.restaurantId || r._id || item.restaurantId,
+            mongoId: r._id || item.restaurantId,
+            name: r.restaurantName || r.name || "Restaurant",
+            image: normalizeImageUrl(item.imageUrl || r.profileImage?.url || r.profileImage),
+            estimatedDeliveryTime: r.estimatedDeliveryTime || "15-20 mins"
+          };
+        });
+        setPopularRestaurantsFromSettings(transformed);
+        newBootstrapCache.settings.popularRaw = transformed;
       }
 
       // Update global cache
@@ -367,6 +387,10 @@ export const useFoodHomeData = ({
       .slice(0, 12);
   }, [restaurantsData, recommendedRestaurantsFromSettings]);
 
+  const popularForYouRestaurants = useMemo(() => {
+    return popularRestaurantsFromSettings.slice(0, 12);
+  }, [popularRestaurantsFromSettings]);
+
   // --- Actions ---
   const toggleFilter = useCallback((filterId) => {
     setActiveFilters(prev => {
@@ -399,7 +423,7 @@ export const useFoodHomeData = ({
       hasMore: visibleRestaurantCount < filteredRestaurants.length 
     },
     landing: { exploreMore: landingExploreMore, heading: exploreMoreHeading, loading: loadingLandingConfig, videoUrl: headerVideoUrl },
-    meta: { recommended: recommendedForYouRestaurants },
+    meta: { recommended: recommendedForYouRestaurants, popular: popularForYouRestaurants },
     actions: { toggleFilter, applyFiltersAndRefetch, loadMoreRestaurants },
     state: { activeFilters, sortBy, setSortBy, selectedCuisine, setSelectedCuisine, isBootstrapped }
   };

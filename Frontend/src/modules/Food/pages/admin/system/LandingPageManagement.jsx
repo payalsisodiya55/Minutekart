@@ -116,6 +116,16 @@ export default function LandingPageManagement() {
   const [headerVideoUploading, setHeaderVideoUploading] = useState(false)
   const [headerVideoRemoving, setHeaderVideoRemoving] = useState(false)
   const [recommendedSearchQuery, setRecommendedSearchQuery] = useState("")
+
+  // Popular Restaurants tab states
+  const [popularRestaurants, setPopularRestaurants] = useState([])
+  const [popularLoading, setPopularLoading] = useState(true)
+  const [popularUploading, setPopularUploading] = useState(false)
+  const [popularDeleting, setPopularDeleting] = useState(null)
+  const [selectedRestaurantPopular, setSelectedRestaurantPopular] = useState("")
+  const [popularImageFile, setPopularImageFile] = useState(null)
+  const [popularImagePreview, setPopularImagePreview] = useState(null)
+  const popularFileInputRef = useRef(null)
   const headerVideoInputRef = useRef(null)
 
   const [allRestaurants, setAllRestaurants] = useState([])
@@ -209,6 +219,11 @@ export default function LandingPageManagement() {
       } else if (exploreMoreSubTab === 'icons') {
         fetchExploreMore()
       }
+    } else if (activeTab === 'popular-restaurants') {
+      if (allRestaurants.length === 0) {
+        fetchAllRestaurants()
+      }
+      fetchPopularRestaurants()
     }
   }, [activeTab, exploreMoreSubTab])
 
@@ -496,6 +511,122 @@ export default function LandingPageManagement() {
           : [...previousIds, restaurantId],
       }
     })
+  }
+
+  // ==================== POPULAR RESTAURANTS ====================
+  const fetchPopularRestaurants = async () => {
+    try {
+      setPopularLoading(true)
+      setError(null)
+      const response = await api.get('/food/hero-banners/popular-restaurants', getAuthConfig())
+      if (response.data.success) {
+        setPopularRestaurants(response.data.data.restaurants || [])
+      }
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 404) {
+        setPopularRestaurants([])
+        setError(null)
+      } else {
+        const errorMessage = err.response?.data?.message || 'Failed to load popular restaurants'
+        setErrorSafely(errorMessage)
+      }
+    } finally {
+      setPopularLoading(false)
+    }
+  }
+
+  const handleAddPopularRestaurant = async () => {
+    if (!selectedRestaurantPopular) {
+      setError('Please select a restaurant')
+      return
+    }
+    if (!popularImageFile) {
+      setError('Please select/upload an image')
+      return
+    }
+
+    try {
+      setPopularUploading(true)
+      setError(null)
+      setSuccess(null)
+
+      const formData = new FormData()
+      formData.append('image', popularImageFile)
+      formData.append('restaurantId', selectedRestaurantPopular)
+
+      const response = await api.post('/food/hero-banners/popular-restaurants', formData, getAuthConfig({
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }))
+
+      if (response.data.success) {
+        setSuccess('Restaurant added to Popular list successfully!')
+        setSelectedRestaurantPopular("")
+        setPopularImageFile(null)
+        if (popularImagePreview) {
+          URL.revokeObjectURL(popularImagePreview)
+          setPopularImagePreview(null)
+        }
+        if (popularFileInputRef.current) popularFileInputRef.current.value = ''
+        await fetchPopularRestaurants()
+        setTimeout(() => setSuccess(null), 3000)
+      }
+    } catch (err) {
+      setErrorSafely(err.response?.data?.message || 'Failed to add popular restaurant.')
+    } finally {
+      setPopularUploading(false)
+    }
+  }
+
+  const handleDeletePopularRestaurant = async (id) => {
+    if (!window.confirm('Are you sure you want to remove this restaurant from Popular?')) return
+    try {
+      setPopularDeleting(id)
+      setError(null)
+      setSuccess(null)
+      const response = await api.delete(`/food/hero-banners/popular-restaurants/${id}`, getAuthConfig())
+      if (response.data.success) {
+        setSuccess('Restaurant removed successfully!')
+        await fetchPopularRestaurants()
+        setTimeout(() => setSuccess(null), 3000)
+      }
+    } catch (err) {
+      setErrorSafely(err.response?.data?.message || 'Failed to remove popular restaurant.')
+    } finally {
+      setPopularDeleting(null)
+    }
+  }
+
+  const handlePopularRestaurantOrderChange = async (id, direction) => {
+    const restaurant = popularRestaurants.find(r => r._id === id)
+    if (!restaurant) return
+    const newOrder = direction === 'up' ? restaurant.order - 1 : restaurant.order + 1
+    const otherRestaurant = popularRestaurants.find(r => r.order === newOrder && r._id !== id)
+    if (!otherRestaurant && newOrder < 0) return
+    try {
+      setError(null)
+      await api.patch(`/food/hero-banners/popular-restaurants/${id}/order`, { order: newOrder }, getAuthConfig())
+      if (otherRestaurant) {
+        await api.patch(`/food/hero-banners/popular-restaurants/${otherRestaurant._id}/order`, { order: restaurant.order }, getAuthConfig())
+      }
+      await fetchPopularRestaurants()
+    } catch (err) {
+      setErrorSafely('Failed to update popular restaurant order.')
+    }
+  }
+
+  const handleTogglePopularRestaurantStatus = async (id, currentStatus) => {
+    try {
+      setError(null)
+      setSuccess(null)
+      const response = await api.patch(`/food/hero-banners/popular-restaurants/${id}/status`, {}, getAuthConfig())
+      if (response.data.success) {
+        setSuccess(`Restaurant ${currentStatus ? 'deactivated' : 'activated'} successfully!`)
+        await fetchPopularRestaurants()
+        setTimeout(() => setSuccess(null), 3000)
+      }
+    } catch (err) {
+      setErrorSafely('Failed to update popular restaurant status.')
+    }
   }
 
   // ==================== CATEGORIES ====================
@@ -1377,6 +1508,7 @@ export default function LandingPageManagement() {
     { id: 'dining', label: 'Dining', icon: UtensilsCrossed },
     { id: 'homepage-video', label: 'Homepage Video', icon: Layout },
     { id: 'explore-more', label: 'Explore More', icon: Layout },
+    { id: 'popular-restaurants', label: 'Popular Restaurant', icon: ChefHat },
   ]
 
   const exploreMoreTabs = [
@@ -2035,6 +2167,7 @@ export default function LandingPageManagement() {
                   </div>
                 </div>
               )}
+
             </div>
 
             {/* Sub-tabs for Explore More */}
@@ -2230,6 +2363,136 @@ export default function LandingPageManagement() {
                 </div>
               </>
             )}
+          </>
+        )}
+
+        {/* Popular Restaurants Tab */}
+        {activeTab === 'popular-restaurants' && (
+          <>
+            {/* Add Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-4">Add Restaurant to Popular list</h2>
+              <div className="space-y-5">
+                <div>
+                  <Label htmlFor="restaurant-popular">Select Restaurant</Label>
+                  <select
+                    id="restaurant-popular"
+                    value={selectedRestaurantPopular}
+                    onChange={(e) => setSelectedRestaurantPopular(e.target.value)}
+                    className="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={restaurantsLoading || popularUploading}
+                  >
+                    <option value="">Select a restaurant...</option>
+                    {allRestaurants
+                      .filter(r => !popularRestaurants.some(pr => pr.restaurantId?._id === r._id))
+                      .map((restaurant) => (
+                        <option key={restaurant._id} value={restaurant._id}>
+                          {restaurant.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div>
+                  <Label>Popular Image (Will be shown as circular brand image)</Label>
+                  <div
+                    className="mt-2 border-2 border-dashed border-blue-300 rounded-lg p-6 text-center bg-blue-50/30 cursor-pointer transition-colors hover:border-blue-400 hover:bg-blue-50/50"
+                    onClick={() => popularFileInputRef.current?.click()}
+                  >
+                    <input
+                      ref={popularFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          setPopularImageFile(file)
+                          setPopularImagePreview(URL.createObjectURL(file))
+                        }
+                      }}
+                      className="hidden"
+                      disabled={popularUploading}
+                    />
+                    {popularImagePreview ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <img src={popularImagePreview} alt="Preview" className="w-20 h-20 rounded-full object-cover border border-slate-200" />
+                        <span className="text-xs text-slate-500">Change image</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-slate-600">
+                        <Upload className="w-6 h-6 text-blue-500" />
+                        <span className="text-sm font-medium underline text-blue-600">Upload restaurant custom image</span>
+                        <span className="text-xs text-slate-400">PNG, JPG, WEBP up to 5MB</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleAddPopularRestaurant}
+                  disabled={!selectedRestaurantPopular || !popularImageFile || popularUploading}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  {popularUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Add Popular Restaurant
+                </Button>
+              </div>
+            </div>
+
+            {/* List Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-4">Popular Restaurants ({popularRestaurants.length})</h2>
+              {popularLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                </div>
+              ) : popularRestaurants.length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <ChefHat className="w-12 h-12 mx-auto mb-3 text-slate-400" />
+                  <p>No popular restaurants added yet.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {popularRestaurants.map((item, index) => {
+                    const r = item.restaurantId || {}
+                    const rName = r.restaurantName || r.name || 'N/A'
+                    const deliveryTime = r.estimatedDeliveryTime || '15-20 mins'
+                    return (
+                      <div key={item._id} className="border border-slate-200 rounded-lg overflow-hidden flex flex-col bg-white">
+                        <div className="relative h-28 bg-slate-100 flex items-center justify-center p-2">
+                          <img src={item.imageUrl} alt={rName} className="w-20 h-20 rounded-full object-cover border border-slate-200" />
+                          <div className="absolute top-1 right-1">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                              {item.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-3 mt-auto">
+                          <h3 className="font-semibold text-slate-900 mb-0.5 text-xs line-clamp-1">{rName}</h3>
+                          <p className="text-[10px] text-slate-500 mb-2">Delivery: {deliveryTime}</p>
+                          <div className="flex items-center justify-between gap-1 pt-1.5 border-t border-slate-100">
+                            <div className="flex items-center gap-0.5">
+                              <button onClick={() => handlePopularRestaurantOrderChange(item._id, 'up')} disabled={index === 0} className="p-1 rounded hover:bg-slate-100 disabled:opacity-50">
+                                <ArrowUp className="w-3 h-3 text-slate-600" />
+                              </button>
+                              <button onClick={() => handlePopularRestaurantOrderChange(item._id, 'down')} disabled={index === popularRestaurants.length - 1} className="p-1 rounded hover:bg-slate-100 disabled:opacity-50">
+                                <ArrowDown className="w-3 h-3 text-slate-600" />
+                              </button>
+                            </div>
+                            <button onClick={() => handleTogglePopularRestaurantStatus(item._id, item.isActive)} className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${item.isActive ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
+                              {item.isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button onClick={() => handleDeletePopularRestaurant(item._id)} disabled={popularDeleting === item._id} className="p-1 rounded hover:bg-red-50 text-red-600 disabled:opacity-50">
+                              {popularDeleting === item._id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </>
         )}
 

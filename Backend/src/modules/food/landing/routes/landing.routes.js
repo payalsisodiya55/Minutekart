@@ -53,6 +53,14 @@ import {
     updateGourmetOrderAdmin,
     toggleGourmetStatusAdmin
 } from '../controllers/top10GourmetAdmin.controller.js';
+import {
+    listPopularRestaurantsController,
+    createPopularRestaurantController,
+    deletePopularRestaurantController,
+    updatePopularRestaurantOrderController,
+    togglePopularRestaurantStatusController,
+    getPublicPopularRestaurantsController
+} from '../controllers/popularRestaurant.controller.js';
 import { getPublicPageController } from '../../admin/controllers/pageContent.controller.js';
 import { getPublicReferralSettingsController } from '../controllers/publicReferralSettings.controller.js';
 
@@ -120,12 +128,24 @@ router.delete('/hero-banners/gourmet/:id', deleteGourmetAdmin);
 router.patch('/hero-banners/gourmet/:id/order', updateGourmetOrderAdmin);
 router.patch('/hero-banners/gourmet/:id/status', toggleGourmetStatusAdmin);
 
+// Admin Popular Restaurants
+router.get('/hero-banners/popular-restaurants', listPopularRestaurantsController);
+router.post(
+    '/hero-banners/popular-restaurants',
+    upload.single('image'),
+    createPopularRestaurantController
+);
+router.delete('/hero-banners/popular-restaurants/:id', deletePopularRestaurantController);
+router.patch('/hero-banners/popular-restaurants/:id/order', updatePopularRestaurantOrderController);
+router.patch('/hero-banners/popular-restaurants/:id/status', togglePopularRestaurantStatusController);
+
 // Public landing endpoints (Food user app)
 router.get('/hero-banners/public', getPublicHeroBannersController);
 router.get('/hero-banners/under-250/public', getPublicUnder250BannersController);
 router.get('/hero-banners/dining/public', getPublicDiningBannersController);
 router.get('/explore-icons/public', getPublicExploreIconsController);
 router.get('/hero-banners/gourmet/public', getPublicGourmetController);
+router.get('/hero-banners/popular-restaurants/public', getPublicPopularRestaurantsController);
 router.get('/landing/settings/public', getPublicLandingSettingsController);
 router.get('/zones/detect', detectZonePublicController);
 router.get('/zones/nearby', listZonesNearbyPublicController);
