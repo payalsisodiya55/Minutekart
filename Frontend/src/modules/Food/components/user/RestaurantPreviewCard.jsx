@@ -209,9 +209,11 @@ export default function RestaurantPreviewCard({
                 {availability.isOpen ? "Open" : "Offline"}
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium">
-              <div className="flex items-center gap-0.5 text-green-700 dark:text-green-500 font-extrabold">
-                <Star className="h-3.5 w-3.5 fill-current text-green-700 dark:text-green-500" />
+            <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-[11px] sm:text-xs text-slate-600 dark:text-neutral-400 font-bold">
+              <div className="flex items-center gap-1 text-slate-850 dark:text-neutral-200">
+                <div className="w-[15px] h-[15px] rounded-full bg-[#1c7a43] flex items-center justify-center text-white flex-shrink-0">
+                  <Star className="h-2.5 w-2.5 fill-white text-white" />
+                </div>
                 <span>{Number(restaurant.rating) > 0 ? Number(restaurant.rating).toFixed(1) : "NEW"}</span>
               </div>
               <span>•</span>
@@ -227,8 +229,8 @@ export default function RestaurantPreviewCard({
             </div>
 
             {restaurant.offer && (
-              <div className="flex items-center gap-1.5 mt-2 text-xs font-bold text-[#0c831f] dark:text-[#109f26]">
-                <BadgePercent className="h-4 w-4 text-[#0c831f] dark:text-[#109f26] flex-shrink-0" strokeWidth={2.5} />
+              <div className="flex items-center gap-1.5 mt-2 text-[11px] sm:text-xs font-bold text-slate-600 dark:text-neutral-300">
+                <BadgePercent className="h-[15px] w-[15px] text-[#1c7a43] flex-shrink-0" strokeWidth={2.5} />
                 <span className="truncate">{restaurant.offer}</span>
               </div>
             )}
@@ -284,7 +286,7 @@ export default function RestaurantPreviewCard({
                   className="flex-shrink-0 w-[130px] sm:w-[140px] flex flex-col gap-1.5 relative group/dish"
                 >
                   {/* Dish image container */}
-                  <div className="relative w-full h-[98px] sm:h-[108px] rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100/50 dark:border-gray-800/50 overflow-hidden">
+                  <div className="relative w-full h-[98px] sm:h-[108px] rounded-[16px] bg-gray-55 dark:bg-gray-800 border border-gray-100/50 dark:border-gray-800/50 overflow-hidden">
                     {dish.image ? (
                       <img
                         src={dish.image}
@@ -298,9 +300,9 @@ export default function RestaurantPreviewCard({
                       </div>
                     )}
 
-                    {/* Popular Badge */}
+                    {/* Popular Badge matching target mockup style */}
                     {hasPopular && (
-                      <div className="absolute top-1 left-1 bg-[#398616] text-white text-[7px] font-extrabold px-1 py-0.5 rounded shadow-xs select-none">
+                      <div className="absolute top-1 left-1 bg-white/95 dark:bg-neutral-900/95 text-[#1c7a43] border border-[#1c7a43]/15 text-[8px] font-bold px-1.5 py-0.5 rounded-md shadow-xs select-none">
                         Popular
                       </div>
                     )}
@@ -308,7 +310,7 @@ export default function RestaurantPreviewCard({
                     {/* Plus Button or Quantity Selector Overlay */}
                     {quantity > 0 ? (
                       <div
-                        className="absolute bottom-1.5 right-1.5 h-8 rounded-full bg-white shadow-md flex items-center justify-between border border-[#cc2532]/20 px-1.5 gap-1.5"
+                        className="absolute bottom-1.5 right-1.5 h-8 rounded-full bg-white shadow-md flex items-center justify-between border border-[#d62b70]/35 px-1.5 gap-1.5"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -317,7 +319,7 @@ export default function RestaurantPreviewCard({
                         <button
                           type="button"
                           onClick={(e) => handleDecreaseQuantity(dish, e)}
-                          className="w-5.5 h-5.5 flex items-center justify-center text-[#cc2532] hover:opacity-80 transition-all active:scale-75"
+                          className="w-5.5 h-5.5 flex items-center justify-center text-[#d62b70] hover:opacity-80 transition-all active:scale-75"
                         >
                           <Minus className="h-3 w-3" strokeWidth={3.5} />
                         </button>
@@ -327,7 +329,7 @@ export default function RestaurantPreviewCard({
                         <button
                           type="button"
                           onClick={(e) => handleAddToCart(dish, e)}
-                          className="w-5.5 h-5.5 flex items-center justify-center text-[#cc2532] hover:opacity-80 transition-all active:scale-75"
+                          className="w-5.5 h-5.5 flex items-center justify-center text-[#d62b70] hover:opacity-80 transition-all active:scale-75"
                         >
                           <Plus className="h-3 w-3" strokeWidth={3.5} />
                         </button>
@@ -336,24 +338,24 @@ export default function RestaurantPreviewCard({
                       <button
                         type="button"
                         onClick={(e) => handleAddToCart(dish, e)}
-                        className="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center border border-[#cc2532]/20 transition-all hover:scale-105 active:scale-90"
+                        className="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center border border-[#d62b70]/35 transition-all hover:scale-105 active:scale-90"
                       >
-                        <Plus className="h-4 w-4 text-[#cc2532]" strokeWidth={3.5} />
+                        <Plus className="h-4 w-4 text-[#d62b70]" strokeWidth={3.5} />
                       </button>
                     )}
                   </div>
 
                   {/* Dish Info */}
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <div className="flex items-center gap-1 min-w-0">
-                      <div className="shrink-0 w-3 h-3 border border-gray-300 dark:border-gray-700 rounded flex items-center justify-center p-[1.5px] bg-white flex-shrink-0">
-                        <div className={`w-1 h-1 rounded-full ${dish.isVeg ? "bg-[#398616]" : "bg-red-600"}`} />
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <div className="flex items-start gap-1 min-w-0">
+                      <div className={`shrink-0 w-3.5 h-3.5 border rounded flex items-center justify-center p-[2px] bg-white mt-[1px] ${dish.isVeg ? "border-[#1c7a43]" : "border-red-600"}`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${dish.isVeg ? "bg-[#1c7a43]" : "bg-red-600"}`} />
                       </div>
-                      <span className="text-[11px] font-bold text-gray-800 dark:text-gray-200 truncate flex-1 leading-tight">
+                      <span className="text-xs font-bold text-slate-800 dark:text-neutral-200 line-clamp-2 flex-1 leading-tight min-h-[32px]">
                         {dish.name}
                       </span>
                     </div>
-                    <span className="text-[11px] font-extrabold text-gray-950 dark:text-gray-300 leading-none">
+                    <span className="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-neutral-100 leading-none">
                       ₹{dish.price}
                     </span>
                   </div>
