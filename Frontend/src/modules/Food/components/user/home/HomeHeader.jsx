@@ -10,8 +10,9 @@ import {
   Wallet,
   Bell,
   BellOff,
-  X,
   ShoppingCart,
+  User,
+  X,
   Pizza,
   Beef,
   ChefHat,
@@ -441,13 +442,12 @@ export default function HomeHeader({
               </div>
             </PopoverContent>
           </Popover>
-
           <Link
-            to="/food/user/cart"
+            to="/profile?from=food"
             className="h-[38px] w-[38px] rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-            aria-label="Open cart"
+            aria-label="Open profile"
           >
-            <ShoppingCart className="h-[20px] w-[20px] text-[#282c3f]" strokeWidth={2} />
+            <User className="h-[20px] w-[20px] text-[#282c3f]" strokeWidth={2} />
           </Link>
             </>
           )}
