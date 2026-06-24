@@ -593,6 +593,14 @@ export default function Home() {
               </Suspense>
             </div>
 
+            <Suspense fallback={null}>
+              <SortFilterSection
+                activeFilters={state.activeFilters}
+                toggleFilter={actions.toggleFilter}
+                setIsFilterOpen={(val) => { }} // Hook handles internal apply
+              />
+            </Suspense>
+
             {/* Meals under ₹250 section */}
             <section className="px-4 py-4 space-y-3 bg-white dark:bg-[#0a0a0a]">
               <div className="flex items-center justify-between">
@@ -774,13 +782,7 @@ export default function Home() {
               </Suspense>
             )}
 
-            <Suspense fallback={null}>
-              <SortFilterSection
-                activeFilters={state.activeFilters}
-                toggleFilter={actions.toggleFilter}
-                setIsFilterOpen={(val) => { }} // Hook handles internal apply
-              />
-            </Suspense>
+
 
             <Suspense fallback={null}>
               <ExploreMoreSection

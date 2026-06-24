@@ -22,6 +22,7 @@ export default function RestaurantPreviewCard({
   const navigate = useNavigate();
   const { addToCart, updateQuantity, getCartItem } = useCart();
   const [allDishes, setAllDishes] = useState([]);
+  const [lowestPrice, setLowestPrice] = useState(null);
   const [loading, setLoading] = useState(true);
   const { vegMode } = useProfile();
 
@@ -89,6 +90,10 @@ export default function RestaurantPreviewCard({
         });
 
         setAllDishes(sorted);
+        const minPrice = availableItems.length > 0
+          ? Math.min(...availableItems.map((item) => Number(item.price || 0)).filter((p) => p > 0))
+          : null;
+        setLowestPrice(Number.isFinite(minPrice) ? minPrice : null);
         if (onMenuLoaded) {
           onMenuLoaded(restaurantId, sorted.length > 0);
         }
@@ -236,10 +241,20 @@ export default function RestaurantPreviewCard({
               )}
             </div>
 
-            {restaurant.offer && (
-              <div className="flex items-center gap-1.5 mt-2 text-[11px] sm:text-xs font-bold text-slate-600 dark:text-neutral-300">
-                <BadgePercent className="h-[15px] w-[15px] text-[#1c7a43] flex-shrink-0" strokeWidth={2.5} />
-                <span className="truncate">{restaurant.offer}</span>
+            {(restaurant.offer || lowestPrice !== null) && (
+              <div className="flex flex-col gap-1 mt-2 text-[11px] sm:text-xs font-bold text-slate-600 dark:text-neutral-300">
+                {restaurant.offer && (
+                  <div className="flex items-center gap-1.5">
+                    <BadgePercent className="h-[15px] w-[15px] text-[#1c7a43] flex-shrink-0" strokeWidth={2.5} />
+                    <span className="truncate">{restaurant.offer}</span>
+                  </div>
+                )}
+                {lowestPrice !== null && (
+                  <div className="flex items-center gap-1.5">
+                    <BadgePercent className="h-[15px] w-[15px] text-[#1c7a43] flex-shrink-0" strokeWidth={2.5} />
+                    <span className="truncate">Items At ₹{lowestPrice}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
