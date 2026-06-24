@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Tag, User, Truck, ChevronRight } from "lucide-react"
+import { Tag, ShoppingCart, Truck, ChevronRight } from "lucide-react"
 import { useAuth } from "@core/context/AuthContext"
 import DraggableModuleSwitcher from "../../../common/components/DraggableModuleSwitcher"
 
@@ -52,24 +52,20 @@ export default function BottomNavigation() {
   // Check active routes - support both /user/* and /* paths
   const isBakery = pathname.startsWith("/food/user/bakery")
   const isUnder250 = pathname === "/food/under-250" || pathname.startsWith("/food/user/under-250")
-  const isSharedFoodProfile =
-    (pathname === "/profile" || pathname.startsWith("/profile/")) &&
-    profileSource !== "quick"
-  const isProfile =
-    pathname.startsWith("/food/profile") ||
-    pathname.startsWith("/food/user/profile") ||
-    isSharedFoodProfile
+  const isCart =
+    pathname === "/food/user/cart" ||
+    pathname.startsWith("/food/user/cart")
   const isDelivery =
     !isBakery &&
     !isUnder250 &&
-    !isProfile &&
+    !isCart &&
     (pathname === "/food" ||
       pathname === "/food/" ||
       pathname === "/food/user" ||
       (pathname.startsWith("/food/user") &&
         !pathname.includes("/bakery") &&
         !pathname.includes("/under-250") &&
-        !pathname.includes("/profile")))
+        !pathname.includes("/cart")))
 
   if (isKeyboardOpen) return null
 
@@ -110,20 +106,19 @@ export default function BottomNavigation() {
           </span>
         </Link>
 
-        {/* Profile Tab */}
+        {/* Cart Tab */}
         <Link
-          to={isAuthenticated ? "/food/user/profile" : "/user/auth/login"}
-          state={!isAuthenticated ? { redirectTo: "/food/user/profile" } : undefined}
+          to="/food/user/cart"
           replace
           className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
-            isProfile
+            isCart
               ? "bg-[#379702]/10 text-[#379702] font-semibold"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
           }`}
         >
-          <User className="h-5 w-5" strokeWidth={2.5} />
+          <ShoppingCart className="h-5 w-5" strokeWidth={2.5} />
           <span className="text-[9px] font-black tracking-wider uppercase">
-            Profile
+            Cart
           </span>
         </Link>
 
