@@ -19,6 +19,9 @@ import {
   Soup,
   Coffee,
   Milk,
+  Home,
+  Briefcase,
+  MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@food/components/ui/switch";
@@ -223,10 +226,29 @@ export default function HomeHeader({
   }, [activeTab, quickThemeColor, vegMode]);
   const isFood = activeTab === "food";
   const walletPath = isFood ? "/food/user/wallet" : "/quick/wallet";
-  const { title: locationTitle, subtitle: locationSubtitle } = useMemo(
-    () => buildLocationDisplay(savedAddressText, location),
-    [savedAddressText, location],
-  );
+  const displayLabel = useMemo(() => {
+    if (savedAddressText === "All Categories") return "All Categories";
+    const lbl = String(location?.label || "").trim().toLowerCase();
+    if (lbl.includes("home")) return "Home";
+    if (lbl.includes("office") || lbl.includes("work")) return "Office";
+    if (lbl.includes("other")) return "Other";
+    return location?.label || location?.area || location?.city || "Location";
+  }, [location, savedAddressText]);
+
+  const locationSubtitleText = useMemo(() => {
+    if (savedAddressText === "All Categories") return "Tap to choose delivery location";
+    if (!savedAddressText || savedAddressText === "Select Location") {
+      return location?.address || location?.city || "Tap to choose delivery location";
+    }
+    return savedAddressText;
+  }, [savedAddressText, location]);
+
+  const getHeaderAddressIcon = (label) => {
+    const l = String(label || "").toLowerCase();
+    if (l.includes("home")) return Home;
+    if (l.includes("office") || l.includes("work")) return Briefcase;
+    return MapPin;
+  };
 
   useEffect(() => {
     const video = videoRef.current;
@@ -356,24 +378,27 @@ export default function HomeHeader({
       <div className="flex items-center justify-between px-5 pt-5 mb-2 relative z-10">
         <button
           type="button"
-          className="flex items-start gap-2 cursor-pointer flex-1 min-w-0 bg-transparent border-0 p-0 text-left outline-none"
+          className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 bg-transparent border-0 p-0 text-left outline-none"
           onClick={handleLocationClick}
         >
           <>
-            <Navigation
-              className="h-[18px] w-[18px] rotate-[15deg] mt-[3px] shrink-0"
-              style={{ color: FOOD_VEG_COLOR, fill: FOOD_VEG_COLOR }}
-              strokeWidth={2.5}
-            />
-            <div className="flex min-w-0 max-w-[190px] flex-col">
+            {(() => {
+              const IconComponent = getHeaderAddressIcon(displayLabel);
+              return (
+                <div className="h-[38px] w-[38px] rounded-full bg-[#ffc20e] flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(0,0,0,0.12)]">
+                  <IconComponent className="h-[19px] w-[19px] text-[#1a1a1a]" strokeWidth={2.5} />
+                </div>
+              );
+            })()}
+            <div className="flex min-w-0 flex-col">
               <div className="flex items-center gap-[3px]">
-                <span className="truncate text-[16px] font-extrabold tracking-[-0.3px]">
-                  {locationTitle}
+                <span className="truncate text-[16px] font-extrabold tracking-[-0.3px] text-white">
+                  {displayLabel}
                 </span>
-                <ChevronDown className="h-[14px] w-[14px] shrink-0 opacity-80" strokeWidth={3} />
+                <ChevronDown className="h-[14px] w-[14px] shrink-0 opacity-85 text-white" strokeWidth={3} />
               </div>
-              <span className="max-w-[190px] truncate text-[11px] font-medium text-white/75">
-                {locationSubtitle}
+              <span className="truncate text-[11px] font-medium text-white/75 max-w-[200px] sm:max-w-[260px]">
+                {locationSubtitleText}
               </span>
             </div>
           </>

@@ -956,7 +956,14 @@ export default function AddressSelectorPage() {
                       <Icon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                     </div>
                     <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleSelectSavedAddress(addr)}>
-                      <p className="font-bold text-gray-900 dark:text-white capitalize">{addr.label || "Address"}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-gray-900 dark:text-white capitalize">{addr.label || "Address"}</p>
+                        {addr.isDefault && (
+                          <span className="bg-[#E6F7ED] dark:bg-emerald-950/40 text-[#379702] dark:text-emerald-400 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">
+                            Selected
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">
                         {[addr.additionalDetails, addr.street, addr.city, addr.state].filter(Boolean).join(", ")}
                       </p>
