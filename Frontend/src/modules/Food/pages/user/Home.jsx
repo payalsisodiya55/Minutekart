@@ -231,13 +231,51 @@ export default function Home() {
     return () => clearInterval(intervalId);
   }, []);
 
+  const dynamicPlaceholders = useMemo(() => {
+    const list = [];
+    if (categories && Array.isArray(categories.display) && categories.display.length > 0) {
+      let catCount = 0;
+      for (const cat of categories.display) {
+        if (!cat || !cat.name) continue;
+        const nameLower = cat.name.trim().toLowerCase();
+        if (nameLower === "all" || nameLower === "offers" || nameLower === "offer") continue;
+        
+        list.push(`Search "${cat.name.trim().toLowerCase()}"`);
+        catCount++;
+        
+        if (catCount % 2 === 0) {
+          list.push('Search "Restaurant"');
+        }
+      }
+    }
+    
+    if (list.length === 0) {
+      return [
+        'Search "cake"',
+        'Search "dall"',
+        'Search "Restaurant"',
+        'Search "pizza"',
+        'Search "biryani"',
+        'Search "Restaurant"',
+      ];
+    }
+    
+    return list;
+  }, [categories?.display]);
+
+  const activePlaceholders = useMemo(() => {
+    return activeTab === "quick" ? quickPlaceholders : dynamicPlaceholders;
+  }, [activeTab, dynamicPlaceholders]);
+
   useEffect(() => {
+    setPlaceholderIndex(0);
     const interval = setInterval(() => {
-      const activePlaceholders = activeTab === "quick" ? quickPlaceholders : placeholders;
-      setPlaceholderIndex((prev) => (prev + 1) % activePlaceholders.length);
+      if (activePlaceholders.length > 0) {
+        setPlaceholderIndex((prev) => (prev + 1) % activePlaceholders.length);
+      }
     }, 2000);
     return () => clearInterval(interval);
-  }, [activeTab]);
+  }, [activePlaceholders]);
 
   const activeBannerImages = useMemo(() => banners?.images || [], [banners?.images]);
 
@@ -505,7 +543,7 @@ export default function Home() {
             handleLocationClick={() => openLocationSelector()}
             handleSearchFocus={handleSearchFocus}
             placeholderIndex={placeholderIndex}
-            placeholders={activeTab === "quick" ? quickPlaceholders : placeholders}
+            placeholders={activePlaceholders}
             vegMode={vegMode}
             onVegModeChange={handleVegModeChange}
             headerVideoUrl={landing.videoUrl}

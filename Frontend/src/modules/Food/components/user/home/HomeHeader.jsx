@@ -30,7 +30,7 @@ import {
 import { Badge } from "@food/components/ui/badge";
 import foodPattern from "@food/assets/food_pattern_background.png";
 import useNotificationInbox from "@food/hooks/useNotificationInbox";
-import { FOOD_THEME_COLOR, FOOD_THEME_HOVER } from "@food/constants/theme";
+import { FOOD_THEME_COLOR, FOOD_THEME_HOVER, FOOD_VEG_COLOR } from "@food/constants/theme";
 
 const tabs = [
   {
@@ -348,7 +348,7 @@ export default function HomeHeader({
           <>
             <Navigation
               className="h-[18px] w-[18px] rotate-[15deg] mt-[3px] shrink-0"
-              style={{ color: theme.accent, fill: theme.accent }}
+              style={{ color: FOOD_VEG_COLOR, fill: FOOD_VEG_COLOR }}
               strokeWidth={2.5}
             />
             <div className="flex min-w-0 max-w-[190px] flex-col">
@@ -555,7 +555,7 @@ export default function HomeHeader({
               className="flex-1 rounded-full h-[48px] flex items-center px-4 cursor-pointer relative overflow-hidden bg-white shadow-[0_6px_18px_rgba(15,23,42,0.10)] border-0 text-left"
               onClick={handleSearchFocus}
             >
-              <Search className="h-[18px] w-[18px] ml-1 mr-2 flex-shrink-0 text-gray-400" strokeWidth={2.3} />
+              <Search className="h-[18px] w-[18px] ml-1 mr-2 flex-shrink-0" style={{ color: FOOD_THEME_COLOR }} strokeWidth={2.3} />
               <div className="flex-1 overflow-hidden relative h-[20px]">
                 <AnimatePresence mode="wait">
                   <motion.span
