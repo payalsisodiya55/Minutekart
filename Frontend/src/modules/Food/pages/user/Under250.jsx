@@ -949,7 +949,7 @@ export default function Under250() {
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden shadow-md transition-all ${!activeCategory ? 'ring-2 ring-[#cc2532] ring-offset-2' : ''}`}>
+                <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden shadow-md transition-all ${!activeCategory ? 'ring-2 ring-[#DC021B] ring-offset-2' : ''}`}>
                   <OptimizedImage
                     src={offerImage}
                     alt="All"
@@ -959,7 +959,7 @@ export default function Under250() {
                     placeholder="blur"
                   />
                 </div>
-                <span className={`text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 ${!activeCategory ? 'text-[#cc2532]' : ''}`}>
+                <span className={`text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 ${!activeCategory ? 'text-[#DC021B]' : ''}`}>
                   All
                 </span>
               </motion.div>
@@ -974,7 +974,7 @@ export default function Under250() {
                       whileTap={{ scale: 0.95 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
-                      <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden shadow-md transition-all ${isActive ? 'ring-2 ring-[#cc2532] ring-offset-2' : ''}`}>
+                      <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden shadow-md transition-all ${isActive ? 'ring-2 ring-[#DC021B] ring-offset-2' : ''}`}>
                         <OptimizedImage
                           src={category.image}
                           alt={category.name}
@@ -984,7 +984,7 @@ export default function Under250() {
                           placeholder="blur"
                         />
                       </div>
-                      <span className={`text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 ${isActive ? 'text-[#cc2532]' : ''}`}>
+                      <span className={`text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 ${isActive ? 'text-[#DC021B]' : ''}`}>
                         {category.name.length > 7 ? `${category.name.slice(0, 7)}...` : category.name}
                       </span>
                     </motion.div>
@@ -1011,7 +1011,7 @@ export default function Under250() {
               variant="outline"
               onClick={() => setUnder30MinsFilter(!under30MinsFilter)}
               className={`h-8 sm:h-9 md:h-10 px-3 sm:px-4 md:px-5 rounded-md flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 font-medium transition-all text-sm md:text-base ${under30MinsFilter
-                ? 'bg-[#cc2532] text-white border border-[#cc2532] hover:bg-[#a81e29]'
+                ? 'bg-[#DC021B] text-white border border-[#DC021B] hover:bg-[#B30216]'
                 : 'bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300'
                 }`}
             >
@@ -1141,7 +1141,7 @@ export default function Under250() {
                                       e.stopPropagation()
                                       updateItemQuantity(item, quantity + 1, e, restaurant.name)
                                     }}
-                                    className="text-[#cc2532] hover:text-[#a81e29] p-0.5"
+                                    className="text-[#DC021B] hover:text-[#B30216] p-0.5"
                                   >
                                     <Plus className="h-3 w-3" strokeWidth={3} />
                                   </button>
@@ -1149,7 +1149,7 @@ export default function Under250() {
                               ) : (
                                 <button
                                   disabled={shouldShowGrayscale || isRestaurantOffline}
-                                  className={`absolute bottom-2 right-2.5 z-20 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white dark:bg-gray-800 shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center justify-center text-[#cc2532] hover:scale-105 transition-transform duration-200 border border-gray-100 dark:border-gray-700 ${
+                                  className={`absolute bottom-2 right-2.5 z-20 h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white dark:bg-gray-800 shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center justify-center text-[#DC021B] hover:scale-105 transition-transform duration-200 border border-gray-100 dark:border-gray-700 ${
                                     shouldShowGrayscale || isRestaurantOffline ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                                   }`}
                                   onClick={(e) => {
@@ -1159,7 +1159,7 @@ export default function Under250() {
                                     }
                                   }}
                                 >
-                                  <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-[#cc2532]" strokeWidth={3} />
+                                  <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-[#DC021B]" strokeWidth={3} />
                                 </button>
                               )}
                             </div>
@@ -1190,7 +1190,7 @@ export default function Under250() {
                                   <Link 
                                     to="/user/cart" 
                                     onClick={(e) => e.stopPropagation()} 
-                                    className="text-[9px] sm:text-[10px] font-bold text-[#cc2532] hover:underline"
+                                    className="text-[9px] sm:text-[10px] font-bold text-[#DC021B] hover:underline"
                                   >
                                     View cart
                                   </Link>
@@ -1254,7 +1254,7 @@ export default function Under250() {
                 <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">Sort By</h2>
                 <button
                   onClick={handleClearAll}
-                  className="text-[#cc2532] dark:text-[#F97316] font-medium text-sm md:text-base"
+                  className="text-[#DC021B] dark:text-[#F97316] font-medium text-sm md:text-base"
                 >
                   Clear all
                 </button>
@@ -1268,11 +1268,11 @@ export default function Under250() {
                       key={option.id || 'relevance'}
                       onClick={() => setDraftSelectedSort(option.id)}
                       className={`px-4 md:px-5 lg:px-6 py-3 md:py-4 rounded-xl border text-left transition-colors ${draftSelectedSort === option.id
-                        ? 'border-[#cc2532] bg-red-50 dark:bg-red-900/20'
-                        : 'border-gray-200 dark:border-gray-800 hover:border-[#cc2532]'
+                        ? 'border-[#DC021B] bg-red-50 dark:bg-red-900/20'
+                        : 'border-gray-200 dark:border-gray-800 hover:border-[#DC021B]'
                         }`}
                     >
-                      <span className={`text-sm md:text-base lg:text-lg font-medium ${draftSelectedSort === option.id ? 'text-[#cc2532] dark:text-[#F97316]' : 'text-gray-700 dark:text-gray-300'}`}>
+                      <span className={`text-sm md:text-base lg:text-lg font-medium ${draftSelectedSort === option.id ? 'text-[#DC021B] dark:text-[#F97316]' : 'text-gray-700 dark:text-gray-300'}`}>
                         {option.label}
                       </span>
                     </button>
@@ -1290,7 +1290,7 @@ export default function Under250() {
                 </button>
                 <button
                   onClick={handleApply}
-                  className="flex-1 py-3 md:py-4 font-semibold rounded-xl transition-colors text-sm md:text-base bg-[#cc2532] text-white hover:bg-[#a81e29]"
+                  className="flex-1 py-3 md:py-4 font-semibold rounded-xl transition-colors text-sm md:text-base bg-[#DC021B] text-white hover:bg-[#B30216]"
                 >
                   Apply
                 </button>
@@ -1435,7 +1435,7 @@ export default function Under250() {
                 {selectedItem.customisable && (
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex-1 h-0.5 bg-gray-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#cc2532] rounded-full" style={{ width: '50%' }} />
+                      <div className="h-full bg-[#DC021B] rounded-full" style={{ width: '50%' }} />
                     </div>
                     <span className="text-xs text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
                       highly reordered
@@ -1571,7 +1571,7 @@ export default function Under250() {
                   <button
                     key={option.id}
                     onClick={() => handleShareOption(option.id)}
-                    className="rounded-2xl border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm font-medium text-gray-800 dark:text-gray-200 hover:border-[#cc2532] hover:text-[#cc2532] transition-colors"
+                    className="rounded-2xl border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm font-medium text-gray-800 dark:text-gray-200 hover:border-[#DC021B] hover:text-[#DC021B] transition-colors"
                   >
                     {option.label}
                   </button>

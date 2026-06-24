@@ -206,7 +206,7 @@ export default function RestaurantPreviewCard({
         <div className="flex justify-between items-start gap-2">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 min-w-0">
-              <h3 className="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white leading-tight tracking-tight truncate group-hover:text-[#cc2532] transition-colors duration-200">
+              <h3 className="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white leading-tight tracking-tight truncate group-hover:text-[#DC021B] transition-colors duration-200">
                 {restaurant.name}
               </h3>
               <span
@@ -255,8 +255,8 @@ export default function RestaurantPreviewCard({
               aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
               className={`h-8 w-8 rounded-full shadow-xs border flex items-center justify-center transition-all ${
                 favorite
-                  ? "bg-[#cc2532] text-white border-[#cc2532]"
-                  : "bg-white text-gray-400 hover:text-[#cc2532] border-gray-100 dark:bg-gray-800 dark:border-gray-700"
+                  ? "bg-[#DC021B] text-white border-[#DC021B]"
+                  : "bg-white text-gray-400 hover:text-[#DC021B] border-gray-100 dark:bg-gray-800 dark:border-gray-700"
               }`}
             >
               <Heart className={`h-4 w-4 ${favorite ? "fill-white" : ""}`} />
@@ -386,7 +386,7 @@ export default function RestaurantPreviewCard({
         )}
         <Link
           to={`/user/restaurants/${restaurantSlug}`}
-          className="text-xs font-bold text-[#cc2532] hover:text-[#a81e29] flex items-center gap-0.5 hover:opacity-80 active:scale-95 transition-all"
+          className="text-xs font-bold text-[#DC021B] hover:text-[#B30216] flex items-center gap-0.5 hover:opacity-80 active:scale-95 transition-all"
         >
           See All Menu <ArrowRight className="h-3.5 w-3.5" />
         </Link>
