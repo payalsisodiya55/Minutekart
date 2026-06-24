@@ -4,14 +4,14 @@ import LogoImage from "@/assets/logo_1.png"
 
 // Import the generated funky dark transparent PNG icons (perfectly segmented)
 import icon0 from '@/assets/funky/icon_0.png'
-import icon1 from '@/assets/funky/icon_1.png'
+import icon1 from '@/assets/funky/icon_15.png'
 import icon2 from '@/assets/funky/icon_2.png'
 import icon3 from '@/assets/funky/icon_3.png'
 import icon4 from '@/assets/funky/icon_4.png'
 import icon5 from '@/assets/funky/icon_5.png'
 import icon6 from '@/assets/funky/icon_6.png'
 import icon7 from '@/assets/funky/icon_7.png'
-import icon8 from '@/assets/funky/icon_8.png'
+import icon8 from '@/assets/funky/icon_16.png'
 import icon9 from '@/assets/funky/icon_9.png'
 
 export default function SplashScreen({ onComplete }) {
@@ -81,7 +81,7 @@ export default function SplashScreen({ onComplete }) {
         initial={{ opacity: 0, x: -150, rotate: -20 }}
         animate={{ opacity: 1, x: 0, rotate: 0 }}
         transition={{ delay: 0.7, duration: 1.0, type: "spring", stiffness: 70 }}
-        className="absolute w-16 h-16 md:w-24 md:h-24 pointer-events-none"
+        className="absolute w-20 h-20 md:w-28 md:h-28 pointer-events-none"
         style={{ left: "12%", top: "34%" }}
       >
         <motion.div
@@ -89,7 +89,7 @@ export default function SplashScreen({ onComplete }) {
           transition={floatTransition(0.3)}
           className="w-full h-full"
         >
-          <img src={icon1} alt="Icon 1" className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.18)]" />
+          <img src={icon1} alt="Pizza" className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.18)]" />
         </motion.div>
       </motion.div>
 
@@ -203,7 +203,7 @@ export default function SplashScreen({ onComplete }) {
         initial={{ opacity: 0, x: 120, y: 100 }}
         animate={{ opacity: 1, x: 0, y: 0 }}
         transition={{ delay: 0.95, duration: 1.0, type: "spring" }}
-        className="absolute w-16 h-16 md:w-24 md:h-24 pointer-events-none"
+        className="absolute w-20 h-20 md:w-28 md:h-28 pointer-events-none"
         style={{ right: "12%", top: "68%" }}
       >
         <motion.div
@@ -211,7 +211,7 @@ export default function SplashScreen({ onComplete }) {
           transition={floatTransition(0.35)}
           className="w-full h-full"
         >
-          <img src={icon8} alt="Icon 8" className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.18)]" />
+          <img src={icon8} alt="Burger" className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.18)]" />
         </motion.div>
       </motion.div>
 
