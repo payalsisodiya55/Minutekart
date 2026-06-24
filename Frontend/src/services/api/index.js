@@ -2183,6 +2183,11 @@ export const userAPI = {
       contextModule: "user",
     });
   },
+  /** Remove user profile image - clears profileImage field */
+  removeProfileImage: () =>
+    apiClient.patch("/food/user/profile", { profileImage: "" }, {
+      contextModule: "user",
+    }),
   /** GET /food/user/wallet (Bearer USER). Deduped + short-cached. */
   getWallet: (() => {
     let inFlight = null;

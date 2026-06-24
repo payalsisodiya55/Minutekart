@@ -26,6 +26,8 @@ import {
   Calendar,
   Trash2,
   Undo,
+  Camera,
+  Loader2,
 } from "lucide-react";
 
 import AnimatedPage from "@food/components/user/AnimatedPage";
@@ -60,8 +62,111 @@ const USER_SESSION_PREFERENCE_KEYS = ["userVegMode", "food-under-250-filters"];
 import { registerWebPushForCurrentModule } from "@food/utils/firebaseMessaging";
 
 export default function Profile() {
-  const { userProfile, vegMode, setVegMode, getDefaultAddress, addresses } =
+  const { userProfile, updateUserProfile, vegMode, setVegMode, getDefaultAddress, addresses } =
     useProfile();
+  const fileInputRef = React.useRef(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isRemovingImage, setIsRemovingImage] = useState(false);
+  const [showImageOptions, setShowImageOptions] = useState(false);
+
+  const normalizePhoneToTenDigits = (value) =>
+    String(value || "").replace(/\D/g, "").slice(-10);
+
+  const hasProfileImage = !!(
+    userProfile?.profileImage &&
+    (typeof userProfile.profileImage === "string"
+      ? userProfile.profileImage.trim() !== ""
+      : typeof userProfile.profileImage?.url === "string" &&
+        userProfile.profileImage.url.trim() !== "") &&
+    userProfile.profileImage !== "null" &&
+    userProfile.profileImage !== "undefined"
+  );
+
+  const handleAvatarClick = () => {
+    if (isUploadingImage || isRemovingImage) return;
+    if (hasProfileImage) {
+      setShowImageOptions((prev) => !prev);
+    } else {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      setShowImageOptions(false);
+      const response = await userAPI.uploadProfileImage(file);
+      const imageUrl = response?.data?.data?.profileImage || response?.data?.profileImage;
+
+      if (imageUrl) {
+        toast.success('Profile image updated successfully');
+
+        const committedProfile = userProfile || {};
+        const committedMobile = normalizePhoneToTenDigits(committedProfile.mobile || committedProfile.phone || "");
+        const mergedProfile = {
+          ...committedProfile,
+          phone: committedMobile,
+          mobile: committedMobile,
+          profileImage: imageUrl,
+        };
+
+        updateUserProfile(mergedProfile);
+        
+        localStorage.setItem('user_user', JSON.stringify(mergedProfile));
+        localStorage.setItem('userProfile', JSON.stringify(mergedProfile));
+
+        window.dispatchEvent(new Event("userAuthChanged"));
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error(error?.response?.data?.message || 'Failed to upload image');
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    try {
+      setIsRemovingImage(true);
+      setShowImageOptions(false);
+      await userAPI.removeProfileImage();
+      toast.success('Profile image removed');
+
+      const committedProfile = userProfile || {};
+      const committedMobile = normalizePhoneToTenDigits(committedProfile.mobile || committedProfile.phone || "");
+      const mergedProfile = {
+        ...committedProfile,
+        phone: committedMobile,
+        mobile: committedMobile,
+        profileImage: null,
+      };
+
+      updateUserProfile(mergedProfile);
+      localStorage.setItem('user_user', JSON.stringify(mergedProfile));
+      localStorage.setItem('userProfile', JSON.stringify(mergedProfile));
+      window.dispatchEvent(new Event("userAuthChanged"));
+    } catch (error) {
+      console.error('Error removing image:', error);
+      toast.error(error?.response?.data?.message || 'Failed to remove image');
+    } finally {
+      setIsRemovingImage(false);
+    }
+  };
+
   const { openLocationSelector } = useLocationSelector();
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
@@ -454,28 +559,44 @@ export default function Profile() {
         </div>
 
         {/* Profile Info Card */}
-        <Card className="bg-white dark:bg-[#1a1a1a] rounded-2xl py-0 pt-1 shadow-sm mb-0 border-0 dark:border-gray-800 overflow-hidden">
+        <Card className="bg-white dark:bg-[#1a1a1a] rounded-2xl py-0 pt-1 shadow-sm mb-0 border-0 dark:border-gray-800">
           <CardContent className="p-4 py-0 pt-2">
             <div className="flex items-start gap-4 mb-4">
-              <motion.div
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ duration: 0.3, type: "spring", stiffness: 300 }}>
-                <Avatar className="h-16 w-16 bg-red-100 border-0">
-                  {userProfile?.profileImage && (
-                    <AvatarImage
-                      src={
-                        typeof userProfile.profileImage === "string"
-                          ? userProfile.profileImage.trim() || undefined
-                          : userProfile.profileImage?.url || undefined
-                      }
-                      alt={displayName}
-                    />
+              <div className="relative cursor-pointer" onClick={handleAvatarClick}>
+                <Avatar key={hasProfileImage ? "has-image" : "no-image"} className="h-16 w-16 bg-red-100 border-0">
+                  {isUploadingImage || isRemovingImage ? (
+                    <AvatarFallback className="bg-red-100 text-[#C60011] text-xl font-semibold flex items-center justify-center">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    </AvatarFallback>
+                  ) : (
+                    hasProfileImage && (
+                      <AvatarImage
+                        src={
+                          typeof userProfile.profileImage === "string"
+                            ? userProfile.profileImage.trim() || undefined
+                            : userProfile.profileImage?.url || undefined
+                        }
+                        alt={displayName}
+                      />
+                    )
                   )}
-                  <AvatarFallback className="bg-red-100 text-red-600 text-2xl font-semibold">
-                    {avatarInitial}
-                  </AvatarFallback>
+                  {!(isUploadingImage || isRemovingImage) && (
+                    <AvatarFallback className="bg-red-100 text-[#C60011] text-2xl font-semibold flex items-center justify-center">
+                      {avatarInitial}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
-              </motion.div>
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#C60011] rounded-full flex items-center justify-center shadow-md border border-white hover:bg-[#A2000E] transition-colors">
+                  <Camera className="h-3 w-3 text-white" />
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+              </div>
               <div className="flex-1 pt-1">
                 <h2 className="text-xl font-bold text-black dark:text-white mb-1">
                   {displayName}
@@ -1371,6 +1492,49 @@ export default function Profile() {
           </div>
         </DialogContent>
       </Dialog>
+
+        {/* Image options bottom sheet - rendered at page level to avoid overflow-hidden clipping */}
+        {showImageOptions && hasProfileImage && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 z-[59] bg-black/30"
+              onClick={() => setShowImageOptions(false)}
+            />
+            {/* Bottom sheet */}
+            <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-[#1a1a1a] rounded-t-2xl shadow-2xl pb-safe">
+              <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mt-3 mb-4" />
+              <p className="text-center text-xs text-gray-400 dark:text-gray-500 font-medium mb-3 uppercase tracking-wider px-4">Profile Photo</p>
+              <button
+                type="button"
+                className="w-full flex items-center gap-3 px-6 py-4 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                onClick={() => { setShowImageOptions(false); fileInputRef.current?.click(); }}
+              >
+                <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                  <Camera className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                </div>
+                <span className="font-medium">Change photo</span>
+              </button>
+              <button
+                type="button"
+                className="w-full flex items-center gap-3 px-6 py-4 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                onClick={() => { setShowImageOptions(false); handleRemoveImage(); }}
+              >
+                <div className="w-9 h-9 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="h-4 w-4 text-red-600" />
+                </div>
+                <span className="font-medium">Remove photo</span>
+              </button>
+              <button
+                type="button"
+                className="w-full flex items-center justify-center py-4 text-sm text-gray-500 dark:text-gray-400 font-medium border-t border-gray-100 dark:border-gray-800 mt-1"
+                onClick={() => setShowImageOptions(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
     </AnimatedPage>
   );
 }

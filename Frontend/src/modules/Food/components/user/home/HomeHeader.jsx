@@ -31,6 +31,7 @@ import { Badge } from "@food/components/ui/badge";
 import foodPattern from "@food/assets/food_pattern_background.png";
 import useNotificationInbox from "@food/hooks/useNotificationInbox";
 import { FOOD_THEME_COLOR, FOOD_THEME_HOVER, FOOD_VEG_COLOR } from "@food/constants/theme";
+import { useProfile } from "@food/context/ProfileContext";
 
 const tabs = [
   {
@@ -171,6 +172,19 @@ export default function HomeHeader({
   const navigate = useNavigate();
   const [isListening, setIsListening] = useState(false);
   const routerLocation = useRouterLocation();
+  
+  const { userProfile } = useProfile();
+  
+  const avatarInitial =
+    userProfile?.name?.charAt(0)?.toUpperCase() ||
+    userProfile?.phone?.charAt(1)?.toUpperCase() ||
+    "";
+
+  const profileImageUrl =
+    userProfile?.profileImage &&
+    (typeof userProfile.profileImage === "string"
+      ? userProfile.profileImage.trim()
+      : userProfile.profileImage?.url);
   const videoRef = useRef(null);
   const { scrollY } = useScroll();
   const [isSticky, setIsSticky] = useState(false);
@@ -444,10 +458,22 @@ export default function HomeHeader({
           </Popover>
           <Link
             to="/profile?from=food"
-            className="h-[38px] w-[38px] rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+            className="h-[38px] w-[38px] rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
             aria-label="Open profile"
           >
-            <User className="h-[20px] w-[20px] text-[#282c3f]" strokeWidth={2} />
+            {profileImageUrl ? (
+              <img
+                src={profileImageUrl}
+                alt="Profile"
+                className="h-full w-full object-cover"
+              />
+            ) : avatarInitial ? (
+              <div className="h-full w-full flex items-center justify-center bg-red-100 text-red-600 text-sm font-bold">
+                {avatarInitial}
+              </div>
+            ) : (
+              <User className="h-[20px] w-[20px] text-[#282c3f]" strokeWidth={2} />
+            )}
           </Link>
             </>
           )}
