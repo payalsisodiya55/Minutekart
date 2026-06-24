@@ -65,7 +65,7 @@ const withAlpha = (hex, alpha) => {
 };
 
 const quickTheme = (baseColor) => {
-  const base = normalizeHex(baseColor, "#2f7a46");
+  const base = normalizeHex(baseColor, "#379702");
   return {
     topBg: `linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.18) 100%), ${withAlpha(base, 0.82)}`,
     accent: base,
@@ -78,7 +78,7 @@ const quickTheme = (baseColor) => {
 };
 
 const foodTheme = (vegMode) => {
-  const base = vegMode ? "#2f7a46" : FOOD_THEME_COLOR;
+  const base = vegMode ? "#379702" : FOOD_THEME_COLOR;
   return {
     topBg: `linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.18) 100%), ${withAlpha(base, 0.82)}`,
     accent: base,
@@ -596,7 +596,7 @@ export default function HomeHeader({
                 <Switch
                   checked={vegMode}
                   onCheckedChange={(checked) => onVegModeChange?.(checked)}
-                  className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-400"
+                  className="data-[state=checked]:bg-[#379702] data-[state=unchecked]:bg-gray-400"
                 />
               </div>
             </div>

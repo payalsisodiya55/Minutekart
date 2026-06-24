@@ -2074,7 +2074,7 @@ function RestaurantDetailsContent() {
             </div>
 
             <div className="flex flex-col items-end gap-1">
-              <div className="bg-[#008d48] text-white px-2 py-1 rounded-lg flex items-center gap-1 font-bold text-sm shadow-sm">
+              <div className="bg-[#379702] text-white px-2 py-1 rounded-lg flex items-center gap-1 font-bold text-sm shadow-sm">
                 <Star className="h-3.5 w-3.5 fill-white" />
                 <span>{restaurant?.rating || 0}</span>
               </div>
@@ -2098,7 +2098,7 @@ function RestaurantDetailsContent() {
             </div>
 
             <div className="flex-shrink-0">
-               <Badge className={`${isRestaurantOffline ? "bg-rose-100 text-rose-600 border-rose-200" : "bg-[#008d48] text-white border-transparent"} px-4 py-2 rounded-2xl text-xs font-bold shadow-sm whitespace-nowrap`}>
+               <Badge className={`${isRestaurantOffline ? "bg-rose-100 text-rose-600 border-rose-200" : "bg-[#379702] text-white border-transparent"} px-4 py-2 rounded-2xl text-xs font-bold shadow-sm whitespace-nowrap`}>
                  {isRestaurantOffline ? "Offline" : "Open now"}
                </Badge>
             </div>
@@ -2157,7 +2157,7 @@ function RestaurantDetailsContent() {
 
              {/* Redundant rating on offer card (as per screenshot) */}
              <div className="flex flex-col items-end gap-1 opacity-60 scale-90 origin-right">
-                <div className="bg-[#008d48] text-white px-2 py-0.5 rounded-lg flex items-center gap-1 font-bold text-xs">
+                <div className="bg-[#379702] text-white px-2 py-0.5 rounded-lg flex items-center gap-1 font-bold text-xs">
                   <Star className="h-3 w-3 fill-white" />
                   <span>{restaurant?.rating || 0}</span>
                 </div>

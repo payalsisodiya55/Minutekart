@@ -84,7 +84,7 @@ export default function BottomNavigation() {
           replace
           className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
             isDelivery
-              ? "bg-[#0c831f]/10 text-[#0c831f] font-semibold"
+              ? "bg-[#379702]/10 text-[#379702] font-semibold"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
           }`}
         >
@@ -100,7 +100,7 @@ export default function BottomNavigation() {
           replace
           className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
             isUnder250
-              ? "bg-[#0c831f]/10 text-[#0c831f] font-semibold"
+              ? "bg-[#379702]/10 text-[#379702] font-semibold"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
           }`}
         >
@@ -117,7 +117,7 @@ export default function BottomNavigation() {
           replace
           className={`flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-full transition-all duration-200 ${
             isProfile
-              ? "bg-[#0c831f]/10 text-[#0c831f] font-semibold"
+              ? "bg-[#379702]/10 text-[#379702] font-semibold"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-900"
           }`}
         >
@@ -130,7 +130,7 @@ export default function BottomNavigation() {
         {/* Instamart Link Button */}
         <Link
           to="/quick"
-          className="flex items-center gap-0.5 bg-[#0c831f] text-white px-3.5 py-2 rounded-full font-black text-[10px] shadow-sm transition-all active:scale-95 hover:opacity-90 tracking-wide uppercase shrink-0"
+          className="flex items-center gap-0.5 bg-[#379702] text-white px-3.5 py-2 rounded-full font-black text-[10px] shadow-sm transition-all active:scale-95 hover:opacity-90 tracking-wide uppercase shrink-0"
         >
           <span>Instamart</span>
           <ChevronRight className="h-3 w-3" strokeWidth={4} />
