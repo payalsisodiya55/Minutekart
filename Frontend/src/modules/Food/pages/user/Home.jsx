@@ -641,11 +641,11 @@ export default function Home() {
                     return (
                       <div
                         key={dish.id}
-                        className="flex-shrink-0 w-[150px] flex flex-col gap-2 group"
+                        className="flex-shrink-0 w-[140px] flex flex-col gap-2 group"
                       >
                         {/* Image container */}
-                        <div className="relative w-full h-[115px] rounded-2xl bg-gray-50 border border-gray-100 dark:border-gray-800">
-                          <div className="w-full h-full rounded-2xl overflow-hidden">
+                        <div className="relative w-full h-[140px] rounded-2xl bg-gray-50 border border-gray-100 dark:border-gray-800">
+                          <div className="w-full h-full rounded-2xl overflow-hidden relative">
                             <img
                               src={dish.image}
                               alt={dish.name}
@@ -654,15 +654,14 @@ export default function Home() {
                             />
                           </div>
                           
+                          {/* Rating Badge Overlay */}
+                          <div className="absolute -bottom-[1px] -left-[1px] bg-white dark:bg-[#0a0a0a] pt-[3px] pr-[5px] rounded-tr-lg rounded-bl-2xl flex items-center justify-center z-10">
+                            <div className="flex items-center gap-[2px] bg-[#EAFBF1] dark:bg-emerald-950/90 text-[#2E7D32] dark:text-emerald-400 text-[10.5px] font-bold px-[5px] py-[2px] rounded-[4px] shadow-sm"><span className="text-[11px] leading-none">★</span><span className="leading-none">{dish.rating}</span></div>
+                          </div>
+                          
                           {/* Popular Badge */}
                           <div className="absolute top-2 left-2 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md shadow-sm" style={{ backgroundColor: FOOD_VEG_COLOR }}>
                             Popular
-                          </div>
-
-                          {/* Rating Badge Overlay */}
-                          <div className="absolute bottom-0 left-2 translate-y-1/2 flex items-center gap-0.5 bg-[#eaf7e6] dark:bg-emerald-950/90 text-gray-800 dark:text-gray-200 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-sm border border-[#d0edd1]/80">
-                            <span className="text-[10px]" style={{ color: FOOD_VEG_COLOR }}>★</span>
-                            <span>{dish.rating}</span>
                           </div>
 
                           {/* Plus Button or Quantity Selector Overlay (Inside the image) */}
