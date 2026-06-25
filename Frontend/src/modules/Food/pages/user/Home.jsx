@@ -970,9 +970,9 @@ export default function Home() {
                 <Link
                   key={category.id || index}
                   to={`/user/category/${category.slug || category.name.toLowerCase().replace(/\s+/g, "-")}`}
-                  className="flex-shrink-0 flex flex-col items-center gap-1 group w-[92px]"
+                  className="flex-shrink-0 flex flex-col items-center gap-1 group w-[64px]"
                 >
-                  <div className="w-[72px] h-[72px] transition-transform group-hover:scale-105 flex items-center justify-center">
+                  <div className="w-[46px] h-[46px] transition-transform group-hover:scale-105 flex items-center justify-center">
                     <OptimizedImage
                       src={category.image}
                       alt={category.name}
@@ -980,7 +980,7 @@ export default function Home() {
                       backendOrigin={BACKEND_ORIGIN}
                     />
                   </div>
-                  <span className="text-[12px] font-black text-gray-700 dark:text-gray-300 truncate w-full text-center uppercase tracking-wide">
+                  <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 truncate w-full text-center uppercase tracking-wide">
                     {category.name}
                   </span>
                 </Link>
