@@ -42,7 +42,8 @@ import {
 } from '../controllers/outletTimings.controller.js';
 import {
     createRestaurantFoodController,
-    updateRestaurantFoodController
+    updateRestaurantFoodController,
+    getPublicFoodsController
 } from '../controllers/restaurantFood.controller.js';
 import {
     listAddonsController,
@@ -84,6 +85,7 @@ router.get('/restaurants/:id/outlet-timings', cacheResponse(600, 'restaurant_tim
 router.get('/offers', cacheResponse(300, 'offers'), listPublicOffersController);
 // Public: categories list (zone-aware; returns zone categories + global)
 router.get('/categories/public', cacheResponse(600, 'categories'), listCategoriesController);
+router.get('/foods/public', cacheResponse(600, 'foods'), getPublicFoodsController);
 
 // Restaurant dashboard/profile (Bearer token + RESTAURANT role)
 router.get('/current', authMiddleware, requireRestaurant, getCurrentRestaurantController);

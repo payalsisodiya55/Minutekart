@@ -148,7 +148,7 @@ export default function CategoryPage() {
 
     approvedFoodsInFlightRef.current = (async () => {
       try {
-        const response = await adminAPI.getFoods({ limit: 1000 })
+        const response = await adminAPI.getPublicFoods({ limit: 1000 })
         const list = response?.data?.data?.foods || []
         const approvedFoods = Array.isArray(list)
           ? list.filter((food) =>

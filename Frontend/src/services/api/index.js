@@ -700,6 +700,13 @@ export const adminAPI = {
       ...config,
     }),
 
+  /** Public foods (user app) - approved only */
+  getPublicFoods: (params = {}, config = {}) =>
+    publicGetOnce("/food/restaurant/foods/public", {
+      params: params ?? {},
+      ...config,
+    }),
+
   /** Offers & Coupons (admin) */
   getAllOffers: (params = {}) =>
     apiClient.get("/food/admin/offers", { params, contextModule: "admin" }),

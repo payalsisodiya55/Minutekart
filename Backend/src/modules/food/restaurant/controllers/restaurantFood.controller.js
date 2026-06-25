@@ -1,5 +1,6 @@
 import { sendResponse, sendError } from '../../../../utils/response.js';
 import { createRestaurantFood, updateRestaurantFood } from '../services/restaurantFood.service.js';
+import { getFoods } from '../../admin/services/admin.service.js';
 
 export const createRestaurantFoodController = async (req, res, next) => {
     try {
@@ -17,6 +18,16 @@ export const updateRestaurantFoodController = async (req, res, next) => {
         const food = await updateRestaurantFood(restaurantId, req.params.id, req.body || {});
         if (!food) return sendError(res, 404, 'Food not found');
         return sendResponse(res, 200, 'Food updated successfully', { food });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getPublicFoodsController = async (req, res, next) => {
+    try {
+        const query = { ...(req.query || {}), approvalStatus: 'approved' };
+        const result = await getFoods(query);
+        return sendResponse(res, 200, 'Foods fetched successfully', result);
     } catch (error) {
         next(error);
     }
