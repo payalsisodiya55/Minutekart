@@ -166,6 +166,7 @@ export default function HomeHeader({
   vegMode = false,
   onVegModeChange,
   headerVideoUrl,
+  headerImages = [],
   quickThemeColor,
   onQuickTabIntent,
   bannerComponent,
@@ -191,6 +192,29 @@ export default function HomeHeader({
   const videoRef = useRef(null);
   const { scrollY } = useScroll();
   const [isSticky, setIsSticky] = useState(false);
+
+  const slides = useMemo(() => {
+    const list = [];
+    if (headerVideoUrl) {
+      list.push({ type: "video", url: headerVideoUrl });
+    }
+    if (Array.isArray(headerImages)) {
+      headerImages.forEach((img) => {
+        if (img) list.push({ type: "image", url: img });
+      });
+    }
+    return list;
+  }, [headerVideoUrl, headerImages]);
+
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [slides.length]);
 
   useEffect(() => {
     return scrollY.on("change", (latest) => {
@@ -254,7 +278,8 @@ export default function HomeHeader({
     const video = videoRef.current;
     if (!video) return;
 
-    if (isFood) {
+    const currentSlide = slides[currentSlideIndex];
+    if (isFood && currentSlide?.type === "video") {
       const playPromise = video.play();
       if (playPromise?.catch) {
         playPromise.catch(() => { });
@@ -263,7 +288,7 @@ export default function HomeHeader({
     }
 
     video.pause();
-  }, [isFood]);
+  }, [isFood, currentSlideIndex, slides]);
 
   const mergedNotifications = useMemo(() => {
     const localItems = Array.isArray(notifications)
@@ -343,21 +368,47 @@ export default function HomeHeader({
         }`}
       style={{ background: theme.topBg, color: theme.text }}
     >
-      {headerVideoUrl && (
+      {slides.length > 0 && (
         <div className="absolute inset-x-0 top-0 bottom-0 z-0 flex justify-center overflow-hidden">
-          <video
-            ref={videoRef}
-            src={headerVideoUrl}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            aria-hidden="true"
-            className={`h-full w-full object-cover object-center transition-opacity duration-200 ${
-              isFood ? "opacity-100" : "opacity-0"
-            }`}
-          />
+          <AnimatePresence initial={false}>
+            {slides.map((slide, index) => {
+              if (index !== currentSlideIndex) return null;
+              return (
+                <motion.div
+                  key={`${slide.url}-${index}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.8 }}
+                  className="absolute inset-0 w-full h-full"
+                >
+                  {slide.type === "video" ? (
+                    <video
+                      ref={videoRef}
+                      src={slide.url}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="metadata"
+                      aria-hidden="true"
+                      className={`h-full w-full object-cover object-center transition-opacity duration-200 ${
+                        isFood ? "opacity-100" : "opacity-0"
+                      }`}
+                    />
+                  ) : (
+                    <img
+                      src={slide.url}
+                      alt="Banner"
+                      className={`h-full w-full object-cover object-center transition-opacity duration-200 ${
+                        isFood ? "opacity-100" : "opacity-0"
+                      }`}
+                    />
+                  )}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
           <div
             className="absolute inset-0 transition-colors duration-700"
             style={{
@@ -370,6 +421,23 @@ export default function HomeHeader({
               background: `radial-gradient(circle at 20% 30%, ${withAlpha(theme.accent, 0.4)}, transparent 70%)`
             }}
           />
+          {slides.length > 1 && (
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/20 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/10 shadow-sm">
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setCurrentSlideIndex(idx)}
+                  className={`h-1.5 rounded-full transition-all duration-350 cursor-pointer ${
+                    idx === currentSlideIndex 
+                      ? "w-4 bg-white" 
+                      : "w-1.5 bg-white/45 hover:bg-white/70"
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 

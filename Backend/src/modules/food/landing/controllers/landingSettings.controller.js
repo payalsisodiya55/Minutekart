@@ -2,7 +2,9 @@ import {
     deleteLandingHeaderVideo,
     getLandingSettings,
     updateLandingSettings,
-    uploadLandingHeaderVideo
+    uploadLandingHeaderVideo,
+    uploadLandingHeaderImages,
+    deleteLandingHeaderImage
 } from '../services/landingSettings.service.js';
 import { invalidateLandingSettingsCache } from './publicLanding.controller.js';
 import { sendResponse } from '../../../../utils/response.js';
@@ -50,4 +52,27 @@ export const deleteAdminLandingHeaderVideoController = async (req, res, next) =>
         next(error);
     }
 };
+
+export const uploadAdminLandingHeaderImagesController = async (req, res, next) => {
+    try {
+        const files = req.files;
+        const updated = await uploadLandingHeaderImages(files);
+        invalidateLandingSettingsCache();
+        return sendResponse(res, 200, 'Landing header images uploaded successfully', { settings: updated });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteAdminLandingHeaderImageController = async (req, res, next) => {
+    try {
+        const index = req.params.index;
+        const updated = await deleteLandingHeaderImage(index);
+        invalidateLandingSettingsCache();
+        return sendResponse(res, 200, 'Landing header image removed successfully', { settings: updated });
+    } catch (error) {
+        next(error);
+    }
+};
+
 

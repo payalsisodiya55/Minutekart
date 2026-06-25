@@ -46,6 +46,7 @@ export const useFoodHomeData = ({
   const [landingExploreMore, setLandingExploreMore] = useState(globalHomeCache.bootstrap?.exploreMore || []);
   const [exploreMoreHeading, setExploreMoreHeading] = useState(globalHomeCache.bootstrap?.settings?.heading || "Explore More");
   const [headerVideoUrl, setHeaderVideoUrl] = useState(globalHomeCache.bootstrap?.settings?.videoUrl || "");
+  const [headerImages, setHeaderImages] = useState(globalHomeCache.bootstrap?.settings?.headerImages || []);
   const [recommendedRestaurantIds, setRecommendedRestaurantIds] = useState(globalHomeCache.bootstrap?.settings?.recommendedIds || []);
   const [recommendedRestaurantsFromSettings, setRecommendedRestaurantsFromSettings] = useState(globalHomeCache.bootstrap?.settings?.recommendedRaw || []);
   const [popularRestaurantsFromSettings, setPopularRestaurantsFromSettings] = useState(globalHomeCache.bootstrap?.settings?.popularRaw || []);
@@ -168,11 +169,13 @@ export const useFoodHomeData = ({
         const settings = results[3].value?.data?.data || {};
         setExploreMoreHeading(settings.exploreMoreHeading || "Explore More");
         setHeaderVideoUrl(settings.headerVideoUrl || "");
+        setHeaderImages(settings.headerImages || []);
         setRecommendedRestaurantIds(settings.recommendedRestaurantIds || []);
         setRecommendedRestaurantsFromSettings(settings.recommendedRestaurants || []);
         newBootstrapCache.settings = {
           heading: settings.exploreMoreHeading,
           videoUrl: settings.headerVideoUrl,
+          headerImages: settings.headerImages || [],
           recommendedIds: settings.recommendedRestaurantIds,
           recommendedRaw: settings.recommendedRestaurants,
         };
@@ -431,7 +434,7 @@ export const useFoodHomeData = ({
       isLoadingFilterResults,
       hasMore: visibleRestaurantCount < filteredRestaurants.length 
     },
-    landing: { exploreMore: landingExploreMore, heading: exploreMoreHeading, loading: loadingLandingConfig, videoUrl: headerVideoUrl },
+    landing: { exploreMore: landingExploreMore, heading: exploreMoreHeading, loading: loadingLandingConfig, videoUrl: headerVideoUrl, headerImages },
     meta: { recommended: recommendedForYouRestaurants, popular: popularForYouRestaurants },
     actions: { toggleFilter, applyFiltersAndRefetch, loadMoreRestaurants },
     state: { activeFilters, sortBy, setSortBy, selectedCuisine, setSelectedCuisine, isBootstrapped }

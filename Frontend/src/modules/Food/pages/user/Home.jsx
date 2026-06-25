@@ -547,6 +547,7 @@ export default function Home() {
             vegMode={vegMode}
             onVegModeChange={handleVegModeChange}
             headerVideoUrl={landing.videoUrl}
+            headerImages={landing.headerImages}
             quickThemeColor={quickThemeColor}
             hideExtras={hideExtras}
             disableSticky={showStickyCategories}
