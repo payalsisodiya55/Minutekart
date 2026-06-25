@@ -584,6 +584,10 @@ export default function CategoryPage() {
         if (response.data && response.data.success && response.data.data && response.data.data.categories) {
           const categoriesArray = response.data.data.categories
 
+          const dbAllCategory = categoriesArray.find(
+            (cat) => cat.name?.trim().toLowerCase() === "all" || cat.slug?.trim().toLowerCase() === "all"
+          )
+
           // Filter out duplicate "All" database categories to prevent rendering it twice
           const filteredCategoriesArray = categoriesArray.filter(
             (cat) => cat.name?.trim().toLowerCase() !== "all" && cat.slug?.trim().toLowerCase() !== "all"
@@ -591,7 +595,7 @@ export default function CategoryPage() {
 
           // Transform API categories to match expected format
           const transformedCategories = [
-            { id: 'all', name: "All", image: null, slug: 'all' },
+            { id: 'all', name: dbAllCategory?.name || "All", image: dbAllCategory?.image || null, slug: 'all' },
             ...filteredCategoriesArray.map((cat) => ({
               id: cat.slug || cat.id,
               name: cat.name,
@@ -1354,9 +1358,23 @@ export default function CategoryPage() {
                       }`}
                   >
                     {isAllCategory ? (
-                      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 transition-all flex items-center justify-center border-gray-200 dark:border-gray-700 bg-white dark:bg-[#222222]">
-                        <Grid2x2 className={`h-6 w-6 md:h-7 md:w-7 ${isSelected ? 'text-[#DC021B]' : 'text-gray-500 dark:text-gray-400'}`} />
-                      </div>
+                      cat.image ? (
+                        <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center transition-all">
+                          <img
+                            src={cat.image}
+                            alt={cat.name}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              // If custom All image fails, hide it
+                              e.target.style.display = 'none'
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 transition-all flex items-center justify-center border-gray-200 dark:border-gray-700 bg-white dark:bg-[#222222]">
+                          <Grid2x2 className={`h-6 w-6 md:h-7 md:w-7 ${isSelected ? 'text-[#DC021B]' : 'text-gray-500 dark:text-gray-400'}`} />
+                        </div>
+                      )
                     ) : cat.image ? (
                       <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-transparent transition-all">
                         <img
