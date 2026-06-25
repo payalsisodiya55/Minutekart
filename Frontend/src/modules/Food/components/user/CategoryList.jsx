@@ -9,7 +9,7 @@ const CategoryList = ({ loading, categories, onCategoryClick }) => {
       <div className="flex gap-4 overflow-hidden px-4 md:px-0">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="flex-shrink-0 flex flex-col items-center gap-2">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
             <div className="w-12 h-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
           </div>
         ))}
@@ -32,11 +32,11 @@ const CategoryList = ({ loading, categories, onCategoryClick }) => {
               onClick={() => onCategoryClick(category)}
               className="flex-shrink-0 flex flex-col items-center gap-2 sm:gap-3 cursor-pointer group"
             >
-              <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full bg-white dark:bg-[#1a1a1a] shadow-md group-hover:shadow-xl transition-all duration-300 p-1 ring-2 ring-transparent group-hover:ring-primary-orange/20 overflow-hidden">
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 transition-all duration-300 flex items-center justify-center">
                 <OptimizedImage
                   src={category.image}
                   alt={category.name}
-                  className="w-full h-full object-cover rounded-full"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary-orange text-center whitespace-normal max-w-[80px] sm:max-w-[100px] leading-tight line-clamp-2 transition-colors duration-300">

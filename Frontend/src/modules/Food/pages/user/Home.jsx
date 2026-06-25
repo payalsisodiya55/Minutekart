@@ -939,8 +939,8 @@ export default function Home() {
             <div className="flex-1 overflow-y-auto p-6 grid grid-cols-3 gap-6">
               {categories.display.map(cat => (
                 <Link key={cat.id} to={`/user/category/${cat.slug}`} className="flex flex-col items-center gap-2" onClick={() => setShowAllCategoriesModal(false)}>
-                  <div className="w-20 h-20 rounded-full overflow-hidden shadow-sm bg-gray-50">
-                    <OptimizedImage src={cat.image} className="w-full h-full object-cover" backendOrigin={BACKEND_ORIGIN} />
+                  <div className="w-20 h-20 transition-transform flex items-center justify-center">
+                    <OptimizedImage src={cat.image} className="w-full h-full object-contain" backendOrigin={BACKEND_ORIGIN} />
                   </div>
                   <span className="text-xs font-semibold text-center">{cat.name}</span>
                 </Link>
@@ -972,11 +972,11 @@ export default function Home() {
                   to={`/user/category/${category.slug || category.name.toLowerCase().replace(/\s+/g, "-")}`}
                   className="flex-shrink-0 flex flex-col items-center gap-1 group w-[92px]"
                 >
-                  <div className="w-[72px] h-[72px] rounded-full overflow-hidden shadow-sm border border-gray-100 transition-transform group-hover:scale-105 bg-white">
+                  <div className="w-[72px] h-[72px] transition-transform group-hover:scale-105 flex items-center justify-center">
                     <OptimizedImage
                       src={category.image}
                       alt={category.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       backendOrigin={BACKEND_ORIGIN}
                     />
                   </div>

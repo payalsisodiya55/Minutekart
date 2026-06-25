@@ -66,9 +66,9 @@ function CategoryChipRowSkeleton({ count = 8, className }) {
       {Array.from({ length: count }, (_, index) => (
         <div key={`category-${index}`} className="flex flex-col items-center gap-2 flex-shrink-0">
           <Skeleton
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl"
           />
-          <Skeleton className="h-3 w-12 rounded-full" />
+          <Skeleton className="h-3 w-12 rounded" />
         </div>
       ))}
     </div>

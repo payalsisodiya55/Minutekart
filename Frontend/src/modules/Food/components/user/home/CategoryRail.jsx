@@ -42,11 +42,11 @@ const CategoryRail = memo(({
           to="/user/category/all"
           className="flex-shrink-0 flex flex-col items-center gap-2 group"
         >
-          <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] rounded-full overflow-hidden shadow-sm border border-gray-100 bg-white transition-transform group-hover:scale-110">
+          <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] transition-transform group-hover:scale-110 flex items-center justify-center">
             <img
               src={allIcon}
               alt="All"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
           <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 truncate w-full text-center">
@@ -61,11 +61,11 @@ const CategoryRail = memo(({
             to={`/user/category/${category.slug || category.name.toLowerCase().replace(/\s+/g, "-")}`}
             className="flex-shrink-0 flex flex-col items-center gap-2 group"
           >
-            <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] rounded-full overflow-hidden shadow-sm border border-gray-100 transition-transform group-hover:scale-110">
+            <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] transition-transform group-hover:scale-110 flex items-center justify-center">
               <OptimizedImage
                 src={category.image}
                 alt={category.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 backendOrigin={backendOrigin}
               />
             </div>

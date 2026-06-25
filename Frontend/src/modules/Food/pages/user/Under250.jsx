@@ -949,12 +949,11 @@ export default function Under250() {
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden shadow-md transition-all ${!activeCategory ? 'ring-2 ring-[#DC021B] ring-offset-2' : ''}`}>
+                <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center p-1.5 transition-all duration-300 ${!activeCategory ? 'bg-[#DC021B] shadow-md' : 'bg-transparent'}`}>
                   <OptimizedImage
                     src={offerImage}
                     alt="All"
-                    className="w-full h-full bg-white rounded-full"
-                    objectFit="cover"
+                    className="w-full h-full object-contain"
                     sizes="(max-width: 640px) 62px, (max-width: 768px) 96px, 112px"
                     placeholder="blur"
                   />
@@ -974,12 +973,11 @@ export default function Under250() {
                       whileTap={{ scale: 0.95 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
-                      <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden shadow-md transition-all ${isActive ? 'ring-2 ring-[#DC021B] ring-offset-2' : ''}`}>
+                      <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center p-1.5 transition-all duration-300 ${isActive ? 'bg-[#DC021B] shadow-md' : 'bg-transparent'}`}>
                         <OptimizedImage
                           src={category.image}
                           alt={category.name}
-                          className="w-full h-full bg-white rounded-full"
-                          objectFit="cover"
+                          className="w-full h-full object-contain"
                           sizes="(max-width: 640px) 62px, (max-width: 768px) 96px, 112px"
                           placeholder="blur"
                         />
