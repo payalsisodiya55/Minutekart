@@ -47,12 +47,12 @@ const SortFilterSection = memo(({ activeFilters, toggleFilter, setIsFilterOpen }
                 onClick={() => toggleFilter(filter.id)}
                 className={`flex h-7 flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2 font-medium transition-all sm:h-8 sm:px-3 ${
                   isActive
-                    ? "border border-[#DC021B] bg-[#DC021B] text-white hover:bg-[#DC021B]/90"
+                    ? "border border-[#379702] bg-[#379702] text-white hover:bg-[#2c7a02]"
                     : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:bg-[#1a1a1a] dark:text-gray-300 dark:hover:bg-gray-800"
                 }`}
               >
-                {Icon && <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${isActive ? "fill-white" : ""}`} />}
-                <span className="text-xs font-bold text-black dark:text-white sm:text-sm">{filter.label}</span>
+                {Icon && <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${isActive ? "fill-white text-white" : ""}`} />}
+                <span className={`text-xs font-bold sm:text-sm ${isActive ? "text-white" : "text-black dark:text-white"}`}>{filter.label}</span>
               </Button>
             </motion.div>
           );
