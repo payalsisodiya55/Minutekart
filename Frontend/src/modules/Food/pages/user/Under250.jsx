@@ -965,7 +965,7 @@ export default function Under250() {
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center p-1.5 transition-all duration-300 ${!activeCategory ? 'bg-[#DC021B] shadow-md' : 'bg-transparent'}`}>
+                <div className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center p-1.5 transition-all duration-300 bg-transparent">
                   <OptimizedImage
                     src={allIconToUse}
                     alt={allNameToUse}
@@ -977,6 +977,7 @@ export default function Under250() {
                 <span className={`text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 ${!activeCategory ? 'text-[#DC021B]' : ''}`}>
                   {allNameToUse}
                 </span>
+                <div className={`h-[3px] w-10 sm:w-14 rounded-full transition-all duration-300 ${!activeCategory ? 'bg-[#DC021B]' : 'bg-transparent'}`} />
               </motion.div>
             </div>
             {filteredCategories.map((category, index) => {
@@ -989,7 +990,7 @@ export default function Under250() {
                       whileTap={{ scale: 0.95 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
-                      <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center p-1.5 transition-all duration-300 ${isActive ? 'bg-[#DC021B] shadow-md' : 'bg-transparent'}`}>
+                      <div className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center p-1.5 transition-all duration-300 bg-transparent">
                         <OptimizedImage
                           src={category.image}
                           alt={category.name}
@@ -1001,6 +1002,7 @@ export default function Under250() {
                       <span className={`text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 ${isActive ? 'text-[#DC021B]' : ''}`}>
                         {category.name.length > 7 ? `${category.name.slice(0, 7)}...` : category.name}
                       </span>
+                      <div className={`h-[3px] w-10 sm:w-14 rounded-full transition-all duration-300 ${isActive ? 'bg-[#DC021B]' : 'bg-transparent'}`} />
                     </motion.div>
                 </div>
               )

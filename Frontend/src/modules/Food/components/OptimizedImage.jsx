@@ -34,6 +34,13 @@ const OptimizedImage = React.memo(({
   const imgRef = useRef(null)
   const observerRef = useRef(null)
 
+  // Infer object-fit from className if present to avoid cropping issues when object-contain is requested via CSS classes
+  const resolvedObjectFit = useMemo(() => {
+    if (className.includes('object-contain')) return 'contain'
+    if (className.includes('object-cover')) return 'cover'
+    return objectFit
+  }, [className, objectFit])
+
   // Check if image URL supports optimization (external URLs)
   const supportsOptimization = (imageSrc) => {
     if (!imageSrc || typeof imageSrc !== 'string' || imageSrc === '') return false
@@ -196,7 +203,7 @@ const OptimizedImage = React.memo(({
             srcSet={srcSet}
             sizes={supportsOptimization(imageSrc) ? sizes : undefined}
             alt={alt}
-            className={`w-full h-full ${objectFit === 'cover' ? 'object-cover' : objectFit === 'contain' ? 'object-contain' : ''} ${priority || isLoaded ? 'opacity-100' : 'opacity-0'} ${!priority && 'transition-opacity duration-300'}`}
+            className={`w-full h-full ${resolvedObjectFit === 'cover' ? 'object-cover' : resolvedObjectFit === 'contain' ? 'object-contain' : ''} ${priority || isLoaded ? 'opacity-100' : 'opacity-0'} ${!priority && 'transition-opacity duration-300'}`}
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
             fetchPriority={priority ? 'high' : 'auto'}
