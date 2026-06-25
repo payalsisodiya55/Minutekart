@@ -584,10 +584,15 @@ export default function CategoryPage() {
         if (response.data && response.data.success && response.data.data && response.data.data.categories) {
           const categoriesArray = response.data.data.categories
 
+          // Filter out duplicate "All" database categories to prevent rendering it twice
+          const filteredCategoriesArray = categoriesArray.filter(
+            (cat) => cat.name?.trim().toLowerCase() !== "all" && cat.slug?.trim().toLowerCase() !== "all"
+          )
+
           // Transform API categories to match expected format
           const transformedCategories = [
             { id: 'all', name: "All", image: null, slug: 'all' },
-            ...categoriesArray.map((cat) => ({
+            ...filteredCategoriesArray.map((cat) => ({
               id: cat.slug || cat.id,
               name: cat.name,
               image: cat.image || foodImages[0],
@@ -600,7 +605,7 @@ export default function CategoryPage() {
 
           // Generate category keywords dynamically from category names
           const keywordsMap = {}
-          categoriesArray.forEach((cat) => {
+          filteredCategoriesArray.forEach((cat) => {
             const categoryId = cat.slug || cat.id
             const categoryName = cat.name.toLowerCase()
 
@@ -1349,12 +1354,11 @@ export default function CategoryPage() {
                       }`}
                   >
                     {isAllCategory ? (
-                      <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-2 transition-all flex items-center justify-center ${isSelected ? 'border-[#DC021B] shadow-lg bg-[#FFF5F5] dark:bg-[#DC021B]/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#222222]'}`}>
+                      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 transition-all flex items-center justify-center border-gray-200 dark:border-gray-700 bg-white dark:bg-[#222222]">
                         <Grid2x2 className={`h-6 w-6 md:h-7 md:w-7 ${isSelected ? 'text-[#DC021B]' : 'text-gray-500 dark:text-gray-400'}`} />
                       </div>
                     ) : cat.image ? (
-                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 transition-all ${isSelected ? 'border-[#DC021B] shadow-lg' : 'border-transparent'
-                        }`}>
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-transparent transition-all">
                         <img
                           src={cat.image}
                           alt={cat.name}
@@ -1367,8 +1371,7 @@ export default function CategoryPage() {
                       </div>
                     ) : (
                       <div
-                        className={`w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center border-2 transition-all ${isSelected ? 'border-[#DC021B] shadow-lg bg-[#FFF5F5] dark:bg-[#DC021B]/20' : 'border-transparent'
-                          }`}
+                        className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center border-2 border-transparent transition-all"
                         aria-label={`${cat.name} category`}
                       >
                         <span className="text-sm md:text-base font-semibold text-gray-600 dark:text-gray-300">
