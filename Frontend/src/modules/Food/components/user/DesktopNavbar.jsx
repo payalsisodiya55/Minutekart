@@ -71,8 +71,6 @@ export default function DesktopNavbar({ showLogo = true, hideExtras = false }) {
         isSharedFoodProfile
     const isDelivery = !isBakery && !isDudhwala && !isUnder250 && !isProfile && !isQuick && (location.pathname === "/food/user" || location.pathname === "/food" || (location.pathname.startsWith("/food/user") && !location.pathname.includes("/bakery") && !location.pathname.includes("/under-250") && !location.pathname.includes("/profile")))
     const isBannerRoute =
-        location.pathname === "/food/user" ||
-        location.pathname === "/food" ||
         location.pathname === "/food/user/under-250" ||
         location.pathname === "/food/under-250"
     const searchPlaceholder = isQuick
@@ -386,45 +384,6 @@ export default function DesktopNavbar({ showLogo = true, hideExtras = false }) {
                                 )}
                             </Link>
 
-                            {/* Bakery Tab */}
-                            <Link
-                                to="/food/user/bakery/list"
-                                className={`flex flex-col items-center gap-1 px-2 py-1 transition-colors relative group ${isBakery
-                                    ? "text-[#DC021B] dark:text-[#DC021B]"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-[#DC021B] dark:hover:text-[#DC021B]"
-                                    }`}
-                            >
-                                <span className="text-sm font-bold tracking-wide uppercase">Bakery</span>
-                                {isBakery && (
-                                    <motion.div
-                                        layoutId="navIndicator"
-                                        className="absolute -bottom-3 left-0 right-0 h-0.5 bg-[#DC021B] dark:bg-[#DC021B]"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.3 }}
-                                    />
-                                )}
-                            </Link>
-
-                            {/* Dudhwala Tab */}
-                            <Link
-                                to="/dudhwala"
-                                className={`flex flex-col items-center gap-1 px-2 py-1 transition-colors relative group ${isDudhwala
-                                    ? "text-[#DC021B] dark:text-[#DC021B]"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-[#DC021B] dark:hover:text-[#DC021B]"
-                                    }`}
-                            >
-                                <span className="text-sm font-bold tracking-wide uppercase">Dudhwala</span>
-                                {isDudhwala && (
-                                    <motion.div
-                                        layoutId="navIndicator"
-                                        className="absolute -bottom-3 left-0 right-0 h-0.5 bg-[#DC021B] dark:bg-[#DC021B]"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.3 }}
-                                    />
-                                )}
-                            </Link>
 
                             {/* Profile Tab */}
                             <Link
