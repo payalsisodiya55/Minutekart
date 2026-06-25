@@ -960,21 +960,21 @@ export default function Under250() {
             {/* All Button */}
             <div className="flex-shrink-0 cursor-pointer" onClick={() => setActiveCategory(null)}>
               <motion.div
-                className="flex flex-col items-center gap-2 w-[62px] sm:w-24 md:w-28"
+                className="flex flex-col items-center gap-2 w-[58px] sm:w-[68px]"
                 whileHover={{ scale: 1.1, y: -4 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <div className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center p-1.5 transition-all duration-300 bg-transparent">
+                <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] flex items-center justify-center p-0.5 transition-all duration-300 bg-transparent">
                   <OptimizedImage
                     src={allIconToUse}
                     alt={allNameToUse}
                     className="w-full h-full object-contain"
-                    sizes="(max-width: 640px) 62px, (max-width: 768px) 96px, 112px"
+                    sizes="(max-width: 640px) 58px, 68px"
                     placeholder="blur"
                   />
                 </div>
-                <span className={`text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 ${!activeCategory ? 'text-[#DC021B]' : ''}`}>
+                <span className={`text-xs font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 truncate w-full ${!activeCategory ? 'text-[#DC021B]' : ''}`}>
                   {allNameToUse}
                 </span>
                 <div className={`h-[3px] w-10 sm:w-14 rounded-full transition-all duration-300 ${!activeCategory ? 'bg-[#DC021B]' : 'bg-transparent'}`} />
@@ -985,22 +985,22 @@ export default function Under250() {
               return (
                 <div key={category.id} className="flex-shrink-0 cursor-pointer" onClick={() => setActiveCategory(isActive ? null : category.id)}>
                     <motion.div
-                      className="flex flex-col items-center gap-2 w-[62px] sm:w-24 md:w-28"
+                      className="flex flex-col items-center gap-2 w-[58px] sm:w-[68px]"
                       whileHover={{ scale: 1.1, y: -4 }}
                       whileTap={{ scale: 0.95 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
-                      <div className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center p-1.5 transition-all duration-300 bg-transparent">
+                      <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] flex items-center justify-center p-0.5 transition-all duration-300 bg-transparent">
                         <OptimizedImage
                           src={category.image}
                           alt={category.name}
                           className="w-full h-full object-contain"
-                          sizes="(max-width: 640px) 62px, (max-width: 768px) 96px, 112px"
+                          sizes="(max-width: 640px) 58px, 68px"
                           placeholder="blur"
                         />
                       </div>
-                      <span className={`text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 ${isActive ? 'text-[#DC021B]' : ''}`}>
-                        {category.name.length > 7 ? `${category.name.slice(0, 7)}...` : category.name}
+                      <span className={`text-xs font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 truncate w-full ${isActive ? 'text-[#DC021B]' : ''}`}>
+                        {category.name}
                       </span>
                       <div className={`h-[3px] w-10 sm:w-14 rounded-full transition-all duration-300 ${isActive ? 'bg-[#DC021B]' : 'bg-transparent'}`} />
                     </motion.div>
