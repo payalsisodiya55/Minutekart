@@ -285,7 +285,7 @@ export default function RestaurantPreviewCard({
         {loading ? (
           <div className="flex gap-3 overflow-x-auto scrollbar-hide py-1">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex-shrink-0 w-[145px] sm:w-[162px] flex flex-col gap-1.5">
+              <div key={i} className="flex-shrink-0 w-[140px] sm:w-[158px] flex flex-col gap-1.5">
                 <div className="w-full h-[107px] sm:h-[120px] rounded-xl bg-gray-100 dark:bg-neutral-800 animate-pulse" />
                 <div className="h-3 w-3/4 bg-gray-100 dark:bg-neutral-800 animate-pulse rounded" />
                 <div className="h-3 w-1/2 bg-gray-100 dark:bg-neutral-800 animate-pulse rounded" />
@@ -306,7 +306,7 @@ export default function RestaurantPreviewCard({
               return (
                 <div
                   key={dish.id}
-                  className="flex-shrink-0 w-[145px] sm:w-[162px] flex flex-col gap-1.5 relative group/dish"
+                  className="flex-shrink-0 w-[140px] sm:w-[158px] flex flex-col gap-1.5 relative group/dish"
                 >
                   {/* Dish image container */}
                   <div className="relative w-full h-[107px] sm:h-[120px] rounded-[16px] bg-gray-55 dark:bg-gray-800 border border-gray-100/50 dark:border-gray-800/50 overflow-hidden">
