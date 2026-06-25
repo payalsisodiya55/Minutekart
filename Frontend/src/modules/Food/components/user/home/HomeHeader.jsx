@@ -368,7 +368,7 @@ export default function HomeHeader({
         }`}
       style={{ background: theme.topBg, color: theme.text }}
     >
-      {slides.length > 0 && (
+      {isFood && slides.length > 0 && (
         <div className="absolute inset-x-0 top-0 bottom-0 z-0 flex justify-center overflow-hidden">
           <AnimatePresence initial={false}>
             {slides.map((slide, index) => {
