@@ -13,6 +13,17 @@ const CategoryRail = memo(({
   navigate,
   backendOrigin = ""
 }) => {
+  const dbAllCategory = displayCategories?.find(
+    (cat) => cat.name?.trim().toLowerCase() === "all" || cat.slug?.trim().toLowerCase() === "all"
+  );
+
+  const filteredCategories = displayCategories?.filter(
+    (cat) => cat.name?.trim().toLowerCase() !== "all" && cat.slug?.trim().toLowerCase() !== "all"
+  ) || [];
+
+  const allIconToUse = dbAllCategory?.image || allIcon;
+  const allNameToUse = dbAllCategory?.name || "All";
+
   return (
     <section className="px-4 py-4 space-y-4">
       <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
@@ -44,18 +55,18 @@ const CategoryRail = memo(({
         >
           <div className="w-[58px] h-[58px] sm:w-[68px] sm:h-[68px] transition-transform group-hover:scale-110 flex items-center justify-center">
             <img
-              src={allIcon}
-              alt="All"
+              src={allIconToUse}
+              alt={allNameToUse}
               className="w-full h-full object-contain"
             />
           </div>
           <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 truncate w-full text-center">
-            All
+            {allNameToUse}
           </span>
         </Link>
 
 
-        {!showCategorySkeleton && displayCategories.map((category, index) => (
+        {!showCategorySkeleton && filteredCategories.map((category, index) => (
           <Link
             key={category.id || index}
             to={`/user/category/${category.slug || category.name.toLowerCase().replace(/\s+/g, "-")}`}

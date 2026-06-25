@@ -854,6 +854,22 @@ export default function Under250() {
     }
   }
 
+  // Find database category named "All" or slug "all"
+  const dbAllCategory = useMemo(() => {
+    return categories?.find(
+      (cat) => cat.name?.trim().toLowerCase() === "all" || cat.slug?.trim().toLowerCase() === "all"
+    );
+  }, [categories]);
+
+  const filteredCategories = useMemo(() => {
+    return categories?.filter(
+      (cat) => cat.name?.trim().toLowerCase() !== "all" && cat.slug?.trim().toLowerCase() !== "all"
+    ) || [];
+  }, [categories]);
+
+  const allIconToUse = dbAllCategory?.image || offerImage;
+  const allNameToUse = dbAllCategory?.name || "All";
+
   // Check if should show grayscale (only when user is out of service)
   const shouldShowGrayscale = isOutOfService
 
@@ -951,19 +967,19 @@ export default function Under250() {
               >
                 <div className={`w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center p-1.5 transition-all duration-300 ${!activeCategory ? 'bg-[#DC021B] shadow-md' : 'bg-transparent'}`}>
                   <OptimizedImage
-                    src={offerImage}
-                    alt="All"
+                    src={allIconToUse}
+                    alt={allNameToUse}
                     className="w-full h-full object-contain"
                     sizes="(max-width: 640px) 62px, (max-width: 768px) 96px, 112px"
                     placeholder="blur"
                   />
                 </div>
                 <span className={`text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-gray-200 text-center pb-1 ${!activeCategory ? 'text-[#DC021B]' : ''}`}>
-                  All
+                  {allNameToUse}
                 </span>
               </motion.div>
             </div>
-            {categories.map((category, index) => {
+            {filteredCategories.map((category, index) => {
               const isActive = activeCategory === category.id
               return (
                 <div key={category.id} className="flex-shrink-0 cursor-pointer" onClick={() => setActiveCategory(isActive ? null : category.id)}>

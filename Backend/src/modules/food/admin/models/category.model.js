@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const foodCategorySchema = new mongoose.Schema(
     {
         name: { type: String, required: true, trim: true, index: true },
+        slug: { type: String, trim: true, default: undefined, index: true },
         image: { type: String, trim: true, default: '' },
         type: { type: String, trim: true, default: '' },
         foodTypeScope: { type: String, enum: ['Veg', 'Non-Veg', 'Both'], default: 'Both', index: true },

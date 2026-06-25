@@ -170,6 +170,7 @@ export const serializeCategoryForResponse = (category = {}, options = {}) => {
         id: category._id || category.id,
         _id: category._id || category.id,
         name: category.name,
+        slug: category.slug || undefined,
         image: category.image || '',
         type: category.type || '',
         status: category.isActive !== false,

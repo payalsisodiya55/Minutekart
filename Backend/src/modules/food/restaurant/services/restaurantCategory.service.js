@@ -186,17 +186,19 @@ export async function listPublicCategories(query = {}) {
         categoryId: { $ne: null }
     });
 
-    if (!approvedCategoryIds.length) {
-        const result = { categories: [], total: 0, page, limit };
-        publicCategoriesCache.set(cacheKey, { data: result, lastFetched: now });
-        return result;
-    }
-
     const filter = {
-        _id: { $in: approvedCategoryIds },
         isActive: true,
         $and: [{ $or: GLOBAL_CATEGORY_FILTER }, { $or: APPROVED_CATEGORY_FILTER }]
     };
+
+    const idsAndSpecialFilter = [];
+    if (approvedCategoryIds.length > 0) {
+        idsAndSpecialFilter.push({ _id: { $in: approvedCategoryIds } });
+    }
+    idsAndSpecialFilter.push({ slug: 'all' });
+    idsAndSpecialFilter.push({ name: /^all$/i });
+
+    filter.$and.push({ $or: idsAndSpecialFilter });
 
     if (search) {
         const term = escapeRegex(search.slice(0, 80));
@@ -209,7 +211,7 @@ export async function listPublicCategories(query = {}) {
             .sort({ sortOrder: 1, createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .select('name image type foodTypeScope zoneId sortOrder createdAt updatedAt')
+            .select('name slug image type foodTypeScope zoneId sortOrder createdAt updatedAt')
             .lean(),
         FoodCategory.countDocuments(filter)
     ]);
@@ -259,6 +261,7 @@ export async function createRestaurantCategory(restaurantId, body = {}) {
             : undefined
     });
     await doc.save();
+    invalidatePublicCategoriesCache();
     return doc.toObject();
 }
 
@@ -313,6 +316,7 @@ export async function updateRestaurantCategory(restaurantId, id, body = {}) {
     doc.rejectedAt = undefined;
 
     await doc.save();
+    invalidatePublicCategoriesCache();
     return doc.toObject();
 }
 
@@ -331,5 +335,6 @@ export async function deleteRestaurantCategory(restaurantId, id) {
     }
 
     const deleted = await FoodCategory.findOneAndDelete({ _id: id, restaurantId: context.restaurantId }).lean();
+    invalidatePublicCategoriesCache();
     return deleted ? { id } : null;
 }

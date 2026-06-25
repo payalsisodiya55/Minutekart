@@ -18,6 +18,7 @@ import { API_BASE_URL } from "@food/api/config"
 import { toast } from "sonner"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
+import allIcon from "@/assets/c0a633fa42582f2a3752d4341dcfa5a2-removebg-preview.png"
 
 const defaultFormData = {
   name: "",
@@ -108,10 +109,19 @@ export default function Category() {
     return () => window.clearTimeout(timer)
   }, [searchQuery, showPendingOnly])
 
+  const allCategoryFromDB = useMemo(() => {
+    return categories.find(
+      (cat) => cat.name?.trim().toLowerCase() === "all" || cat.slug?.trim().toLowerCase() === "all"
+    );
+  }, [categories]);
+
   const filteredCategories = useMemo(() => {
     const query = String(searchQuery || "").trim().toLowerCase()
-    if (!query) return categories
-    return categories.filter((category) => {
+    const mainCategories = categories.filter(
+      (cat) => cat.name?.trim().toLowerCase() !== "all" && cat.slug?.trim().toLowerCase() !== "all"
+    );
+    if (!query) return mainCategories
+    return mainCategories.filter((category) => {
       const creator = category?.createdByRestaurant?.name || category?.restaurant?.name || ""
       return (
         String(category?.name || "").toLowerCase().includes(query) ||
@@ -164,6 +174,39 @@ export default function Category() {
     setFormData(defaultFormData)
     setSelectedImageFile(null)
     setImagePreview(null)
+    setIsModalOpen(true)
+  }
+
+  const handleEditAllCategory = () => {
+    if (allCategoryFromDB) {
+      setEditingCategory(allCategoryFromDB)
+      const zoneIdValue =
+        typeof allCategoryFromDB?.zoneId === "string"
+          ? allCategoryFromDB.zoneId
+          : allCategoryFromDB?.zoneId?._id || allCategoryFromDB?.zoneId?.id || "global"
+
+      setFormData({
+        name: allCategoryFromDB?.name || "All",
+        image: allCategoryFromDB?.image || "",
+        status: allCategoryFromDB?.status !== false,
+        type: allCategoryFromDB?.type || "System",
+        zoneId: zoneIdValue || "global",
+        foodTypeScope: allCategoryFromDB?.foodTypeScope || "Both",
+      })
+      setImagePreview(allCategoryFromDB?.image || null)
+    } else {
+      setEditingCategory({ isSpecialAll: true })
+      setFormData({
+        name: "All",
+        image: "",
+        status: true,
+        type: "System",
+        zoneId: "global",
+        foodTypeScope: "Both",
+      })
+      setImagePreview(null)
+    }
+    setSelectedImageFile(null)
     setIsModalOpen(true)
   }
 
@@ -347,8 +390,16 @@ export default function Category() {
       }
 
       if (editingCategory) {
-        const response = await adminAPI.updateCategory(editingCategory.id, payload)
-        if (response?.data?.success) toast.success("Category updated successfully")
+        if (editingCategory.isSpecialAll) {
+          const response = await adminAPI.createCategory({
+            ...payload,
+            slug: "all",
+          })
+          if (response?.data?.success) toast.success("Special 'All' category configured successfully")
+        } else {
+          const response = await adminAPI.updateCategory(editingCategory.id || editingCategory._id, payload)
+          if (response?.data?.success) toast.success("Category updated successfully")
+        }
       } else {
         const response = await adminAPI.createCategory(payload)
         if (response?.data?.success) toast.success("Category created successfully")
@@ -425,6 +476,30 @@ export default function Category() {
               Add Category
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Special "All" Category Configuration Card */}
+      <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="h-16 w-16 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-center flex-shrink-0">
+            {allCategoryFromDB?.image ? (
+              <img src={allCategoryFromDB.image} alt="All category" className="h-full w-full object-contain p-1" />
+            ) : (
+              <img src={allIcon} alt="Default All" className="h-full w-full object-contain p-1" />
+            )}
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Edit "{allCategoryFromDB?.name || "All"}" Category</h2>
+            <p className="text-xs text-slate-500 mt-1">This category links to the complete menu list on the user app. You can custom configure its name and image here.</p>
+          </div>
+          <button
+            onClick={handleEditAllCategory}
+            className="sm:ml-auto inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-4 py-2.5 text-sm font-medium text-white transition-colors"
+          >
+            <Pencil className="h-4 w-4" />
+            Configure "All" Category
+          </button>
         </div>
       </div>
 

@@ -49,6 +49,7 @@ import {
     normalizeCategoryFoodTypeScope,
     serializeCategoryForResponse
 } from '../../shared/categoryWorkflow.js';
+import { invalidatePublicCategoriesCache } from '../../restaurant/services/restaurantCategory.service.js';
 import {
     extractRawFoodVariants,
     getFoodDisplayPrice,
@@ -2711,6 +2712,7 @@ export async function createCategory(body) {
     if (!name) throw new ValidationError('Category name is required');
     const doc = new FoodCategory({
         name,
+        slug: typeof body.slug === 'string' ? body.slug.trim() : undefined,
         image: typeof body.image === 'string' ? body.image.trim() : '',
         type: typeof body.type === 'string' ? body.type.trim() : '',
         foodTypeScope: normalizeCategoryFoodTypeScope(body.foodTypeScope, 'Both'),
@@ -2734,6 +2736,7 @@ export async function createCategory(body) {
         createdByRestaurantId: undefined
     });
     await doc.save();
+    invalidatePublicCategoriesCache();
     return doc.toObject();
 }
 
@@ -2751,6 +2754,7 @@ export async function approveCategory(id) {
     doc.rejectedAt = undefined;
     doc.rejectionReason = '';
     await doc.save();
+    invalidatePublicCategoriesCache();
     return doc.toObject();
 }
 
@@ -2771,6 +2775,7 @@ export async function rejectCategory(id, reason) {
     doc.rejectedAt = new Date();
     doc.approvedAt = undefined;
     await doc.save();
+    invalidatePublicCategoriesCache();
     return doc.toObject();
 }
 
@@ -2795,6 +2800,7 @@ export async function makeCategoryGlobal(id) {
     doc.globalizedAt = new Date();
     doc.approvedAt = doc.approvedAt || new Date();
     await doc.save();
+    invalidatePublicCategoriesCache();
     return doc.toObject();
 }
 
@@ -2818,6 +2824,7 @@ export async function updateCategory(id, body) {
     }
 
     if (body.name !== undefined) doc.name = String(body.name || '').trim();
+    if (body.slug !== undefined) doc.slug = typeof body.slug === 'string' ? body.slug.trim() : undefined;
     if (body.image !== undefined) doc.image = String(body.image || '').trim();
     if (body.type !== undefined) doc.type = String(body.type || '').trim();
     if (body.foodTypeScope !== undefined) doc.foodTypeScope = nextFoodTypeScope;
@@ -2838,6 +2845,7 @@ export async function updateCategory(id, body) {
         doc.createdByRestaurantId = doc.restaurantId;
     }
     await doc.save();
+    invalidatePublicCategoriesCache();
     return doc.toObject();
 }
 
@@ -2848,6 +2856,7 @@ export async function deleteCategory(id) {
         throw new ValidationError('Cannot delete category while it has items');
     }
     const deleted = await FoodCategory.findByIdAndDelete(id).lean();
+    invalidatePublicCategoriesCache();
     return deleted ? { id } : null;
 }
 
@@ -2860,6 +2869,7 @@ export async function toggleCategoryStatus(id) {
         doc.createdByRestaurantId = doc.restaurantId;
     }
     await doc.save();
+    invalidatePublicCategoriesCache();
     return doc.toObject();
 }
 
