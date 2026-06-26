@@ -30,7 +30,7 @@ const CategoryRail = memo(({
         What's on your mind?
       </h2>
       
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="flex gap-4 overflow-x-auto -mx-4 px-4 scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <div 
           className="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer group"
           onClick={() => navigate("/user/under-250")}

@@ -18,7 +18,7 @@ const PopularRestaurantSection = memo(({ popularRestaurants }) => {
         Popular Restaurants
       </h2>
 
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {popularRestaurants.map((restaurant, index) => {
           const restaurantSlug =
             restaurant.slug ||

@@ -623,7 +623,7 @@ export default function Home() {
               </div>
 
               {loadingDishesUnder250 ? (
-                <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div className="flex gap-4 overflow-x-auto -mx-4 px-4 scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   {[1, 2, 3, 4, 5].map((i) => (
                     <div key={i} className="flex-shrink-0 w-[150px] flex flex-col gap-2">
                       <div className="w-full h-[115px] rounded-2xl bg-gray-100 dark:bg-neutral-800 animate-pulse" />
@@ -636,7 +636,7 @@ export default function Home() {
               ) : displayedDishesUnder250.length === 0 ? (
                 <div className="text-xs text-gray-400 text-center py-4 w-full">No meals under ₹250 available currently</div>
               ) : (
-                <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div className="flex gap-4 overflow-x-auto -mx-4 px-4 scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   {displayedDishesUnder250.map((dish) => {
                     return (
                       <div
