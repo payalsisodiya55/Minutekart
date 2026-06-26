@@ -11,6 +11,7 @@ import { useProfile } from "@food/context/ProfileContext"
 import { FaLocationDot } from "react-icons/fa6"
 import { AnimatePresence, motion } from "framer-motion"
 import { useAuth } from "@core/context/AuthContext"
+import geminiWalletImage from "@/assets/wallet_1.png";
 
 import { getCachedSettings, loadBusinessSettings } from "@common/utils/businessSettings"
 const debugLog = (...args) => {}
@@ -292,7 +293,7 @@ export default function DesktopNavbar({ showLogo = true, hideExtras = false }) {
                                     className="h-12 w-12 lg:h-14 lg:w-14 rounded-full p-0 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                                     title="Wallet"
                                 >
-                                    <Wallet className="!h-5 !w-5 lg:!h-6 lg:!w-6 text-gray-700 dark:text-gray-300" strokeWidth={2} />
+                                    <img src={geminiWalletImage} alt="Wallet" className="!h-7 !w-7 lg:!h-8 lg:!w-8 object-contain" />
                                 </Button>
                             </Link>
 
