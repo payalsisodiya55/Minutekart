@@ -1171,7 +1171,7 @@ export default function Under250() {
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     if (!shouldShowGrayscale && !isRestaurantOffline) {
-                                      handleItemClick(item, restaurant)
+                                      updateItemQuantity(item, 1, e, restaurant.name)
                                     }
                                   }}
                                 >

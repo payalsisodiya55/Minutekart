@@ -345,6 +345,17 @@ export function CartProvider({ children }) {
         })
         setTimeout(() => setLastRemoveEvent(null), 1500)
       }
+      if (existingItem && quantity > existingItem.quantity && sourcePosition && productInfo) {
+        setLastAddEvent({
+          product: {
+            id: productInfo.id || existingItem.id,
+            name: productInfo.name || existingItem.name,
+            imageUrl: productInfo.imageUrl || productInfo.image || existingItem.image || existingItem.imageUrl,
+          },
+          sourcePosition,
+        })
+        setTimeout(() => setLastAddEvent(null), 1500)
+      }
       return safePrev.map((i) => (i.id === resolvedItemId ? { ...i, quantity } : i))
     })
   }

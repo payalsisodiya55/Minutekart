@@ -124,7 +124,7 @@ const SortFilterSection = lazy(() => import("@food/components/user/home/SortFilt
 const ExploreMoreSection = lazy(() => import("@food/components/user/home/ExploreMoreSection"));
 const PopularRestaurantSection = lazy(() => import("@food/components/user/home/PopularRestaurantSection"));
 
-const MiniCart = lazy(() => import("@food/components/user/MiniCart"));
+const AddToCartAnimation = lazy(() => import("@food/components/user/AddToCartAnimation"));
 const OrderTrackingCard = lazy(() => import("@food/components/user/OrderTrackingCard"));
 const QuickCommerceHomePage = lazy(() => import("../../../quickCommerce/user/pages/Home"));
 const DudhwalaHomeScreen = lazy(() => import("../../../Dudhwala/screens/HomeScreen"));
@@ -951,7 +951,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {activeTab === "food" && hasFoodCartItems && !hideExtras && <Suspense fallback={null}><MiniCart /></Suspense>}
+      {activeTab === "food" && !hideExtras && <Suspense fallback={null}><AddToCartAnimation bottomOffset={80} /></Suspense>}
       {!hideExtras && <Suspense fallback={null}><OrderTrackingCard hasBottomNav /></Suspense>}
 
       {/* Sticky Categories & Filters Header */}

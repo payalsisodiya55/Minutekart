@@ -5,7 +5,7 @@ import { Card, CardContent } from "@food/components/ui/card"
 import { Button } from "@food/components/ui/button"
 import { Input } from "@food/components/ui/input"
 import { RestaurantGridSkeleton } from "@food/components/ui/loading-skeletons"
-import MiniCart from "@food/components/user/MiniCart"
+import AddToCartAnimation from "@food/components/user/AddToCartAnimation"
 import { useProfile } from "@food/context/ProfileContext"
 import { useLocation } from "@food/hooks/useLocation"
 import { useZone } from "@food/hooks/useZone"
@@ -1112,7 +1112,7 @@ export default function SearchResults() {
           </div>
         </section>
       </div>
-      <MiniCart />
+      <AddToCartAnimation bottomOffset={80} />
     </div>
   )
 }

@@ -118,6 +118,7 @@ export default function AddToCartAnimation({
           const thumbnailCenterOffset = 16;
 
           // Position at pill location initially (viewport-relative)
+          gsap.killTweensOf(thumbnail);
           gsap.set(thumbnail, {
             position: 'fixed',
             left: startX - thumbnailCenterOffset,
@@ -258,6 +259,7 @@ export default function AddToCartAnimation({
 
           // Position at source (center of button) - use viewport-relative position
           // Set initial position so the center of thumbnail is at sourcePosition
+          gsap.killTweensOf(thumbnail);
           gsap.set(thumbnail, {
             position: 'fixed',
             left: sourceX - thumbnailCenterOffset,
@@ -338,7 +340,7 @@ export default function AddToCartAnimation({
       // Step 1: Scale up with glow
       tl.to(linkRef.current, {
         scale: 1.08,
-        boxShadow: '0 10px 25px rgba(235, 89, 14, 0.4)',
+        boxShadow: '0 10px 25px rgba(220, 2, 27, 0.4)',
         duration: 0.15,
         ease: 'power2.out',
         transformOrigin: 'center center',
@@ -347,7 +349,7 @@ export default function AddToCartAnimation({
         // Step 2: Bounce back
         .to(linkRef.current, {
           scale: 1.0,
-          boxShadow: '0 4px 12px rgba(235, 89, 14, 0.3)',
+          boxShadow: '0 4px 12px rgba(220, 2, 27, 0.3)',
           duration: 0.2,
           ease: 'power2.inOut',
         })
@@ -444,7 +446,7 @@ export default function AddToCartAnimation({
               bottom: dynamicBottom ? undefined : `${bottomOffset || 20}px`,
               pointerEvents: 'auto',
             }}
-            className={`left-0 right-0 z-[9999] flex justify-center px-4 pb-4 md:pb-6 transition-all duration-300 ease-in-out bg-transparent`}
+            className={`left-0 right-0 z-[9999] flex justify-center px-4 pb-4 md:pb-6 transition-all duration-300 ease-in-out bg-transparent ${dynamicBottom || ''}`}
           >
             <button
               ref={linkRef}
@@ -454,7 +456,7 @@ export default function AddToCartAnimation({
                 debugLog('View cart clicked, navigating to:', linkTo);
                 navigate(linkTo);
               }}
-              className={`bg-gradient-to-r from-[#D94F0C] via-[#EB590E] to-[#D94F0C] text-white rounded-full shadow-xl shadow-orange-900/30 px-3 py-2 flex items-center gap-2 hover:from-[#D94F0C] hover:via-[#EB590E] hover:to-[#D94F0C] transition-all duration-300 pointer-events-auto border border-orange-800/30 backdrop-blur-sm cursor-pointer ${pillClassName}`}
+              className={`bg-gradient-to-r from-[#DC021B] via-[#E23744] to-[#DC021B] text-white rounded-full shadow-xl shadow-red-900/30 px-3 py-2 flex items-center gap-2 hover:from-[#DC021B] hover:via-[#E23744] hover:to-[#DC021B] transition-all duration-300 pointer-events-auto border border-red-800/30 backdrop-blur-sm cursor-pointer ${pillClassName}`}
             >
               {/* Left: Product thumbnails */}
               <div className="flex items-center -space-x-4">
