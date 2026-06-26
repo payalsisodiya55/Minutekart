@@ -1212,7 +1212,9 @@ export default function Home() {
                                 };
                                 const result = addToCart(cartItemData, sourcePosition);
                                 if (result?.ok === false) {
-                                  toast.error(result.error || 'Failed to add item.');
+                                  if (!result.silent) {
+                                    toast.error(result.error || 'Failed to add item.');
+                                  }
                                 } else {
                                   toast.success(`Added ${variant.name} to cart!`);
                                   setShowVariantSelector(false); // Close sheet on add!
