@@ -14,9 +14,14 @@ const PopularRestaurantSection = memo(({ popularRestaurants }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-4">
-        Popular Restaurants
-      </h2>
+      <div className="mb-4">
+        <span className="inline-flex items-center gap-1 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full mb-1.5 border border-red-100/50 dark:border-red-900/30">
+          🏆 Top 10 Restaurants
+        </span>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+          Popular Restaurants
+        </h2>
+      </div>
 
       <div className="flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {popularRestaurants.map((restaurant, index) => {
@@ -45,14 +50,14 @@ const PopularRestaurantSection = memo(({ popularRestaurants }) => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="flex-shrink-0 w-20 flex flex-col items-center gap-1 group text-center"
+              className="flex-shrink-0 w-[86px] sm:w-[96px] flex flex-col items-center gap-1 group text-center"
             >
               <Link
                 to={isOffline ? "#" : `/user/restaurants/${restaurantSlug}`}
                 onClick={(e) => isOffline && e.preventDefault()}
                 className="relative block"
               >
-                <div className={`w-[70px] h-[70px] sm:w-[80px] sm:h-[80px] rounded-full p-[2.5px] bg-gradient-to-b from-gray-100 to-gray-200 dark:from-neutral-800 dark:to-neutral-700 shadow-sm transition-transform duration-300 group-hover:scale-105 group-active:scale-95 overflow-hidden ${isOffline ? "grayscale opacity-75" : ""}`}>
+                <div className={`w-[78px] h-[78px] sm:w-[88px] sm:h-[88px] rounded-full p-[2.5px] bg-gradient-to-b from-gray-100 to-gray-200 dark:from-neutral-800 dark:to-neutral-700 shadow-sm transition-transform duration-300 group-hover:scale-105 group-active:scale-95 overflow-hidden ${isOffline ? "grayscale opacity-75" : ""}`}>
                   <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-neutral-900 border border-gray-200/50 dark:border-neutral-800 flex items-center justify-center">
                     {restaurantImage ? (
                       <OptimizedImage
