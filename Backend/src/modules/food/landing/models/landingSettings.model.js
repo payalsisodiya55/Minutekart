@@ -15,7 +15,7 @@ const foodLandingSettingsSchema = new mongoose.Schema(
             default: ''
         },
         headerImages: {
-            type: [String],
+            type: [mongoose.Schema.Types.Mixed],
             default: []
         },
         headerImagesPublicIds: {

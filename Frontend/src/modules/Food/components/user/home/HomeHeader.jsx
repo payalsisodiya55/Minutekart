@@ -201,7 +201,18 @@ export default function HomeHeader({
     }
     if (Array.isArray(headerImages)) {
       headerImages.forEach((img) => {
-        if (img) list.push({ type: "image", url: img });
+        if (img) {
+          if (typeof img === "object" && img.url) {
+            list.push({
+              type: "image",
+              url: img.url,
+              showOrderNow: img.showOrderNow,
+              orderNowRoute: img.orderNowRoute,
+            });
+          } else {
+            list.push({ type: "image", url: img });
+          }
+        }
       });
     }
     return list;
@@ -370,7 +381,7 @@ export default function HomeHeader({
       style={{ background: isFood && slides.length > 0 ? "#121212" : theme.topBg, color: theme.text }}
     >
       {isFood && slides.length > 0 && (
-        <div className="absolute inset-x-0 top-0 bottom-0 z-0 flex justify-center overflow-hidden">
+        <div className="absolute inset-x-0 top-0 bottom-0 z-[5] flex justify-center overflow-hidden pointer-events-none">
           <AnimatePresence initial={false}>
             {slides.map((slide, index) => {
               if (index !== currentSlideIndex) return null;
@@ -405,6 +416,23 @@ export default function HomeHeader({
                         isFood ? "opacity-100" : "opacity-0"
                       }`}
                     />
+                  )}
+                  {slide.type === "image" && slide.showOrderNow && (
+                    <div className="absolute bottom-16 left-6 z-[25] pointer-events-auto">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          if (slide.orderNowRoute) {
+                            navigate(slide.orderNowRoute);
+                          }
+                        }}
+                        className="bg-white hover:bg-slate-100 active:scale-95 text-black font-extrabold text-[12px] tracking-wider px-6 py-2.5 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.3)] transition-all uppercase cursor-pointer"
+                      >
+                        ORDER NOW
+                      </button>
+                    </div>
                   )}
                 </motion.div>
               );
@@ -723,7 +751,7 @@ export default function HomeHeader({
       </div>
 
       {isFood && bannerComponent && (
-        <div className="relative z-10 w-full pb-5 pt-1">
+        <div className="relative z-0 pointer-events-none w-full pb-5 pt-1">
           {bannerComponent}
         </div>
       )}
