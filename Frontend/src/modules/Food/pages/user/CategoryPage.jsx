@@ -1100,17 +1100,21 @@ export default function CategoryPage() {
   }, [currentFilterStorageKey, sortBy, activeFilters])
 
   useEffect(() => {
-    const rail = categoryScrollRef.current
-    if (!rail) return
+    const timer = setTimeout(() => {
+      const rail = categoryScrollRef.current
+      if (!rail) return
 
-    const selectedButton = rail.querySelector("[data-category-selected='true']")
-    if (!selectedButton || typeof selectedButton.scrollIntoView !== "function") return
+      const selectedButton = rail.querySelector("[data-category-selected='true']")
+      if (!selectedButton || typeof selectedButton.scrollIntoView !== "function") return
 
-    selectedButton.scrollIntoView({
-      behavior: "smooth",
-      inline: "center",
-      block: "nearest",
-    })
+      selectedButton.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      })
+    }, 150)
+
+    return () => clearTimeout(timer)
   }, [selectedCategory, categories])
 
   const toggleFilter = (filterId) => {

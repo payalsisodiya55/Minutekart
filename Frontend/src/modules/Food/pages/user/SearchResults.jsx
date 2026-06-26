@@ -502,6 +502,24 @@ export default function SearchResults() {
     }
   }, [query])
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const rail = categoryScrollRef.current
+      if (!rail) return
+
+      const selectedButton = rail.querySelector("[data-category-selected='true']")
+      if (!selectedButton || typeof selectedButton.scrollIntoView !== "function") return
+
+      selectedButton.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      })
+    }, 150)
+
+    return () => clearTimeout(timer)
+  }, [selectedCategory, categories])
+
   const toggleFilter = (filterId) => {
     setActiveFilters(prev => {
       const newSet = new Set(prev)
@@ -808,6 +826,7 @@ export default function SearchResults() {
                 <button
                   key={cat.id}
                   onClick={() => handleCategorySelect(cat.id)}
+                  data-category-selected={isSelected ? "true" : "false"}
                   className={`flex flex-col items-center gap-1.5 flex-shrink-0 pb-2 transition-all ${isSelected ? 'border-b-2 border-[#DC021B]' : ''
                     }`}
                 >
