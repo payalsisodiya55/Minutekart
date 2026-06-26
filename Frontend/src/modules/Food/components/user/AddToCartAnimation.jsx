@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useCart } from "@food/context/CartContext";
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
@@ -28,15 +28,22 @@ export default function AddToCartAnimation({
   linkTo = '/food/user/cart',
   dynamicBottom = null,
 }) {
-  const { items, itemCount, total, lastAddEvent, lastRemoveEvent } = useCart();
+  const { items, itemCount, total, lastAddEvent, lastRemoveEvent, clearCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
   const linkRef = useRef(null);
   const [removedProduct, setRemovedProduct] = useState(null);
   const [flyingProduct, setFlyingProduct] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const removedThumbnailRef = useRef(null);
   const flyingThumbnailRef = useRef(null);
   const prevItemsRef = useRef(items);
+
+  const safeItems = Array.isArray(items) ? items : [];
+  const firstItem = safeItems[0] || {};
+  const restaurantName = firstItem.restaurant || "Restaurant";
+  const restaurantImage = firstItem.image || firstItem.imageUrl || "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=200&h=200&fit=crop";
+  const restaurantSlug = restaurantName.toLowerCase().replace(/\s+/g, "-");
 
   // Hide pill on cart pages, order pages, and account page (if enabled)
   const iscartPage = location.pathname === '/cart' ||
@@ -123,7 +130,7 @@ export default function AddToCartAnimation({
             position: 'fixed',
             left: startX - thumbnailCenterOffset,
             top: startY - thumbnailCenterOffset,
-            zIndex: 1000,
+            zIndex: 100000,
             scale: 1,
             rotation: 0,
             opacity: 1,
@@ -189,6 +196,7 @@ export default function AddToCartAnimation({
 
   // Handle fly-to-cart animation when product is added
   useEffect(() => {
+    console.log('AddToCartAnimation: lastAddEvent changed:', lastAddEvent, 'linkRef.current:', !!linkRef.current);
     if (lastAddEvent && lastAddEvent.sourcePosition && linkRef.current) {
       const { product, sourcePosition } = lastAddEvent;
 
@@ -196,10 +204,12 @@ export default function AddToCartAnimation({
       const savedSourcePosition = { ...sourcePosition };
       const savedProduct = { ...product };
 
+      console.log('AddToCartAnimation: Setting flying product:', savedProduct);
       setFlyingProduct({ product: savedProduct, startPos: savedSourcePosition });
 
       // Wait a bit longer to ensure pill is fully rendered and in position
       setTimeout(() => {
+        console.log('AddToCartAnimation timeout: flyingThumbnailRef.current:', !!flyingThumbnailRef.current, 'linkRef.current:', !!linkRef.current);
         if (flyingThumbnailRef.current && linkRef.current) {
           const thumbnail = flyingThumbnailRef.current;
           // Get fresh position after pill animation completes
@@ -264,7 +274,7 @@ export default function AddToCartAnimation({
             position: 'fixed',
             left: sourceX - thumbnailCenterOffset,
             top: sourceY - thumbnailCenterOffset,
-            zIndex: 1000,
+            zIndex: 100000,
             scale: 1,
             rotation: 0,
             opacity: 1,
@@ -369,7 +379,6 @@ export default function AddToCartAnimation({
 
   // Get up to 3 most recently added items for thumbnails
   // Since items are added to the end of the array, we take the last 3
-  const safeItems = Array.isArray(items) ? items : [];
   const thumbnailItems = safeItems
     .slice(-3)
     .reverse()
@@ -381,7 +390,7 @@ export default function AddToCartAnimation({
       {removedProduct && (
         <div
           ref={removedThumbnailRef}
-          className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-white flex-shrink-0 shadow-lg"
+          className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-white flex-shrink-0 shadow-lg z-[100000]"
           style={{
             borderRadius: '50%',
             objectFit: 'cover',
@@ -405,7 +414,7 @@ export default function AddToCartAnimation({
       {flyingProduct && (
         <div
           ref={flyingThumbnailRef}
-          className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-white flex-shrink-0 shadow-lg"
+          className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-white flex-shrink-0 shadow-lg z-[100000]"
           style={{
             borderRadius: '50%',
             objectFit: 'cover',
@@ -448,86 +457,109 @@ export default function AddToCartAnimation({
             }}
             className={`left-0 right-0 z-[9999] flex justify-center px-4 pb-4 md:pb-6 transition-all duration-300 ease-in-out bg-transparent ${dynamicBottom || ''}`}
           >
-            <button
-              ref={linkRef}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                debugLog('View cart clicked, navigating to:', linkTo);
-                navigate(linkTo);
-              }}
-              className={`bg-gradient-to-r from-[#DC021B] via-[#E23744] to-[#DC021B] text-white rounded-full shadow-xl shadow-red-900/30 px-3 py-2 flex items-center gap-2 hover:from-[#DC021B] hover:via-[#E23744] hover:to-[#DC021B] transition-all duration-300 pointer-events-auto border border-red-800/30 backdrop-blur-sm cursor-pointer ${pillClassName}`}
-            >
-              {/* Left: Product thumbnails */}
-              <div className="flex items-center -space-x-4">
-                {thumbnailItems.map((item, idx) => (
-                  <motion.div
-                    key={item?.product?.id || item?.id || `thumb-${idx}`}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{
-                      delay: idx * 0.1,
-                      type: 'spring',
-                      stiffness: 500,
-                      damping: 25,
-                    }}
-                    className="w-7 h-7 rounded-full border-2 border-white/90 overflow-hidden bg-white flex-shrink-0 shadow-md"
+            <div className="bg-white dark:bg-[#0a0a0a] dark:text-white rounded-3xl shadow-[0_15px_45px_rgba(0,0,0,0.18)] border border-gray-150 dark:border-neutral-800 p-2.5 flex items-center justify-between gap-3 w-full max-w-[380px] md:max-w-md pointer-events-auto">
+              {/* Left: Restaurant Image & View Menu */}
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="flex-shrink-0">
+                  <img
+                    src={restaurantImage}
+                    alt={restaurantName}
+                    className="w-12 h-12 rounded-xl object-cover border border-gray-100 dark:border-neutral-800"
+                  />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <h4 className="font-extrabold text-gray-900 dark:text-gray-100 text-[13px] sm:text-[14px] truncate leading-tight">
+                    {restaurantName}
+                  </h4>
+                  <Link
+                    to={`/food/user/restaurants/${restaurantSlug}`}
+                    className="text-[11px] font-bold text-green-700 dark:text-green-500 hover:text-green-800 underline flex items-center gap-0.5 mt-1"
                   >
-                    {(item?.product?.imageUrl || item?.imageUrl || item?.image || item?.product?.image) ? (
-                      <img
-                        src={item?.product?.imageUrl || item?.imageUrl || item?.image || item?.product?.image}
-                        alt={item?.product?.name || item?.name || 'Item'}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-neutral-200 text-neutral-400 text-xs font-semibold">
-                        {item?.product?.name?.charAt(0)?.toUpperCase() || '?'}
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
+                    View Menu
+                  </Link>
+                </div>
               </div>
 
-              {/* Middle: Text */}
-              <motion.div
-                className="flex flex-col"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
+              {/* Middle: VIEW CART Pill Button */}
+              <button
+                ref={linkRef}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  debugLog('View cart clicked, navigating to:', linkTo);
+                  navigate(linkTo);
+                }}
+                className="flex-shrink-0 bg-[#0f8a3c] hover:bg-green-700 text-white px-5 py-2.5 rounded-2xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-md shadow-green-900/10 cursor-pointer"
               >
-                <span className="text-xs font-bold leading-tight drop-shadow-sm">View cart</span>
-                <span className="text-[10px] opacity-95 leading-tight font-medium">
-                  {itemCount} {itemCount === 1 ? 'item' : 'items'}
+                <span className="text-[10px] font-medium leading-none opacity-90">
+                  {itemCount} {itemCount === 1 ? 'item' : 'items'} | ₹{Math.round(total)}
                 </span>
-              </motion.div>
+                <span className="text-[11px] font-black tracking-wider uppercase flex items-center gap-1.5 mt-0.5">
+                  VIEW CART <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                </span>
+              </button>
 
-              {/* Right: Arrow icon */}
-              <motion.div
-                className="ml-auto bg-white/25 rounded-full p-1 backdrop-blur-sm"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15, duration: 0.3 }}
-                whileHover={{ scale: 1.1, rotate: -5 }}
+              {/* Right: Red Delete/Trash Button */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowConfirmModal(true);
+                }}
+                className="flex-shrink-0 w-11 h-11 rounded-full bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-900/20 text-red-500 dark:text-red-400 flex items-center justify-center transition-all active:scale-95 border border-red-100/50 dark:border-red-900/10 cursor-pointer"
               >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-white"
-                >
-                  <path
-                    d="M6 12L10 8L6 4"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </motion.div>
-            </button>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              </button>
+            </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Clear Cart Confirmation Modal */}
+      <AnimatePresence>
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-[100000] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-neutral-900 rounded-3xl p-6 shadow-2xl max-w-sm w-full border border-gray-150 dark:border-neutral-800 relative pointer-events-auto text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button X */}
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+
+              <h3 className="text-lg md:text-xl font-black text-gray-900 dark:text-white mb-2">
+                Clear cart?
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                Are you sure you want to clear your cart from {restaurantName}?
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="flex-1 py-3 px-6 rounded-full bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-400 font-bold text-center transition-all hover:bg-emerald-100 dark:hover:bg-emerald-900/10 active:scale-95 cursor-pointer"
+                >
+                  No
+                </button>
+                <button
+                  onClick={() => {
+                    clearCart();
+                    setShowConfirmModal(false);
+                  }}
+                  className="flex-1 py-3 px-6 rounded-full bg-[#0f8a3c] text-white font-bold text-center transition-all hover:bg-green-700 active:scale-95 cursor-pointer"
+                >
+                  Yes
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>
