@@ -741,7 +741,7 @@ export default function AddressSelectorPage() {
                   onClick={handleUseCurrentLocation} 
                   className="bg-white text-black hover:bg-gray-100 shadow-xl border border-gray-200 rounded-full h-12 px-6"
               >
-                <Navigation className="h-4 w-4 mr-2 text-[#DC021B]" /> Use My Location
+                <Navigation className="h-4 w-4 mr-2 text-[#DC021B]" fill="currentColor" /> Use My Location
               </Button>
             </div>
           </div>
@@ -920,7 +920,7 @@ export default function AddressSelectorPage() {
             className="w-full flex items-center gap-4 p-4 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-sm hover:shadow-md transition-all group"
           >
             <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-950/30 flex items-center justify-center">
-              <Navigation className="h-5 w-5 text-[#DC021B]" />
+              <Navigation className="h-5 w-5 text-[#DC021B]" fill="currentColor" />
             </div>
             <div className="text-left flex-1">
               <p className="font-bold text-[#DC021B]">Use Current Location</p>

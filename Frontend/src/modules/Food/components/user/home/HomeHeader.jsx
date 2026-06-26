@@ -272,7 +272,7 @@ export default function HomeHeader({
     const l = String(label || "").toLowerCase();
     if (l.includes("home")) return Home;
     if (l.includes("office") || l.includes("work")) return Briefcase;
-    return MapPin;
+    return Navigation;
   };
 
   useEffect(() => {
@@ -455,7 +455,11 @@ export default function HomeHeader({
               const IconComponent = getHeaderAddressIcon(displayLabel);
               return (
                 <div className="h-[38px] w-[38px] rounded-full bg-[#ffc20e] flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(0,0,0,0.12)]">
-                  <IconComponent className="h-[19px] w-[19px] text-[#1a1a1a]" strokeWidth={2.5} />
+                  <IconComponent 
+                    className="h-[19px] w-[19px] text-[#1a1a1a]" 
+                    strokeWidth={2.5} 
+                    fill={IconComponent === Navigation ? "currentColor" : "none"} 
+                  />
                 </div>
               );
             })()}
@@ -562,7 +566,7 @@ export default function HomeHeader({
                 className="h-full w-full object-cover"
               />
             ) : avatarInitial ? (
-              <div className="h-full w-full flex items-center justify-center bg-red-100 text-red-600 text-sm font-bold">
+              <div className="h-full w-full flex items-center justify-center bg-red-100 text-red-600 text-[18px] font-medium leading-none">
                 {avatarInitial}
               </div>
             ) : (

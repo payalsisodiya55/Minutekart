@@ -584,7 +584,7 @@ export default function Profile() {
                     )
                   )}
                   {!(isUploadingImage || isRemovingImage) && (
-                    <AvatarFallback className="bg-red-100 text-[#C60011] text-2xl font-semibold flex items-center justify-center">
+                    <AvatarFallback className="bg-red-100 text-[#C60011] text-[32px] font-medium flex items-center justify-center leading-none">
                       {avatarInitial}
                     </AvatarFallback>
                   )}

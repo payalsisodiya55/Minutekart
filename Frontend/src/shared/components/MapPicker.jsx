@@ -277,7 +277,7 @@ const MapPicker = ({
             {isFetchingLocation ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <Navigation className="mr-2 h-4 w-4" />
+              <Navigation className="mr-2 h-4 w-4" fill="currentColor" />
             )}
             {isFetchingLocation ? "Fetching..." : "Use Current Location"}
           </Button>

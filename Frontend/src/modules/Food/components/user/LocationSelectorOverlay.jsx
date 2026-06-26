@@ -2293,7 +2293,7 @@ export default function LocationSelectorOverlay({ isOpen, onClose }) {
               disabled={mapLoading}
               className="bg-white dark:bg-[#1a1a1a] border-2 border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 shadow-lg disabled:opacity-50 flex items-center gap-2 px-4 py-2"
             >
-              <Crosshair className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" strokeWidth={2.5} />
+              <Navigation className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" strokeWidth={2.5} fill="currentColor" />
               <span className="text-green-600 dark:text-green-400 font-medium">Use current location</span>
             </Button>
           </div>
@@ -2580,7 +2580,7 @@ export default function LocationSelectorOverlay({ isOpen, onClose }) {
             >
               <div className="flex items-center gap-4">
                 <div className="h-10 w-10 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center group-hover:bg-green-100 dark:group-hover:bg-green-900/30 transition-colors">
-                  <Crosshair className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" strokeWidth={2.5} />
+                  <Navigation className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" strokeWidth={2.5} fill="currentColor" />
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-green-700 dark:text-green-400">Use current location</p>
