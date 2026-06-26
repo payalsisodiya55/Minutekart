@@ -1,6 +1,8 @@
 // src/context/cart-context.jsx
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { buildCartLineId } from "@food/utils/foodVariants"
+import { motion, AnimatePresence } from "framer-motion"
+import { X } from "lucide-react"
 const debugLog = (...args) => {}
 const debugWarn = (...args) => {}
 const debugError = (...args) => {}
@@ -178,6 +180,45 @@ export function CartProvider({ children }) {
   // Track last remove event for animation
   const [lastRemoveEvent, setLastRemoveEvent] = useState(null)
 
+  const [replaceModal, setReplaceModal] = useState({
+    isOpen: false,
+    existingRestaurant: "",
+    newRestaurant: "",
+    pendingItem: null,
+    pendingSourcePosition: null
+  })
+
+  const handleConfirmReplace = () => {
+    if (replaceModal.pendingItem) {
+      setCart((prev) => {
+        const safePrev = normalizeCartData(prev)
+        const nonFoodItems = safePrev.filter((item) => getItemOrderType(item) !== "food")
+        const newItem = { ...replaceModal.pendingItem, quantity: 1 }
+
+        if (replaceModal.pendingSourcePosition) {
+          setLastAddEvent({
+            product: {
+              id: replaceModal.pendingItem.id,
+              name: replaceModal.pendingItem.name,
+              imageUrl: replaceModal.pendingItem.image || replaceModal.pendingItem.imageUrl,
+            },
+            sourcePosition: replaceModal.pendingSourcePosition,
+          })
+          setTimeout(() => setLastAddEvent(null), 1500)
+        }
+
+        return [...nonFoodItems, newItem]
+      })
+    }
+    setReplaceModal({
+      isOpen: false,
+      existingRestaurant: "",
+      newRestaurant: "",
+      pendingItem: null,
+      pendingSourcePosition: null,
+    })
+  }
+
   // Persist to localStorage whenever cart changes
   useEffect(() => {
     try {
@@ -241,8 +282,15 @@ export function CartProvider({ children }) {
             String(firstItemRestaurantId) !== String(newItemRestaurantId)
 
           if (hasNameMismatch || hasIdMismatch) {
+            setReplaceModal({
+              isOpen: true,
+              existingRestaurant: firstItemRestaurantName || 'another restaurant',
+              newRestaurant: newItemRestaurantName || 'Restaurant',
+              pendingItem: item,
+              pendingSourcePosition: sourcePosition
+            })
             const message = `Cart already contains items from "${firstItemRestaurantName || 'another restaurant'}". Please clear food cart first.`
-            return { ok: false, error: message, code: 'RESTAURANT_MISMATCH' }
+            return { ok: false, error: message, code: 'RESTAURANT_MISMATCH', silent: true }
           }
         }
       } else if (nextOrderType === "quick") {
@@ -451,7 +499,78 @@ export function CartProvider({ children }) {
     [cart, foodItems, quickItems, foodCount, quickCount, foodTotal, quickTotal, lastAddEvent, lastRemoveEvent]
   )
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+      <ReplaceCartModal
+        isOpen={replaceModal.isOpen}
+        onClose={() => setReplaceModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmReplace}
+        existingRestaurant={replaceModal.existingRestaurant}
+        newRestaurant={replaceModal.newRestaurant}
+      />
+    </CartContext.Provider>
+  )
+}
+
+const ReplaceCartModal = ({ isOpen, onClose, onConfirm, existingRestaurant, newRestaurant }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          
+          {/* Modal Container */}
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            transition={{ type: "spring", duration: 0.4 }}
+            className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white p-6 shadow-2xl dark:bg-[#1a1a1a]"
+          >
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute right-4 top-4 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="mt-2 text-left">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Replace cart item?
+              </h3>
+              <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                Your cart contains dishes from <span className="font-semibold text-gray-700 dark:text-gray-300">{existingRestaurant}</span>. Do you want to discard the selection and add dishes from <span className="font-semibold text-gray-700 dark:text-gray-300">{newRestaurant}</span>?
+              </p>
+            </div>
+
+            <div className="mt-6 flex gap-4">
+              <button
+                onClick={onClose}
+                className="flex-1 rounded-full bg-[#eafbf1] py-3 text-center text-sm font-bold text-[#09793e] hover:bg-[#dbf7e7] transition-colors"
+              >
+                No
+              </button>
+              <button
+                onClick={onConfirm}
+                className="flex-1 rounded-full bg-[#09793e] py-3 text-center text-sm font-bold text-white hover:bg-[#076232] transition-colors"
+              >
+                Yes
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
 }
 
 export function useCart() {

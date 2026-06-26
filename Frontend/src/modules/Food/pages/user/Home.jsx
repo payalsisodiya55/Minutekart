@@ -487,7 +487,9 @@ export default function Home() {
         originalPrice: dish.originalPrice || dish.price,
       }, sourcePosition);
       if (result?.ok === false) {
-        toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.');
+        if (!result.silent) {
+          toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.');
+        }
       } else {
         toast.success(`Added ${dish.name} to cart!`);
       }

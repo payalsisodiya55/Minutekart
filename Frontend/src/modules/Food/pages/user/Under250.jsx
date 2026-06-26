@@ -710,7 +710,9 @@ export default function Under250() {
         if (newQuantity > existingCartItem.quantity && sourcePosition) {
           const result = addToCart(cartItem, sourcePosition)
           if (result?.ok === false) {
-            toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.')
+            if (!result.silent) {
+              toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.')
+            }
             return
           }
           if (newQuantity > existingCartItem.quantity + 1) {
@@ -724,7 +726,9 @@ export default function Under250() {
       } else {
         const result = addToCart(cartItem, sourcePosition)
         if (result?.ok === false) {
-          toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.')
+          if (!result.silent) {
+            toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.')
+          }
           return
         }
         if (newQuantity > 1) {

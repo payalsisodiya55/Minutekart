@@ -1247,7 +1247,9 @@ function RestaurantDetailsContent() {
         if (newQuantity > existingCartItem.quantity && sourcePosition) {
           const result = addToCart(cartItem, sourcePosition)
           if (result?.ok === false) {
-            toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.')
+            if (!result.silent) {
+              toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.')
+            }
             return
           }
           if (newQuantity > existingCartItem.quantity + 1) {
@@ -1267,7 +1269,9 @@ function RestaurantDetailsContent() {
         // Pass sourcePosition when adding a new item
         const result = addToCart(cartItem, sourcePosition)
         if (result?.ok === false) {
-          toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.')
+          if (!result.silent) {
+            toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.')
+          }
           return
         }
         if (newQuantity > 1) {
