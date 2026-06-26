@@ -336,12 +336,7 @@ export default function EditProfile() {
   }
 
   const handleProfileImageAction = () => {
-    if (isFlutterBridgeAvailable()) {
-      setPhotoPickerOpen(true)
-      return
-    }
-
-    fileInputRef.current?.click()
+    setPhotoPickerOpen(true)
   }
 
   const validateForm = () => {

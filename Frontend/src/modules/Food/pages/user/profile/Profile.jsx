@@ -28,6 +28,7 @@ import {
   Undo,
   Camera,
   Loader2,
+  Image as ImageIcon,
 } from "lucide-react";
 
 import AnimatedPage from "@food/components/user/AnimatedPage";
@@ -65,6 +66,7 @@ export default function Profile() {
   const { userProfile, updateUserProfile, vegMode, setVegMode, getDefaultAddress, addresses } =
     useProfile();
   const fileInputRef = React.useRef(null);
+  const cameraInputRef = React.useRef(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isRemovingImage, setIsRemovingImage] = useState(false);
   const [showImageOptions, setShowImageOptions] = useState(false);
@@ -83,12 +85,13 @@ export default function Profile() {
   );
 
   const handleAvatarClick = () => {
+    console.log("handleAvatarClick triggered. isUploadingImage:", isUploadingImage, "isRemovingImage:", isRemovingImage);
     if (isUploadingImage || isRemovingImage) return;
-    if (hasProfileImage) {
-      setShowImageOptions((prev) => !prev);
-    } else {
-      fileInputRef.current?.click();
-    }
+    console.log("Toggling showImageOptions. Current value:", showImageOptions);
+    setShowImageOptions((prev) => {
+      console.log("State updated. New value will be:", !prev);
+      return !prev;
+    });
   };
 
   const handleImageSelect = async (e) => {
@@ -593,6 +596,14 @@ export default function Profile() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="user"
                   onChange={handleImageSelect}
                   className="hidden"
                 />
@@ -1493,9 +1504,9 @@ export default function Profile() {
         </DialogContent>
       </Dialog>
 
-        {/* Image options bottom sheet - rendered at page level to avoid overflow-hidden clipping */}
-        {showImageOptions && hasProfileImage && (
+        {showImageOptions && (
           <>
+            {(() => { console.log("Bottom sheet JSX is rendering! showImageOptions is true."); return null; })()}
             {/* Backdrop */}
             <div
               className="fixed inset-0 z-[59] bg-black/30"
@@ -1505,26 +1516,45 @@ export default function Profile() {
             <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-[#1a1a1a] rounded-t-2xl shadow-2xl pb-safe">
               <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mt-3 mb-4" />
               <p className="text-center text-xs text-gray-400 dark:text-gray-500 font-medium mb-3 uppercase tracking-wider px-4">Profile Photo</p>
+              
+              {/* Take Photo */}
+              <button
+                type="button"
+                className="w-full flex items-center gap-3 px-6 py-4 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                onClick={() => { setShowImageOptions(false); cameraInputRef.current?.click(); }}
+              >
+                <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                  <Camera className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                </div>
+                <span className="font-medium">Take photo</span>
+              </button>
+
+              {/* Choose from Gallery */}
               <button
                 type="button"
                 className="w-full flex items-center gap-3 px-6 py-4 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 onClick={() => { setShowImageOptions(false); fileInputRef.current?.click(); }}
               >
                 <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-                  <Camera className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                  <ImageIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                 </div>
-                <span className="font-medium">Change photo</span>
+                <span className="font-medium">Choose from Gallery</span>
               </button>
-              <button
-                type="button"
-                className="w-full flex items-center gap-3 px-6 py-4 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                onClick={() => { setShowImageOptions(false); handleRemoveImage(); }}
-              >
-                <div className="w-9 h-9 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center flex-shrink-0">
-                  <Trash2 className="h-4 w-4 text-red-600" />
-                </div>
-                <span className="font-medium">Remove photo</span>
-              </button>
+
+              {/* Remove Photo */}
+              {hasProfileImage && (
+                <button
+                  type="button"
+                  className="w-full flex items-center gap-3 px-6 py-4 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  onClick={() => { setShowImageOptions(false); handleRemoveImage(); }}
+                >
+                  <div className="w-9 h-9 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center flex-shrink-0">
+                    <Trash2 className="h-4 w-4 text-red-600" />
+                  </div>
+                  <span className="font-medium">Remove photo</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 className="w-full flex items-center justify-center py-4 text-sm text-gray-500 dark:text-gray-400 font-medium border-t border-gray-100 dark:border-gray-800 mt-1"
