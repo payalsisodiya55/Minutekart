@@ -367,7 +367,7 @@ export default function HomeHeader({
           ? "rounded-b-[36px] min-h-[345px] overflow-hidden"
           : "rounded-b-none min-h-[88px] overflow-visible"
         }`}
-      style={{ background: theme.topBg, color: theme.text }}
+      style={{ background: isFood && slides.length > 0 ? "#121212" : theme.topBg, color: theme.text }}
     >
       {isFood && slides.length > 0 && (
         <div className="absolute inset-x-0 top-0 bottom-0 z-0 flex justify-center overflow-hidden">
@@ -414,12 +414,6 @@ export default function HomeHeader({
             className="absolute inset-0 transition-colors duration-700"
             style={{
               background: `linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.0) 100%)`
-            }}
-          />
-          <div
-            className="absolute inset-0 transition-colors duration-700 opacity-30"
-            style={{
-              background: `radial-gradient(circle at 20% 30%, ${withAlpha(theme.accent, 0.4)}, transparent 70%)`
             }}
           />
           {slides.length > 1 && (
