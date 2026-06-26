@@ -9,6 +9,23 @@ import { flattenMenuItems, getMenuFromResponse } from "@food/utils/menuItems";
 
 import { useProfile } from "@food/context/ProfileContext";
 
+const getCategoryKeywords = (categoryId) => {
+  const raw = String(categoryId || "").trim().toLowerCase();
+  const parts = raw.split(/[\s-]+/).filter(Boolean);
+  const keywords = parts.length > 0 ? Array.from(new Set([raw, ...parts])) : [];
+  if (keywords.includes('samosha') || keywords.includes('samosa')) {
+    if (!keywords.includes('samosa')) keywords.push('samosa');
+    if (!keywords.includes('samosha')) keywords.push('samosha');
+  }
+  return keywords;
+};
+
+const matchesCategoryText = (text, keywords) => {
+  if (!text) return false;
+  const t = String(text).toLowerCase();
+  return keywords.some(keyword => t.includes(keyword));
+};
+
 export default function RestaurantPreviewCard({
   restaurant,
   index,
@@ -18,6 +35,7 @@ export default function RestaurantPreviewCard({
   onFavoriteToggle,
   backendOrigin,
   onMenuLoaded,
+  selectedCategory = "all",
 }) {
   const navigate = useNavigate();
   const { addToCart, updateQuantity, getCartItem } = useCart();
@@ -90,12 +108,27 @@ export default function RestaurantPreviewCard({
         });
 
         setAllDishes(sorted);
-        const minPrice = availableItems.length > 0
-          ? Math.min(...availableItems.map((item) => Number(item.price || 0)).filter((p) => p > 0))
+
+        // If category is selected, check if restaurant has items matching it
+        let hasMatchingDishes = sorted.length > 0;
+        let activeItemsForLowestPrice = availableItems;
+        if (selectedCategory && selectedCategory !== "all") {
+          const keywords = getCategoryKeywords(selectedCategory);
+          const matching = sorted.filter((dish) => {
+            const dishName = String(dish?.name || "").toLowerCase();
+            const dishCategory = String(dish?.categoryName || dish?.category || "").toLowerCase();
+            return matchesCategoryText(dishName, keywords) || matchesCategoryText(dishCategory, keywords);
+          });
+          hasMatchingDishes = matching.length > 0;
+          activeItemsForLowestPrice = matching;
+        }
+
+        const minPrice = activeItemsForLowestPrice.length > 0
+          ? Math.min(...activeItemsForLowestPrice.map((item) => Number(item.price || 0)).filter((p) => p > 0))
           : null;
         setLowestPrice(Number.isFinite(minPrice) ? minPrice : null);
         if (onMenuLoaded) {
-          onMenuLoaded(restaurantId, sorted.length > 0);
+          onMenuLoaded(restaurantId, hasMatchingDishes);
         }
       } catch (err) {
         console.error("Error fetching restaurant menu:", err);
@@ -111,12 +144,23 @@ export default function RestaurantPreviewCard({
     return () => {
       active = false;
     };
-  }, [restaurant]);
+  }, [restaurant, selectedCategory]);
 
   const dishes = React.useMemo(() => {
-    const filtered = vegMode ? allDishes.filter((dish) => dish.isVeg) : allDishes;
+    let filtered = allDishes;
+    if (vegMode) {
+      filtered = filtered.filter((dish) => dish.isVeg);
+    }
+    if (selectedCategory && selectedCategory !== "all") {
+      const keywords = getCategoryKeywords(selectedCategory);
+      filtered = filtered.filter((dish) => {
+        const dishName = String(dish?.name || "").toLowerCase();
+        const dishCategory = String(dish?.categoryName || dish?.category || "").toLowerCase();
+        return matchesCategoryText(dishName, keywords) || matchesCategoryText(dishCategory, keywords);
+      });
+    }
     return filtered.slice(0, 3);
-  }, [allDishes, vegMode]);
+  }, [allDishes, vegMode, selectedCategory]);
 
   const handleAddToCart = (dish, event) => {
     event.preventDefault();

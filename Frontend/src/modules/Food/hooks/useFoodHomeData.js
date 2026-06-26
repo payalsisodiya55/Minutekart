@@ -17,18 +17,107 @@ let globalHomeCache = {
 
 const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 
+const getCategoryKeywords = (categoryId) => {
+  const raw = String(categoryId || "").trim().toLowerCase();
+  const parts = raw.split(/[\s-]+/).filter(Boolean);
+  const keywords = parts.length > 0 ? Array.from(new Set([raw, ...parts])) : [];
+  if (keywords.includes('samosha') || keywords.includes('samosa')) {
+    if (!keywords.includes('samosa')) keywords.push('samosa');
+    if (!keywords.includes('samosha')) keywords.push('samosha');
+  }
+  return keywords;
+};
+
+const matchesCategoryText = (text, keywords) => {
+  if (!text) return false;
+  const t = String(text).toLowerCase();
+  return keywords.some(keyword => t.includes(keyword));
+};
+
+const checkCategoryInMenu = (menu, categoryId) => {
+  if (!menu || !menu.sections || !Array.isArray(menu.sections)) {
+    return false;
+  }
+  const keywords = getCategoryKeywords(categoryId);
+  if (keywords.length === 0) {
+    return false;
+  }
+  for (const section of menu.sections) {
+    const sectionNameLower = (section.name || '').toLowerCase();
+    if (matchesCategoryText(sectionNameLower, keywords)) {
+      return true;
+    }
+    if (section.items && Array.isArray(section.items)) {
+      for (const item of section.items) {
+        const itemNameLower = (item.name || '').toLowerCase();
+        const itemCategoryLower = (item.categoryName || item.category || '').toLowerCase();
+        if (
+          matchesCategoryText(itemNameLower, keywords) ||
+          matchesCategoryText(itemCategoryLower, keywords)
+        ) {
+          return true;
+        }
+      }
+    }
+    if (section.subsections && Array.isArray(section.subsections)) {
+      for (const subsection of section.subsections) {
+        const subsectionNameLower = (subsection?.name || "").toLowerCase();
+        if (matchesCategoryText(subsectionNameLower, keywords)) {
+          return true;
+        }
+        const subItems = Array.isArray(subsection?.items) ? subsection.items : [];
+        for (const item of subItems) {
+          const itemNameLower = (item?.name || "").toLowerCase();
+          const itemCategoryLower = (item?.categoryName || item?.category || "").toLowerCase();
+          if (
+            matchesCategoryText(itemNameLower, keywords) ||
+            matchesCategoryText(itemCategoryLower, keywords)
+          ) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+};
+
+const checkRestaurantMatchesCategory = (restaurant, categoryId, menu) => {
+  if (!categoryId || categoryId === 'all') return true;
+  const keywords = getCategoryKeywords(categoryId);
+  
+  // 1. Check restaurant name
+  if (matchesCategoryText(restaurant.name, keywords)) return true;
+  
+  // 2. Check cuisines
+  const cuisines = Array.isArray(restaurant.cuisines)
+    ? restaurant.cuisines
+    : [restaurant.cuisine].filter(Boolean);
+  if (cuisines.some(c => matchesCategoryText(c, keywords))) return true;
+  
+  // 3. Check featuredDish
+  if (matchesCategoryText(restaurant.featuredDish, keywords)) return true;
+  
+  // 4. Check menu if available
+  if (menu && checkCategoryInMenu(menu, categoryId)) return true;
+  
+  return false;
+};
+
 export const useFoodHomeData = ({ 
   zoneId, 
   location, 
   vegMode, 
   backendOrigin,
-  availabilityTick 
+  availabilityTick,
+  selectedCategory = "all"
 }) => {
   // Use cache as initial state if valid
   const hasValidCache = globalHomeCache.bootstrap && (Date.now() - globalHomeCache.lastFetched < CACHE_EXPIRY_MS);
   
   // --- Bootstrap State ---
   const [isBootstrapped, setIsBootstrapped] = useState(hasValidCache);
+  const [menusLoaded, setMenusLoaded] = useState(0);
   
   // --- Banners State ---
   const [heroBannerImages, setHeroBannerImages] = useState(globalHomeCache.bootstrap?.banners?.images || []);
@@ -291,11 +380,11 @@ export const useFoodHomeData = ({
     fetchRestaurants(appliedFilters);
   }, [appliedFilters, fetchRestaurants]);
 
-  // --- Menu Context Fetching (Veg Mode) ---
+  // --- Menu Context Fetching ---
   const menuUnionRestaurantIdsKey = restaurantsData.map(r => r.mongoId || r.id).join(",");
   useEffect(() => {
     const restaurantIds = menuUnionRestaurantIdsKey.split(",").filter(Boolean);
-    const shouldFetchMenuMeta = vegMode || realCategories.length === 0;
+    const shouldFetchMenuMeta = true; // Always fetch menus to support precise category filtering on the home page
     if (!menuUnionRestaurantIdsKey || !shouldFetchMenuMeta) {
       setMenuCategories([]);
       return;
@@ -334,6 +423,7 @@ export const useFoodHomeData = ({
               }
             });
           });
+          setMenusLoaded(prev => prev + 1); // Trigger re-render of filtered restaurants after each batch
         }
         setMenuCategories(Array.from(categoryMap.values()));
       } finally {
@@ -341,7 +431,7 @@ export const useFoodHomeData = ({
       }
     };
     fetchMenu();
-  }, [menuUnionRestaurantIdsKey, vegMode, realCategories.length, normalizeImageUrl, slugifyCategory]);
+  }, [menuUnionRestaurantIdsKey, normalizeImageUrl, slugifyCategory]);
 
   const deferredRestaurants = useDeferredValue(restaurantsData);
 
@@ -351,6 +441,14 @@ export const useFoodHomeData = ({
     // If vegMode is 'all' or false, show all restaurants (dish level filtering handles 'all' mode).
     let filtered = [...deferredRestaurants].filter(r => vegMode !== "pure" || r.pureVegRestaurant);
     
+    // Apply category filtering
+    if (selectedCategory && selectedCategory !== 'all') {
+      filtered = filtered.filter(r => {
+        const menu = menuUnionCacheRef.current.get(r.mongoId || r.id);
+        return checkRestaurantMatchesCategory(r, selectedCategory, menu);
+      });
+    }
+
     // Compute availability status for sorting rather than strictly filtering out closed ones
     filtered = filtered.map(r => {
       const status = getRestaurantAvailabilityStatus(r, new Date(availabilityTick), { ignoreOperationalStatus: false });
@@ -369,7 +467,7 @@ export const useFoodHomeData = ({
       return b.rating - a.rating;
     });
     return filtered;
-  }, [deferredRestaurants, vegMode, sortBy, availabilityTick]);
+  }, [deferredRestaurants, vegMode, sortBy, availabilityTick, selectedCategory, menusLoaded]);
 
   const visibleRestaurants = useMemo(() => 
     filteredRestaurants.slice(0, visibleRestaurantCount), [filteredRestaurants, visibleRestaurantCount]);

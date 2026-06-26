@@ -13,7 +13,8 @@ const FoodRestaurantCard = memo(({
   isFavorite, 
   onFavoriteToggle, 
   backendOrigin,
-  onMenuLoaded
+  onMenuLoaded,
+  selectedCategory = "all",
 }) => {
   return (
     <div
@@ -33,6 +34,7 @@ const FoodRestaurantCard = memo(({
         onFavoriteToggle={onFavoriteToggle}
         backendOrigin={backendOrigin}
         onMenuLoaded={onMenuLoaded}
+        selectedCategory={selectedCategory}
       />
     </div>
   );
@@ -51,9 +53,14 @@ const RestaurantGrid = memo(({
   backendOrigin,
   hasMoreRestaurants,
   loadMoreRestaurants,
-  restaurantLoadMoreRef
+  restaurantLoadMoreRef,
+  selectedCategory = "all",
 }) => {
   const [hasDishesMap, setHasDishesMap] = React.useState({});
+
+  React.useEffect(() => {
+    setHasDishesMap({});
+  }, [selectedCategory]);
   
   const handleMenuLoaded = React.useCallback((id, hasDishes) => {
     setHasDishesMap(prev => {
@@ -136,6 +143,7 @@ const RestaurantGrid = memo(({
               onFavoriteToggle={onFavoriteToggle}
               backendOrigin={backendOrigin}
               onMenuLoaded={handleMenuLoaded}
+              selectedCategory={selectedCategory}
             />
           ))}
         </div>

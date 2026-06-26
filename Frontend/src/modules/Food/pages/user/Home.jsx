@@ -152,6 +152,23 @@ const defaultBannersImages = [];
 
 const defaultBannersData = [];
 
+const getCategoryKeywords = (categoryId) => {
+  const raw = String(categoryId || "").trim().toLowerCase();
+  const parts = raw.split(/[\s-]+/).filter(Boolean);
+  const keywords = parts.length > 0 ? Array.from(new Set([raw, ...parts])) : [];
+  if (keywords.includes('samosha') || keywords.includes('samosa')) {
+    if (!keywords.includes('samosa')) keywords.push('samosa');
+    if (!keywords.includes('samosha')) keywords.push('samosha');
+  }
+  return keywords;
+};
+
+const matchesCategoryText = (text, keywords) => {
+  if (!text) return false;
+  const t = String(text).toLowerCase();
+  return keywords.some(keyword => t.includes(keyword));
+};
+
 export default function Home() {
   const HERO_BANNER_AUTO_SLIDE_MS = 3500;
   const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
@@ -185,6 +202,7 @@ export default function Home() {
   const [selectedDishForVariants, setSelectedDishForVariants] = useState(null);
   const [selectedVariantId, setSelectedVariantId] = useState("");
   const [showVariantSelector, setShowVariantSelector] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
 
   const heroShellRef = useRef(null);
@@ -215,7 +233,8 @@ export default function Home() {
     location: location,
     vegMode,
     backendOrigin: BACKEND_ORIGIN,
-    availabilityTick
+    availabilityTick,
+    selectedCategory
   });
 
   const finalExploreItemsFiltered = useMemo(() => {
@@ -230,6 +249,10 @@ export default function Home() {
   }, [landing?.exploreMore]);
 
   // --- UI Effects ---
+  useEffect(() => {
+    setSelectedCategory("all");
+  }, [location, activeTab]);
+
   useEffect(() => {
     const intervalId = setInterval(() => setAvailabilityTick(Date.now()), 60000);
     return () => clearInterval(intervalId);
@@ -375,9 +398,20 @@ export default function Home() {
   }, [effectiveZoneId, location?.latitude, location?.longitude]);
 
   const displayedDishesUnder250 = useMemo(() => {
-    if (!vegMode) return dishesUnder250;
-    return dishesUnder250.filter((dish) => dish.isVeg);
-  }, [dishesUnder250, vegMode]);
+    let list = dishesUnder250;
+    if (vegMode) {
+      list = list.filter((dish) => dish.isVeg);
+    }
+    if (selectedCategory && selectedCategory !== "all") {
+      const keywords = getCategoryKeywords(selectedCategory);
+      list = list.filter((dish) => {
+        const dishName = String(dish?.name || "").toLowerCase();
+        const dishCategory = String(dish?.categoryName || dish?.category || "").toLowerCase();
+        return matchesCategoryText(dishName, keywords) || matchesCategoryText(dishCategory, keywords);
+      });
+    }
+    return list;
+  }, [dishesUnder250, vegMode, selectedCategory]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -634,6 +668,8 @@ export default function Home() {
                   navigate={navigate}
                   setShowAllCategoriesModal={setShowAllCategoriesModal}
                   backendOrigin={BACKEND_ORIGIN}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
                 />
               </Suspense>
             </div>
@@ -933,6 +969,7 @@ export default function Home() {
                 hasMoreRestaurants={restaurants.hasMore}
                 loadMoreRestaurants={actions.loadMoreRestaurants}
                 restaurantLoadMoreRef={restaurantLoadMoreRef}
+                selectedCategory={selectedCategory}
               />
             </Suspense>
           </motion.div>
