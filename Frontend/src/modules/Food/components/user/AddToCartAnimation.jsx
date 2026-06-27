@@ -39,6 +39,27 @@ export default function AddToCartAnimation({
   const flyingThumbnailRef = useRef(null);
   const prevItemsRef = useRef(items);
 
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const difference = Math.abs(currentScrollY - lastScrollYRef.current);
+      if (difference < 5) return;
+
+      if (currentScrollY > lastScrollYRef.current && currentScrollY > 50) {
+        setIsNavbarVisible(false);
+      } else {
+        setIsNavbarVisible(true);
+      }
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const safeItems = Array.isArray(items) ? items : [];
   const firstItem = safeItems[0] || {};
   const restaurantName = firstItem.restaurant || "Restaurant";
@@ -452,7 +473,7 @@ export default function AddToCartAnimation({
             }}
             style={{
               position: 'fixed',
-              bottom: dynamicBottom ? undefined : `${bottomOffset || 20}px`,
+              bottom: dynamicBottom ? undefined : `${isNavbarVisible ? (bottomOffset || 80) : 20}px`,
               pointerEvents: 'auto',
             }}
             className={`left-0 right-0 z-[9999] flex justify-center px-4 pb-4 md:pb-6 transition-all duration-300 ease-in-out bg-transparent ${dynamicBottom || ''}`}
