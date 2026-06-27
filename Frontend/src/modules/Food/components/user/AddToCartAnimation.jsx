@@ -283,6 +283,8 @@ export default function AddToCartAnimation({
               duration: 0.15,
               ease: 'power2.in',
             });
+        } else {
+          setRemovedProduct(null);
         }
       }, 10);
     }
@@ -433,6 +435,8 @@ export default function AddToCartAnimation({
               duration: 0.15,
               ease: 'power2.in',
             });
+        } else {
+          setFlyingProduct(null);
         }
       }, 150); // Increased delay to ensure pill animation completes
     }
@@ -492,6 +496,9 @@ export default function AddToCartAnimation({
           ref={removedThumbnailRef}
           className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-white flex-shrink-0 shadow-lg z-[100000]"
           style={{
+            position: 'fixed',
+            opacity: 0,
+            pointerEvents: 'none',
             borderRadius: '50%',
             objectFit: 'cover',
           }}
@@ -516,6 +523,9 @@ export default function AddToCartAnimation({
           ref={flyingThumbnailRef}
           className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-white flex-shrink-0 shadow-lg z-[100000]"
           style={{
+            position: 'fixed',
+            opacity: 0,
+            pointerEvents: 'none',
             borderRadius: '50%',
             objectFit: 'cover',
           }}
