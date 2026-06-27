@@ -32,6 +32,7 @@ export default function AddToCartAnimation({
   const location = useLocation();
   const navigate = useNavigate();
   const linkRef = useRef(null);
+  const pillContainerRef = useRef(null);
   const [removedProduct, setRemovedProduct] = useState(null);
   const [flyingProduct, setFlyingProduct] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -41,6 +42,72 @@ export default function AddToCartAnimation({
 
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const lastScrollYRef = useRef(0);
+
+  // Helper to get untransformed position of the pill container
+  const getUntransformedContainerRect = () => {
+    if (!pillContainerRef.current) return null;
+    const container = pillContainerRef.current;
+    const rect = container.getBoundingClientRect();
+    const style = window.getComputedStyle(container);
+    const transform = style.transform;
+
+    let tx = 0;
+    let ty = 0;
+    let scaleX = 1;
+    let scaleY = 1;
+
+    if (transform && transform !== 'none') {
+      const matrix = transform.match(/^matrix\((.+)\)$/);
+      if (matrix) {
+        const values = matrix[1].split(', ');
+        scaleX = parseFloat(values[0]);
+        scaleY = parseFloat(values[3]);
+        tx = parseFloat(values[4]);
+        ty = parseFloat(values[5]);
+      }
+    }
+
+    const transformedCenterX = rect.left + rect.width / 2;
+    const transformedCenterY = rect.top + rect.height / 2;
+
+    const untransformedWidth = container.offsetWidth;
+    const untransformedHeight = container.offsetHeight;
+
+    const untransformedCenterX = transformedCenterX - tx;
+    const untransformedCenterY = transformedCenterY - ty;
+
+    const untransformedLeft = untransformedCenterX - untransformedWidth / 2;
+    const untransformedTop = untransformedCenterY - untransformedHeight / 2;
+
+    return {
+      left: untransformedLeft,
+      top: untransformedTop,
+      width: untransformedWidth,
+      height: untransformedHeight,
+    };
+  };
+
+  // Helper to get untransformed position of the view cart button
+  const getUntransformedButtonRect = () => {
+    const containerRect = getUntransformedContainerRect();
+    if (!containerRect || !linkRef.current || !pillContainerRef.current) return null;
+
+    let offsetLeft = 0;
+    let offsetTop = 0;
+    let curr = linkRef.current;
+    while (curr && curr !== pillContainerRef.current) {
+      offsetLeft += curr.offsetLeft;
+      offsetTop += curr.offsetTop;
+      curr = curr.offsetParent;
+    }
+
+    return {
+      left: containerRect.left + offsetLeft,
+      top: containerRect.top + offsetTop,
+      width: linkRef.current.offsetWidth,
+      height: linkRef.current.offsetHeight,
+    };
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -90,11 +157,17 @@ export default function AddToCartAnimation({
       setTimeout(() => {
         if (removedThumbnailRef.current && linkRef.current) {
           const thumbnail = removedThumbnailRef.current;
-          // Get fresh position of the pill (viewport-relative)
-          const pillRect = linkRef.current.getBoundingClientRect();
-          // Start position: center of the pill (where thumbnails are)
-          const startX = pillRect.left + 16; // Approximate position of first thumbnail
-          const startY = pillRect.top + pillRect.height / 2; // Vertical center of pill
+          // Get fresh position of the pill (viewport-relative), ignoring scale/translation animations
+          const buttonRect = getUntransformedButtonRect();
+          let startX, startY;
+          if (buttonRect) {
+            startX = buttonRect.left + 16; // Approximate position of first thumbnail
+            startY = buttonRect.top + buttonRect.height / 2; // Vertical center of pill
+          } else {
+            const pillRect = linkRef.current.getBoundingClientRect();
+            startX = pillRect.left + 16;
+            startY = pillRect.top + pillRect.height / 2;
+          }
 
           // Calculate current viewport position accounting for scroll changes
           // Check multiple sources to get accurate scroll position
@@ -233,11 +306,17 @@ export default function AddToCartAnimation({
         console.log('AddToCartAnimation timeout: flyingThumbnailRef.current:', !!flyingThumbnailRef.current, 'linkRef.current:', !!linkRef.current);
         if (flyingThumbnailRef.current && linkRef.current) {
           const thumbnail = flyingThumbnailRef.current;
-          // Get fresh position after pill animation completes
-          const pillRect = linkRef.current.getBoundingClientRect();
-          // Target position: center of the pill (viewport-relative)
-          const endX = pillRect.left + pillRect.width / 2; // Horizontal center of pill
-          const endY = pillRect.top + pillRect.height / 2; // Vertical center of pill
+          // Get fresh position after pill animation completes, ignoring scale/translation animations
+          const buttonRect = getUntransformedButtonRect();
+          let endX, endY;
+          if (buttonRect) {
+            endX = buttonRect.left + buttonRect.width / 2; // Horizontal center of pill
+            endY = buttonRect.top + buttonRect.height / 2; // Vertical center of pill
+          } else {
+            const pillRect = linkRef.current.getBoundingClientRect();
+            endX = pillRect.left + pillRect.width / 2;
+            endY = pillRect.top + pillRect.height / 2;
+          }
 
           // Calculate current viewport position accounting for scroll changes
           // Check multiple sources to get accurate scroll position
@@ -458,6 +537,7 @@ export default function AddToCartAnimation({
       <AnimatePresence>
         {itemCount > 0 && !shouldHidePill && (
           <motion.div
+            ref={pillContainerRef}
             initial={{ y: 60, opacity: 0, scale: 0.8 }}
             animate={{
               y: 0,
