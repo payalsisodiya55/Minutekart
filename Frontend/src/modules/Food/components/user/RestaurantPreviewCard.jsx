@@ -38,7 +38,7 @@ export default function RestaurantPreviewCard({
   selectedCategory = "all",
 }) {
   const navigate = useNavigate();
-  const { addToCart, updateQuantity, getCartItem } = useCart();
+  const { addToCart, updateQuantity, getCartItem, getCartItemQuantity, decreaseVariantQuantity } = useCart();
   const [allDishes, setAllDishes] = useState([]);
   const [lowestPrice, setLowestPrice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -183,16 +183,11 @@ export default function RestaurantPreviewCard({
         }
       : null;
 
-    const existing = getCartItem(dish.id);
-    if (existing) {
-      updateQuantity(dish.id, existing.quantity + 1, sourcePosition, {
-        id: dish.id,
-        name: dish.name,
-        imageUrl: dish.image,
-      });
-      toast.success(`Increased ${dish.name} quantity to ${existing.quantity + 1}`);
-    } else {
-      const result = addToCart(
+    const variants = dish.variants || dish.variations || [];
+    const hasVariants = variants.length > 0;
+
+    if (hasVariants) {
+      addToCart(
         {
           id: dish.id,
           name: dish.name,
@@ -202,15 +197,43 @@ export default function RestaurantPreviewCard({
           restaurantId: String(restaurant.restaurantId || restaurant._id || restaurant.id),
           description: dish.description || "",
           originalPrice: dish.originalPrice || dish.price,
+          variants: dish.variants,
+          variations: dish.variations,
+          isVeg: dish.isVeg,
         },
         sourcePosition
       );
-      if (result?.ok === false) {
-        if (!result.silent) {
-          toast.error(result.error || "Cannot add item from different restaurant. Please clear cart first.");
-        }
+    } else {
+      const existing = getCartItem(dish.id);
+      if (existing) {
+        updateQuantity(dish.id, existing.quantity + 1, sourcePosition, {
+          id: dish.id,
+          name: dish.name,
+          imageUrl: dish.image,
+        });
+        toast.success(`Increased ${dish.name} quantity to ${existing.quantity + 1}`);
       } else {
-        toast.success(`Added ${dish.name} to cart!`);
+        const result = addToCart(
+          {
+            id: dish.id,
+            name: dish.name,
+            price: dish.price,
+            image: dish.image,
+            restaurant: restaurant.name || restaurant.restaurantName || "Restaurant",
+            restaurantId: String(restaurant.restaurantId || restaurant._id || restaurant.id),
+            description: dish.description || "",
+            originalPrice: dish.originalPrice || dish.price,
+            isVeg: dish.isVeg,
+          },
+          sourcePosition
+        );
+        if (result?.ok === false) {
+          if (!result.silent) {
+            toast.error(result.error || "Cannot add item from different restaurant. Please clear cart first.");
+          }
+        } else {
+          toast.success(`Added ${dish.name} to cart!`);
+        }
       }
     }
   };
@@ -231,17 +254,24 @@ export default function RestaurantPreviewCard({
         }
       : null;
 
-    const existing = getCartItem(dish.id);
-    if (existing) {
-      updateQuantity(dish.id, existing.quantity - 1, sourcePosition, {
-        id: dish.id,
-        name: dish.name,
-        imageUrl: dish.image,
-      });
-      if (existing.quantity - 1 === 0) {
-        toast.success(`Removed ${dish.name} from cart`);
-      } else {
-        toast.success(`Decreased ${dish.name} quantity to ${existing.quantity - 1}`);
+    const variants = dish.variants || dish.variations || [];
+    const hasVariants = variants.length > 0;
+
+    if (hasVariants) {
+      decreaseVariantQuantity(dish, sourcePosition);
+    } else {
+      const existing = getCartItem(dish.id);
+      if (existing) {
+        updateQuantity(dish.id, existing.quantity - 1, sourcePosition, {
+          id: dish.id,
+          name: dish.name,
+          imageUrl: dish.image,
+        });
+        if (existing.quantity - 1 === 0) {
+          toast.success(`Removed ${dish.name} from cart`);
+        } else {
+          toast.success(`Decreased ${dish.name} quantity to ${existing.quantity - 1}`);
+        }
       }
     }
   };
@@ -345,8 +375,7 @@ export default function RestaurantPreviewCard({
         ) : (
           <div className="flex gap-3 overflow-x-auto scrollbar-hide py-1">
             {dishes.map((dish) => {
-              const cartItem = getCartItem(dish.id);
-              const quantity = cartItem ? cartItem.quantity : 0;
+              const quantity = getCartItemQuantity(dish);
               const hasPopular = dish.popular || dish.isPopular || false;
 
               return (

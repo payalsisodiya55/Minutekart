@@ -67,7 +67,7 @@ export default function Under250() {
   const { location } = useLocation()
   const { zoneId, zoneStatus, isInService, isOutOfService } = useZone(location)
   const navigate = useNavigate()
-  const { addToCart, updateQuantity, removeFromCart, getCartItem, cart } = useCart()
+  const { addToCart, updateQuantity, removeFromCart, getCartItem, cart, getCartItemQuantity, decreaseVariantQuantity } = useCart()
   const { vegMode } = useProfile()
   const [activeCategory, setActiveCategory] = useState(initialFiltersRef.current.activeCategory)
   const [showSortPopup, setShowSortPopup] = useState(false)
@@ -513,10 +513,11 @@ export default function Under250() {
     }
   }, [zoneId])
 
-  // Sync quantities from cart on mount
   useEffect(() => {
     const cartQuantities = {}
     cart.forEach((item) => {
+      const baseId = item.itemId || item.id?.split("::")[0] || item.id;
+      cartQuantities[baseId] = (cartQuantities[baseId] || 0) + (item.quantity || 0)
       cartQuantities[item.id] = item.quantity || 0
     })
     setQuantities(cartQuantities)
@@ -632,7 +633,7 @@ export default function Under250() {
     }
   }, [])
 
-  // Helper function to update item quantity in bothlocal state and cart
+  // Helper function to update item quantity in both local state and cart
   const updateItemQuantity = (item, newQuantity, event = null, restaurantName = null) => {
     // Check authentication
     if (!isModuleAuthenticated('user')) {
@@ -647,14 +648,9 @@ export default function Under250() {
       return
     }
 
-    // Update local state
-    setQuantities((prev) => ({
-      ...prev,
-      [item.id]: newQuantity,
-    }))
-
     // Find restaurant name from the item or use provided parameter
     const restaurant = restaurantName || item.restaurant || "Under 250"
+    const restaurantId = item.restaurantId || ""
 
     // Prepare cart item with all required properties
     const cartItem = {
@@ -663,8 +659,11 @@ export default function Under250() {
       price: item.price,
       image: item.image,
       restaurant: restaurant,
+      restaurantId: restaurantId,
       description: item.description || "",
       originalPrice: item.originalPrice || item.price,
+      variants: item.variants,
+      variations: item.variations,
     }
 
     // Get source position for animation from event target
@@ -690,7 +689,27 @@ export default function Under250() {
       }
     }
 
-    // Update cart context
+    const variants = item.variants || item.variations || [];
+    const hasVariants = variants.length > 0;
+
+    if (hasVariants) {
+      // Get current total quantity
+      const currentQty = getCartItemQuantity(item);
+      if (newQuantity > currentQty) {
+        addToCart(cartItem, sourcePosition);
+      } else {
+        decreaseVariantQuantity(item, sourcePosition);
+      }
+      return;
+    }
+
+    // Update local state for non-variants
+    setQuantities((prev) => ({
+      ...prev,
+      [item.id]: newQuantity,
+    }))
+
+    // Update cart context for non-variants
     if (newQuantity <= 0) {
       const productInfo = {
         id: item.id,
@@ -1098,7 +1117,7 @@ export default function Under250() {
                       }}
                     >
                       {restaurant.menuItems.map((item, itemIndex) => {
-                        const quantity = quantities[item.id] || 0
+                        const quantity = getCartItemQuantity(item)
                         return (
                           <motion.div
                             key={item.id}

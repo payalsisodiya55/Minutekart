@@ -460,12 +460,26 @@ export default function AddToCartAnimation({
             <div className="bg-white dark:bg-[#0a0a0a] dark:text-white rounded-3xl shadow-[0_15px_45px_rgba(0,0,0,0.18)] border border-gray-150 dark:border-neutral-800 p-2.5 flex items-center justify-between gap-3 w-full max-w-[380px] md:max-w-md pointer-events-auto">
               {/* Left: Restaurant Image & View Menu */}
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className="flex-shrink-0">
-                  <img
-                    src={restaurantImage}
-                    alt={restaurantName}
-                    className="w-12 h-12 rounded-xl object-cover border border-gray-100 dark:border-neutral-800"
-                  />
+                <div className="flex-shrink-0 flex items-center">
+                  {safeItems.length > 1 ? (
+                    <div className="flex items-center -space-x-3.5 overflow-visible pl-1">
+                      {safeItems.slice(0, 3).map((item, idx) => (
+                        <img
+                          key={item.id || idx}
+                          src={item.image || item.imageUrl || "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=200&h=200&fit=crop"}
+                          alt={item.name}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-[#0a0a0a] shadow-md relative"
+                          style={{ zIndex: idx }}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <img
+                      src={restaurantImage}
+                      alt={restaurantName}
+                      className="w-12 h-12 rounded-full object-cover border border-gray-100 dark:border-neutral-800"
+                    />
+                  )}
                 </div>
                 <div className="flex flex-col min-w-0">
                   <h4 className="font-extrabold text-gray-900 dark:text-gray-100 text-[13px] sm:text-[14px] truncate leading-tight">

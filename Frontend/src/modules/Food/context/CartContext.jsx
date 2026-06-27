@@ -1,8 +1,12 @@
 // src/context/cart-context.jsx
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
-import { buildCartLineId } from "@food/utils/foodVariants"
+import { createPortal } from "react-dom"
+import { buildCartLineId, getFoodVariants, hasFoodVariants, getDefaultFoodVariant } from "@food/utils/foodVariants"
 import { motion, AnimatePresence } from "framer-motion"
-import { X } from "lucide-react"
+import { X, Plus, Minus } from "lucide-react"
+import { toast } from "sonner"
+import { Button } from "@food/components/ui/button"
+
 const debugLog = (...args) => {}
 const debugWarn = (...args) => {}
 const debugError = (...args) => {}
@@ -38,6 +42,8 @@ const defaultCartContext = {
   replaceCart: () => {
     debugWarn('CartProvider not available - replaceCart called');
   },
+  decreaseVariantQuantity: () => {},
+  getCartItemQuantity: () => 0,
 }
 
 const CartContext = createContext(defaultCartContext)
@@ -188,6 +194,14 @@ export function CartProvider({ children }) {
     pendingSourcePosition: null
   })
 
+  const [variantSelector, setVariantSelector] = useState({
+    isOpen: false,
+    dish: null,
+    sourcePosition: null,
+    restaurant: "",
+    restaurantId: "",
+  })
+
   const handleConfirmReplace = () => {
     if (replaceModal.pendingItem) {
       setCart((prev) => {
@@ -315,6 +329,19 @@ export function CartProvider({ children }) {
         error: 'Item is missing restaurant information.',
         code: 'MISSING_RESTAURANT'
       }
+    }
+
+    // Intercept items that have variants and don't have a variantId chosen yet
+    const variants = getFoodVariants(item);
+    if (variants && variants.length > 0 && !item.variantId) {
+      setVariantSelector({
+        isOpen: true,
+        dish: item,
+        sourcePosition,
+        restaurant: item.restaurant || item.restaurantName || "Restaurant",
+        restaurantId: item.restaurantId || "",
+      });
+      return { ok: true, silent: true, deferred: true };
     }
 
     setCart((prev) => {
@@ -471,6 +498,39 @@ export function CartProvider({ children }) {
     });
   }
 
+  const decreaseVariantQuantity = (dish, sourcePosition = null) => {
+    const dishId = dish.id || dish.itemId;
+    const existingItems = cart.filter(item => (item.itemId === dishId || item.id === dishId || item.id?.split("::")[0] === dishId) && item.quantity > 0);
+    if (existingItems.length > 0) {
+      const itemToDecrement = existingItems[existingItems.length - 1];
+      updateQuantity(itemToDecrement.id, itemToDecrement.quantity - 1, sourcePosition, {
+        id: itemToDecrement.id,
+        name: dish.name,
+        imageUrl: dish.image || dish.imageUrl,
+      });
+
+      if (itemToDecrement.quantity - 1 === 0) {
+        toast.success(`Removed ${itemToDecrement.variantName || dish.name} from cart`);
+      } else {
+        toast.success(`Decreased ${itemToDecrement.variantName || dish.name} quantity to ${itemToDecrement.quantity - 1}`);
+      }
+    }
+  };
+
+  const getCartItemQuantity = (dish) => {
+    const dishId = dish?.id || dish?.itemId || "";
+    const hasVariants = hasFoodVariants(dish);
+    if (hasVariants) {
+      return cart
+        .filter((item) => item.itemId === dishId || item.id === dishId || item.id?.split("::")[0] === dishId)
+        .reduce((sum, item) => sum + (item.quantity || 0), 0);
+    }
+    const itemInCart = cart.find(
+      (item) => item.id === dishId || item.itemId === dishId || item.id?.split("::")[0] === dishId
+    );
+    return itemInCart ? itemInCart.quantity : 0;
+  };
+
   const value = useMemo(
     () => ({
       _isProvider: true,
@@ -495,8 +555,10 @@ export function CartProvider({ children }) {
       clearCart,
       cleanCartForRestaurant,
       replaceCart,
+      decreaseVariantQuantity,
+      getCartItemQuantity,
     }),
-    [cart, foodItems, quickItems, foodCount, quickCount, foodTotal, quickTotal, lastAddEvent, lastRemoveEvent]
+    [cart, foodItems, quickItems, foodCount, quickCount, foodTotal, quickTotal, lastAddEvent, lastRemoveEvent, decreaseVariantQuantity, getCartItemQuantity]
   )
 
   return (
@@ -509,6 +571,185 @@ export function CartProvider({ children }) {
         existingRestaurant={replaceModal.existingRestaurant}
         newRestaurant={replaceModal.newRestaurant}
       />
+      {typeof window !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {variantSelector.isOpen && variantSelector.dish && (
+              <>
+                {/* Backdrop */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.5 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setVariantSelector(prev => ({ ...prev, isOpen: false }))}
+                  className="fixed inset-0 bg-black z-[99999]"
+                />
+
+                {/* Bottom Sheet */}
+                <motion.div
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 25, stiffness: 250 }}
+                  className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-white dark:bg-[#1a1a1a] rounded-t-[24px] z-[100000] flex flex-col shadow-2xl border-t border-gray-100 dark:border-gray-800"
+                >
+                  {/* Pull Indicator */}
+                  <div className="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto my-3" />
+
+                  {/* Close button top right */}
+                  <div className="absolute right-4 top-4">
+                    <button
+                      onClick={() => setVariantSelector(prev => ({ ...prev, isOpen: false }))}
+                      className="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shadow"
+                    >
+                      <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    </button>
+                  </div>
+
+                  {/* Header */}
+                  <div className="px-5 pt-4 pb-4 border-b border-gray-100 dark:border-gray-800">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="shrink-0 w-4 h-4 border border-gray-300 dark:border-gray-750 rounded flex items-center justify-center p-[2.5px] bg-white">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            backgroundColor: variantSelector.dish.isVeg ? "#1c7a43" : "#dc2626"
+                          }}
+                        />
+                      </div>
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-white pr-6 truncate">
+                        {variantSelector.dish.name}
+                      </h2>
+                    </div>
+                    {variantSelector.restaurant && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-bold">
+                        {variantSelector.restaurant}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Content / Variants List */}
+                  <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-gray-450 dark:text-gray-400 mb-1">
+                      Quantity per variant
+                    </p>
+                    {getFoodVariants(variantSelector.dish).map((variant) => {
+                      const lineItemId = buildCartLineId(variantSelector.dish.id || variantSelector.dish.itemId, variant.id);
+                      const cartItem = getCartItem(lineItemId);
+                      const quantity = cartItem ? cartItem.quantity : 0;
+
+                      return (
+                        <div
+                          key={variant.id}
+                          className="flex items-center justify-between border-b border-gray-50 dark:border-gray-800/50 pb-3 last:border-0 last:pb-0"
+                        >
+                          <div>
+                            <p className="text-sm font-bold text-gray-900 dark:text-white">
+                              {variant.name}
+                            </p>
+                            <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-0.5">
+                              ₹{Math.round(variant.price)}
+                            </p>
+                          </div>
+
+                          {/* Plus/Minus quantity selector inside bottom sheet */}
+                          {quantity > 0 ? (
+                            <div className="flex items-center gap-3 border rounded-full px-2.5 py-1 bg-white dark:bg-gray-800 shadow-sm border-gray-200 dark:border-gray-700">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  updateQuantity(lineItemId, quantity - 1, null, {
+                                    id: lineItemId,
+                                    name: variantSelector.dish.name,
+                                    imageUrl: variantSelector.dish.image || variantSelector.dish.imageUrl,
+                                  });
+                                  if (quantity - 1 === 0) {
+                                    toast.success(`Removed ${variant.name} from cart`);
+                                  } else {
+                                    toast.success(`Decreased ${variant.name} quantity to ${quantity - 1}`);
+                                  }
+                                }}
+                                className="w-5 h-5 flex items-center justify-center text-gray-550 hover:opacity-80 active:scale-75 dark:text-gray-300"
+                              >
+                                <Minus className="h-3.5 w-3.5" strokeWidth={3} />
+                              </button>
+                              <span className="text-[13px] font-black text-gray-900 dark:text-white min-w-[12px] text-center select-none">
+                                {quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  updateQuantity(lineItemId, quantity + 1, variantSelector.sourcePosition, {
+                                    id: lineItemId,
+                                    name: variantSelector.dish.name,
+                                    imageUrl: variantSelector.dish.image || variantSelector.dish.imageUrl,
+                                  });
+                                  toast.success(`Increased ${variant.name} quantity to ${quantity + 1}`);
+                                  setVariantSelector(prev => ({ ...prev, isOpen: false })); // Close on increase!
+                                }}
+                                className="w-5 h-5 flex items-center justify-center text-gray-550 hover:opacity-80 active:scale-75 dark:text-gray-300"
+                              >
+                                <Plus className="h-3.5 w-3.5" strokeWidth={3} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cartItemData = {
+                                  id: lineItemId,
+                                  lineItemId,
+                                  itemId: variantSelector.dish.id || variantSelector.dish.itemId,
+                                  name: variantSelector.dish.name,
+                                  price: variant.price,
+                                  variantId: variant.id,
+                                  variantName: variant.name,
+                                  variantPrice: variant.price,
+                                  image: variantSelector.dish.image || variantSelector.dish.imageUrl,
+                                  restaurant: variantSelector.restaurant,
+                                  restaurantId: variantSelector.restaurantId,
+                                  description: variantSelector.dish.description || "",
+                                  originalPrice: variantSelector.dish.originalPrice || variantSelector.dish.price,
+                                };
+                                const result = addToCart(cartItemData, variantSelector.sourcePosition);
+                                if (result?.ok === false) {
+                                  if (!result.silent) {
+                                    toast.error(result.error || "Failed to add item.");
+                                  }
+                                } else {
+                                  toast.success(`Added ${variantSelector.dish.name} (${variant.name}) to cart!`);
+                                  setVariantSelector(prev => ({ ...prev, isOpen: false })); // Close on add!
+                                }
+                              }}
+                              className="px-4 py-1.5 rounded-full border text-xs font-bold transition-all active:scale-95 flex items-center gap-1 bg-red-50/50 hover:bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/40"
+                              style={{
+                                color: "#DC021B",
+                                borderColor: "#DC021B33"
+                              }}
+                            >
+                              <Plus className="h-3 w-3" strokeWidth={3} /> Add
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="border-t border-gray-100 dark:border-gray-800 p-4 bg-gray-50/50 dark:bg-gray-900/50">
+                    <Button
+                      onClick={() => setVariantSelector(prev => ({ ...prev, isOpen: false }))}
+                      className="w-full h-11 text-white font-bold text-sm rounded-xl shadow-md bg-[#DC021B] hover:bg-[#c10217]"
+                    >
+                      Done
+                    </Button>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
     </CartContext.Provider>
   )
 }

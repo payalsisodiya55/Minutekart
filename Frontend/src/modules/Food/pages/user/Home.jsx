@@ -178,7 +178,7 @@ export default function Home() {
   const { openSearch, closeSearch, searchValue, setSearchValue } = useSearchOverlay();
   const { openLocationSelector } = useLocationSelector();
   const { vegMode, setVegMode: setVegModeContext, isFavorite, addFavorite, removeFavorite, getDefaultAddress } = useProfile();
-  const { cart, addToCart, updateQuantity, getCartItem } = useCart();
+  const { cart, addToCart, updateQuantity, getCartItem, getCartItemQuantity, decreaseVariantQuantity } = useCart();
   const hasFoodCartItems = useMemo(
     () => cart.some((item) => (item?.orderType || "food") !== "quick"),
     [cart],
@@ -199,9 +199,6 @@ export default function Home() {
   const [showStickyCategories, setShowStickyCategories] = useState(false);
   const [dishesUnder250, setDishesUnder250] = useState([]);
   const [loadingDishesUnder250, setLoadingDishesUnder250] = useState(true);
-  const [selectedDishForVariants, setSelectedDishForVariants] = useState(null);
-  const [selectedVariantId, setSelectedVariantId] = useState("");
-  const [showVariantSelector, setShowVariantSelector] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
 
 
@@ -496,14 +493,6 @@ export default function Home() {
       return;
     }
 
-    const variants = getFoodVariants(dish);
-    if (variants && variants.length > 0) {
-      setSelectedDishForVariants(dish);
-      setSelectedVariantId(variants[0].id || "");
-      setShowVariantSelector(true);
-      return;
-    }
-
     const rect = event ? event.currentTarget.getBoundingClientRect() : null;
     const sourcePosition = rect ? {
       x: rect.left + rect.width / 2 + window.scrollX,
@@ -514,16 +503,11 @@ export default function Home() {
       scrollY: window.scrollY
     } : null;
 
-    const existing = getCartItem(dish.id);
-    if (existing) {
-      updateQuantity(dish.id, existing.quantity + 1, sourcePosition, {
-        id: dish.id,
-        name: dish.name,
-        imageUrl: dish.image,
-      });
-      toast.success(`Increased ${dish.name} quantity to ${existing.quantity + 1}`);
-    } else {
-      const result = addToCart({
+    const variants = getFoodVariants(dish);
+    const hasVariants = variants.length > 0;
+
+    if (hasVariants) {
+      addToCart({
         id: dish.id,
         name: dish.name,
         price: dish.price,
@@ -532,13 +516,38 @@ export default function Home() {
         restaurantId: dish.restaurantId,
         description: dish.description || "",
         originalPrice: dish.originalPrice || dish.price,
+        variants: dish.variants,
+        variations: dish.variations,
+        isVeg: dish.isVeg,
       }, sourcePosition);
-      if (result?.ok === false) {
-        if (!result.silent) {
-          toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.');
-        }
+    } else {
+      const existing = getCartItem(dish.id);
+      if (existing) {
+        updateQuantity(dish.id, existing.quantity + 1, sourcePosition, {
+          id: dish.id,
+          name: dish.name,
+          imageUrl: dish.image,
+        });
+        toast.success(`Increased ${dish.name} quantity to ${existing.quantity + 1}`);
       } else {
-        toast.success(`Added ${dish.name} to cart!`);
+        const result = addToCart({
+          id: dish.id,
+          name: dish.name,
+          price: dish.price,
+          image: dish.image,
+          restaurant: dish.restaurant,
+          restaurantId: dish.restaurantId,
+          description: dish.description || "",
+          originalPrice: dish.originalPrice || dish.price,
+          isVeg: dish.isVeg,
+        }, sourcePosition);
+        if (result?.ok === false) {
+          if (!result.silent) {
+            toast.error(result.error || 'Cannot add item from different restaurant. Please clear cart first.');
+          }
+        } else {
+          toast.success(`Added ${dish.name} to cart!`);
+        }
       }
     }
   };
@@ -558,45 +567,24 @@ export default function Home() {
       scrollY: window.scrollY
     } : null;
 
-    const existing = getCartItem(dish.id);
-    if (existing) {
-      updateQuantity(dish.id, existing.quantity - 1, sourcePosition, {
-        id: dish.id,
-        name: dish.name,
-        imageUrl: dish.image,
-      });
-      if (existing.quantity - 1 === 0) {
-        toast.success(`Removed ${dish.name} from cart`);
-      } else {
-        toast.success(`Decreased ${dish.name} quantity to ${existing.quantity - 1}`);
-      }
-    }
-  };
+    const variants = getFoodVariants(dish);
+    const hasVariants = variants.length > 0;
 
-  const handleDecreaseVariantQuantity = (dish, event = null) => {
-    const existingItems = cart.filter(item => item.itemId === dish.id && item.quantity > 0);
-    if (existingItems.length > 0) {
-      const itemToDecrement = existingItems[existingItems.length - 1];
-      const rect = event ? event.currentTarget.getBoundingClientRect() : null;
-      const sourcePosition = rect ? {
-        x: rect.left + rect.width / 2 + window.scrollX,
-        y: rect.top + rect.height / 2 + window.scrollY,
-        viewportX: rect.left + rect.width / 2,
-        viewportY: rect.top + rect.height / 2,
-        scrollX: window.scrollX,
-        scrollY: window.scrollY
-      } : null;
-      
-      updateQuantity(itemToDecrement.id, itemToDecrement.quantity - 1, sourcePosition, {
-        id: itemToDecrement.id,
-        name: dish.name,
-        imageUrl: dish.image,
-      });
-
-      if (itemToDecrement.quantity - 1 === 0) {
-        toast.success(`Removed ${itemToDecrement.variantName || dish.name} from cart`);
-      } else {
-        toast.success(`Decreased ${itemToDecrement.variantName || dish.name} quantity to ${itemToDecrement.quantity - 1}`);
+    if (hasVariants) {
+      decreaseVariantQuantity(dish, sourcePosition);
+    } else {
+      const existing = getCartItem(dish.id);
+      if (existing) {
+        updateQuantity(dish.id, existing.quantity - 1, sourcePosition, {
+          id: dish.id,
+          name: dish.name,
+          imageUrl: dish.image,
+        });
+        if (existing.quantity - 1 === 0) {
+          toast.success(`Removed ${dish.name} from cart`);
+        } else {
+          toast.success(`Decreased ${dish.name} quantity to ${existing.quantity - 1}`);
+        }
       }
     }
   };
@@ -748,62 +736,48 @@ export default function Home() {
 
                           {/* Plus Button or Quantity Selector Overlay (Inside the image) */}
                           {(() => {
-                            const totalQty = hasVariants 
-                              ? cart.filter(item => item.itemId === dish.id).reduce((sum, item) => sum + (item.quantity || 0), 0)
-                              : (getCartItem(dish.id)?.quantity || 0);
+                            const totalQty = getCartItemQuantity(dish);
 
                             if (totalQty > 0) {
-                              return (
-                                <div
-                                  className="absolute bottom-2 right-2 h-8 rounded-full bg-white shadow-md flex items-center justify-between border px-1.5 gap-1.5"
-                                  style={{ borderColor: `${FOOD_THEME_COLOR}33` }}
-                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                >
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        if (hasVariants) {
-                                          handleDecreaseVariantQuantity(dish, e);
-                                        } else {
-                                          handleDecreaseQuantity(dish, e);
-                                        }
-                                      }}
-                                      className="w-5 h-5 flex items-center justify-center hover:opacity-80 transition-all active:scale-75"
-                                      style={{ color: FOOD_THEME_COLOR }}
-                                    >
-                                      <Minus className="h-3.5 w-3.5" strokeWidth={3.5} />
-                                    </button>
-                                    <span className="text-[12px] font-black text-gray-950 min-w-[12px] text-center select-none">
-                                      {totalQty}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        if (hasVariants) {
-                                          handleAddToCart(dish, e);
-                                        } else {
-                                          handleIncreaseQuantity(dish, e);
-                                        }
-                                      }}
-                                      className="w-5 h-5 flex items-center justify-center hover:opacity-80 transition-all active:scale-75"
-                                      style={{ color: FOOD_THEME_COLOR }}
-                                    >
-                                      <Plus className="h-3.5 w-3.5" strokeWidth={3.5} />
-                                    </button>
-                                  </>
-                                </div>
-                              );
+                               return (
+                                 <div
+                                   className="absolute bottom-2 right-2 h-8 rounded-full bg-white shadow-md flex items-center justify-between border px-1.5 gap-1.5"
+                                   style={{ borderColor: `${FOOD_THEME_COLOR}33` }}
+                                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                 >
+                                   <>
+                                     <button
+                                       type="button"
+                                       onClick={(e) => handleDecreaseQuantity(dish, e)}
+                                       className="w-5 h-5 flex items-center justify-center hover:opacity-80 transition-all active:scale-75"
+                                       style={{ color: FOOD_THEME_COLOR }}
+                                     >
+                                       <Minus className="h-3.5 w-3.5" strokeWidth={3.5} />
+                                     </button>
+                                     <span className="text-[12px] font-black text-gray-950 min-w-[12px] text-center select-none">
+                                       {totalQty}
+                                     </span>
+                                     <button
+                                       type="button"
+                                       onClick={(e) => handleAddToCart(dish, e)}
+                                       className="w-5 h-5 flex items-center justify-center hover:opacity-80 transition-all active:scale-75"
+                                       style={{ color: FOOD_THEME_COLOR }}
+                                     >
+                                       <Plus className="h-3.5 w-3.5" strokeWidth={3.5} />
+                                     </button>
+                                   </>
+                                 </div>
+                               );
                             }
                             return (
-                              <button
-                                type="button"
-                                onClick={(e) => handleAddToCart(dish, e)}
-                                className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center border transition-all active:scale-90"
-                                style={{ borderColor: `${FOOD_THEME_COLOR}33` }}
-                              >
-                                <Plus className="h-4 w-4" style={{ color: FOOD_THEME_COLOR }} strokeWidth={3} />
-                              </button>
+                               <button
+                                 type="button"
+                                 onClick={(e) => handleAddToCart(dish, e)}
+                                 className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center border transition-all active:scale-90"
+                                 style={{ borderColor: `${FOOD_THEME_COLOR}33` }}
+                               >
+                                 <Plus className="h-4 w-4" style={{ color: FOOD_THEME_COLOR }} strokeWidth={3} />
+                               </button>
                             );
                           })()}
                         </div>
@@ -1096,195 +1070,6 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Variant Selector Bottom Sheet - Rendered via Portal */}
-      {typeof window !== "undefined" &&
-        showVariantSelector &&
-        selectedDishForVariants &&
-        createPortal(
-          <AnimatePresence>
-            {showVariantSelector && (
-              <>
-                {/* Backdrop */}
-                <motion.div
-                  className="fixed inset-0 bg-black/40 z-[9999]"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => setShowVariantSelector(false)}
-                />
-
-                {/* Bottom Sheet */}
-                <motion.div
-                  className="fixed left-0 right-0 bottom-0 md:left-1/2 md:right-auto md:-translate-x-1/2 md:bottom-auto md:top-1/2 md:-translate-y-1/2 z-[10000] bg-white dark:bg-[#1a1a1a] rounded-t-3xl md:rounded-3xl shadow-2xl max-h-[85vh] md:max-h-[90vh] md:max-w-md w-full flex flex-col overflow-hidden"
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
-                  transition={{ duration: 0.25, type: "spring", damping: 30, stiffness: 400 }}
-                  style={{ willChange: "transform" }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Close Button - Top Center */}
-                  <div className="absolute top-4 right-4 z-[10001]">
-                    <button
-                      onClick={() => setShowVariantSelector(false)}
-                      className="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shadow"
-                    >
-                      <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                    </button>
-                  </div>
-
-                  {/* Header */}
-                  <div className="px-5 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="shrink-0 w-4 h-4 border border-gray-300 dark:border-gray-700 rounded flex items-center justify-center p-[2.5px] bg-white">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: selectedDishForVariants.isVeg ? FOOD_VEG_COLOR : "#dc2626" }} />
-                      </div>
-                      <h2 className="text-lg font-bold text-gray-900 dark:text-white pr-6 truncate">
-                        {selectedDishForVariants.name}
-                      </h2>
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {selectedDishForVariants.restaurant}
-                    </p>
-                  </div>
-
-                  {/* Content / Variants List */}
-                  <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Quantity per variant</p>
-                    {getFoodVariants(selectedDishForVariants).map((variant) => {
-                      const lineItemId = buildCartLineId(selectedDishForVariants.id, variant.id);
-                      const cartItem = getCartItem(lineItemId);
-                      const quantity = cartItem ? cartItem.quantity : 0;
-                      
-                      return (
-                        <div key={variant.id} className="flex items-center justify-between border-b border-gray-50 dark:border-gray-800/50 pb-3 last:border-0 last:pb-0">
-                          <div>
-                            <p className="text-sm font-bold text-gray-900 dark:text-white">{variant.name}</p>
-                            <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-0.5">₹{Math.round(variant.price)}</p>
-                          </div>
-                          
-                          {/* Plus/Minus quantity selector inside bottom sheet */}
-                          {quantity > 0 ? (
-                            <div className="flex items-center gap-3 border rounded-full px-2.5 py-1 bg-white dark:bg-gray-800 shadow-sm border-gray-200 dark:border-gray-700">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  const sourcePosition = {
-                                    x: rect.left + rect.width / 2 + window.scrollX,
-                                    y: rect.top + rect.height / 2 + window.scrollY,
-                                    viewportX: rect.left + rect.width / 2,
-                                    viewportY: rect.top + rect.height / 2,
-                                    scrollX: window.scrollX,
-                                    scrollY: window.scrollY
-                                  };
-                                  updateQuantity(lineItemId, quantity - 1, sourcePosition, {
-                                    id: lineItemId,
-                                    name: selectedDishForVariants.name,
-                                    imageUrl: selectedDishForVariants.image,
-                                  });
-                                  if (quantity - 1 === 0) {
-                                    toast.success(`Removed ${variant.name} from cart`);
-                                  }
-                                }}
-                                className="w-5 h-5 flex items-center justify-center text-gray-500 hover:opacity-80 active:scale-75"
-                              >
-                                <Minus className="h-3.5 w-3.5" strokeWidth={3} />
-                              </button>
-                              <span className="text-[13px] font-black text-gray-900 dark:text-white min-w-[12px] text-center select-none">
-                                {quantity}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  const sourcePosition = {
-                                    x: rect.left + rect.width / 2 + window.scrollX,
-                                    y: rect.top + rect.height / 2 + window.scrollY,
-                                    viewportX: rect.left + rect.width / 2,
-                                    viewportY: rect.top + rect.height / 2,
-                                    scrollX: window.scrollX,
-                                    scrollY: window.scrollY
-                                  };
-                                  updateQuantity(lineItemId, quantity + 1, sourcePosition, {
-                                    id: lineItemId,
-                                    name: selectedDishForVariants.name,
-                                    imageUrl: selectedDishForVariants.image,
-                                  });
-                                  setShowVariantSelector(false); // Close sheet on add!
-                                }}
-                                className="w-5 h-5 flex items-center justify-center text-gray-500 hover:opacity-80 active:scale-75"
-                              >
-                                <Plus className="h-3.5 w-3.5" strokeWidth={3} />
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const sourcePosition = {
-                                  x: rect.left + rect.width / 2 + window.scrollX,
-                                  y: rect.top + rect.height / 2 + window.scrollY,
-                                  viewportX: rect.left + rect.width / 2,
-                                  viewportY: rect.top + rect.height / 2,
-                                  scrollX: window.scrollX,
-                                  scrollY: window.scrollY
-                                };
-                                const cartItemData = {
-                                  id: lineItemId,
-                                  lineItemId,
-                                  itemId: selectedDishForVariants.id,
-                                  name: selectedDishForVariants.name,
-                                  price: variant.price,
-                                  variantId: variant.id,
-                                  variantName: variant.name,
-                                  variantPrice: variant.price,
-                                  image: selectedDishForVariants.image,
-                                  restaurant: selectedDishForVariants.restaurant,
-                                  restaurantId: selectedDishForVariants.restaurantId,
-                                  description: selectedDishForVariants.description || "",
-                                  originalPrice: selectedDishForVariants.originalPrice || selectedDishForVariants.price,
-                                };
-                                const result = addToCart(cartItemData, sourcePosition);
-                                if (result?.ok === false) {
-                                  if (!result.silent) {
-                                    toast.error(result.error || 'Failed to add item.');
-                                  }
-                                } else {
-                                  toast.success(`Added ${variant.name} to cart!`);
-                                  setShowVariantSelector(false); // Close sheet on add!
-                                }
-                              }}
-                              className="px-4 py-1.5 rounded-full border border-red-200 text-red-500 bg-red-50/50 hover:bg-red-50 text-xs font-bold transition-all active:scale-95 flex items-center gap-1"
-                              style={{ color: FOOD_THEME_COLOR, borderColor: `${FOOD_THEME_COLOR}33` }}
-                            >
-                              <Plus className="h-3 w-3" strokeWidth={3} /> Add
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="border-t border-gray-100 dark:border-gray-800 p-4 bg-gray-50/50 dark:bg-gray-900/50">
-                    <Button
-                      onClick={() => setShowVariantSelector(false)}
-                      className="w-full h-11 text-white font-bold text-sm rounded-xl shadow-md"
-                      style={{ backgroundColor: FOOD_THEME_COLOR }}
-                    >
-                      Done
-                    </Button>
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>,
-          document.body
-        )
-      }
     </div>
   );
 }
