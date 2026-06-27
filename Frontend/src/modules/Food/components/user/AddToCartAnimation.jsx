@@ -478,18 +478,18 @@ export default function AddToCartAnimation({
             }}
             className={`left-0 right-0 z-[9999] flex justify-center px-4 pb-4 md:pb-6 transition-all duration-300 ease-in-out bg-transparent ${dynamicBottom || ''}`}
           >
-            <div className="bg-white dark:bg-[#0a0a0a] dark:text-white rounded-3xl shadow-[0_15px_45px_rgba(0,0,0,0.18)] border border-gray-150 dark:border-neutral-800 p-2.5 flex items-center justify-between gap-3 w-full max-w-[380px] md:max-w-md pointer-events-auto">
+            <div className="bg-white dark:bg-[#0a0a0a] dark:text-white rounded-3xl shadow-[0_15px_45px_rgba(0,0,0,0.18)] border border-gray-150 dark:border-neutral-800 p-2 flex items-center justify-between gap-2 w-full max-w-[380px] md:max-w-md pointer-events-auto">
               {/* Left: Restaurant Image & View Menu */}
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
                 <div className="flex-shrink-0 flex items-center">
                   {safeItems.length > 1 ? (
-                    <div className="flex items-center -space-x-3.5 overflow-visible pl-1">
+                    <div className="flex items-center -space-x-3 overflow-visible pl-1">
                       {safeItems.slice(0, 3).map((item, idx) => (
                         <img
                           key={item.id || idx}
                           src={item.image || item.imageUrl || "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=200&h=200&fit=crop"}
                           alt={item.name}
-                          className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-[#0a0a0a] shadow-md relative"
+                          className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-[#0a0a0a] shadow-md relative"
                           style={{ zIndex: idx }}
                         />
                       ))}
@@ -498,17 +498,17 @@ export default function AddToCartAnimation({
                     <img
                       src={restaurantImage}
                       alt={restaurantName}
-                      className="w-12 h-12 rounded-full object-cover border border-gray-100 dark:border-neutral-800"
+                      className="w-10 h-10 rounded-full object-cover border border-gray-100 dark:border-neutral-800"
                     />
                   )}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <h4 className="font-extrabold text-gray-900 dark:text-gray-100 text-[13px] sm:text-[14px] truncate leading-tight">
+                  <h4 className="font-extrabold text-gray-900 dark:text-gray-100 text-[12px] sm:text-[13px] truncate leading-tight">
                     {restaurantName}
                   </h4>
                   <Link
                     to={`/food/user/restaurants/${restaurantSlug}`}
-                    className="text-[11px] font-bold text-green-700 dark:text-green-500 hover:text-green-800 underline flex items-center gap-0.5 mt-1"
+                    className="text-[10px] font-bold text-green-700 dark:text-green-500 hover:text-green-800 underline flex items-center gap-0.5 mt-0.5"
                   >
                     View Menu
                   </Link>
@@ -524,13 +524,13 @@ export default function AddToCartAnimation({
                   debugLog('View cart clicked, navigating to:', linkTo);
                   navigate(linkTo);
                 }}
-                className="flex-shrink-0 bg-[#0f8a3c] hover:bg-green-700 text-white px-5 py-2.5 rounded-2xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-md shadow-green-900/10 cursor-pointer"
+                className="flex-shrink-0 bg-[#0f8a3c] hover:bg-green-700 text-white px-3.5 py-2 rounded-2xl flex flex-col items-center justify-center transition-all active:scale-95 shadow-md shadow-green-900/10 cursor-pointer"
               >
                 <span className="text-[10px] font-medium leading-none opacity-90">
                   {itemCount} {itemCount === 1 ? 'item' : 'items'} | ₹{Math.round(total)}
                 </span>
-                <span className="text-[11px] font-black tracking-wider uppercase flex items-center gap-1.5 mt-0.5">
-                  VIEW CART <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                <span className="text-[10px] font-black tracking-wider uppercase flex items-center gap-1 mt-0.5">
+                  VIEW CART <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
                 </span>
               </button>
 
