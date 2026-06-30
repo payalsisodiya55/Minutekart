@@ -159,6 +159,11 @@ const sellerSchema = new mongoose.Schema(
       type: sellerShopInfoSchema,
       default: () => ({}),
     },
+    fcId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     lastLogin: {
       type: Date,
       default: null,
@@ -268,9 +273,31 @@ sellerSchema.pre("validate", function normalizeSeller(next) {
   next();
 });
 
+sellerSchema.pre("save", async function (next) {
+  if (!this.fcId) {
+    try {
+      const SellerModel = this.constructor;
+      const sellers = await SellerModel.find({ fcId: { $exists: true } }).select('fcId').lean();
+      let maxNum = 0;
+      for (const s of sellers) {
+        const match = s.fcId?.match(/FC-(\d+)/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      }
+      this.fcId = `FC-${String(maxNum + 1).padStart(2, '0')}`;
+    } catch (err) {
+      return next(err);
+    }
+  }
+  next();
+});
+
 sellerSchema.index({ phoneDigits: 1 }, { unique: true, sparse: true });
 sellerSchema.index({ phoneLast10: 1 });
 sellerSchema.index({ email: 1 }, { unique: true, sparse: true });
+sellerSchema.index({ fcId: 1 }, { unique: true, sparse: true });
 sellerSchema.index({ location: "2dsphere" });
 
 export const Seller = mongoose.model('Seller', sellerSchema, 'quick_sellers');

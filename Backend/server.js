@@ -13,6 +13,7 @@ import { initMilkPlanCron } from './src/modules/dudhwala/jobs/milkPlan.job.js';
 import { logger } from './src/utils/logger.js';
 import { initializeFirebaseRealtime } from './src/config/firebase.js';
 import { ensureQuickCommerceSeedData } from './src/modules/quick-commerce/services/seed.service.js';
+import { ensureAllSellersHaveFcId } from './src/modules/quick-commerce/services/fc.service.js';
 
 const SHUTDOWN_TIMEOUT_MS = 10000;
 let server = null;
@@ -84,6 +85,7 @@ const startServer = async () => {
         }
 
         await ensureQuickCommerceSeedData();
+        await ensureAllSellersHaveFcId();
 
         // 6. Start the HTTP server
         server = httpServer.listen(config.port, config.host, () => {

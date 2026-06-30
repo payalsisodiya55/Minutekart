@@ -86,7 +86,7 @@ const mapCategory = (category) => ({
   approvalStatus: category.approvalStatus || 'approved',
 });
 
-const buildSellerMap = async (products = []) => {
+export const buildSellerMap = async (products = []) => {
   const sellerIds = [...new Set(
     products
       .map((product) => String(product?.sellerId || '').trim())
@@ -96,7 +96,7 @@ const buildSellerMap = async (products = []) => {
   if (!sellerIds.length) return {};
 
   const sellers = await Seller.find({ _id: { $in: sellerIds } })
-    .select('_id shopName name')
+    .select('_id shopName name fcId')
     .lean();
 
   return sellers.reduce((acc, seller) => {
@@ -105,8 +105,9 @@ const buildSellerMap = async (products = []) => {
   }, {});
 };
 
-const mapProduct = (product, sellerMap = {}) => {
+export const mapProduct = (product, sellerMap = {}) => {
   const seller = sellerMap[String(product?.sellerId || '')] || null;
+  const brandedName = seller?.fcId ? `Minutekart Partner • ${seller.fcId}` : 'Minutekart Partner';
   return ({
   id: product._id,
   _id: product._id,
@@ -138,12 +139,12 @@ const mapProduct = (product, sellerMap = {}) => {
     ? {
         _id: seller._id,
         id: seller._id,
-        name: seller.name || '',
-        shopName: seller.shopName || seller.name || 'Store',
+        name: brandedName,
+        shopName: brandedName,
       }
     : null,
-  storeName: seller?.shopName || seller?.name || '',
-  restaurantName: seller?.shopName || seller?.name || '',
+  storeName: brandedName,
+  restaurantName: brandedName,
 });
 };
 
@@ -486,10 +487,11 @@ export const getStores = async (req, res) => {
     // Attach sample product images
     const mappedStores = await Promise.all(stores.map(async (store) => {
        const sampleProduct = await QuickProduct.findOne({ sellerId: store._id, ...publicProductFilter }).select('mainImage image').lean();
+       const brandedName = store.fcId ? `Minutekart Partner • ${store.fcId}` : 'Minutekart Partner';
        return {
           _id: store._id,
           id: store._id,
-          name: store.shopName || store.name || 'Store',
+          name: brandedName,
           image: store.logo || sampleProduct?.mainImage || sampleProduct?.image || '',
           description: store.description || '',
        };
@@ -512,13 +514,14 @@ export const getStoreDetails = async (req, res) => {
     }
     
     const sampleProduct = await QuickProduct.findOne({ sellerId: store._id, ...publicProductFilter }).select('mainImage image').lean();
+    const brandedName = store.fcId ? `Minutekart Partner • ${store.fcId}` : 'Minutekart Partner';
     
     return res.json({ 
       success: true, 
       result: {
         _id: store._id,
         id: store._id,
-        name: store.shopName || store.name || 'Store',
+        name: brandedName,
         image: store.logo || sampleProduct?.mainImage || sampleProduct?.image || '',
         description: store.description || '',
       } 

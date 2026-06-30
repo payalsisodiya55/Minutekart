@@ -339,9 +339,10 @@ export const placeOrder = async (req, res) => {
           if (zone && zone.coordinates && zone.coordinates.length >= 3) {
             const isInside = isPointInPolygon(custLat, custLng, zone.coordinates);
             if (!isInside) {
+              const brandedName = seller.fcId ? `Minutekart Partner • ${seller.fcId}` : 'Minutekart Partner';
               return res.status(400).json({
                 success: false,
-                message: `Delivery address is outside of ${seller.shopName || 'seller'}'s service zone. Please choose a different address.`,
+                message: `Delivery address is outside of ${brandedName}'s service zone. Please choose a different address.`,
               });
             }
           }
@@ -351,10 +352,11 @@ export const placeOrder = async (req, res) => {
 
     const pickupPoints = sellers.map((seller) => {
       const sellerItems = items.filter((item) => String(item.sellerId) === String(seller._id));
+      const brandedName = seller.fcId ? `Minutekart Partner • ${seller.fcId}` : 'Minutekart Partner';
       return {
         pickupType: 'quick',
         sourceId: String(seller._id),
-        sourceName: seller.shopName || seller.name || 'Seller Store',
+        sourceName: brandedName,
         address: seller.location?.address || seller.location?.formattedAddress || '',
         location: seller.location?.coordinates
           ? { type: 'Point', coordinates: seller.location.coordinates }
@@ -385,16 +387,20 @@ export const placeOrder = async (req, res) => {
       orderId: orderNumber,
       sessionId: idQuery.sessionId || '',
       userId: idQuery.userId || null,
-      items: items.map((item) => ({
-        itemId: String(item.productId),
-        name: item.name,
-        image: item.image,
-        price: item.price,
-        quantity: item.quantity,
-        type: 'quick',
-        sourceId: String(item.sellerId || item.productId),
-        sourceName: '',
-      })),
+      items: items.map((item) => {
+        const seller = sellers.find((s) => String(s._id) === String(item.sellerId));
+        const brandedName = seller?.fcId ? `Minutekart Partner • ${seller.fcId}` : 'Minutekart Partner';
+        return {
+          itemId: String(item.productId),
+          name: item.name,
+          image: item.image,
+          price: item.price,
+          quantity: item.quantity,
+          type: 'quick',
+          sourceId: String(item.sellerId || item.productId),
+          sourceName: brandedName,
+        };
+      }),
       pickupPoints,
       pricing: {
         ...pricing,
@@ -627,7 +633,7 @@ export const getMyOrders = async (req, res) => {
   ];
 
   const sellers = sellerIds.length
-    ? await Seller.find({ _id: { $in: sellerIds } }).select('_id name shopName').lean()
+    ? await Seller.find({ _id: { $in: sellerIds } }).select('_id name shopName fcId').lean()
     : [];
   const sellerMap = sellers.reduce((acc, seller) => {
     acc[String(seller._id)] = seller;
@@ -640,16 +646,17 @@ export const getMyOrders = async (req, res) => {
       order?.items?.find((item) => item?.type === 'quick')?.sourceId || order?.items?.[0]?.sourceId || '',
     ).trim();
     const seller = sellerMap[sellerId] || null;
+    const brandedName = seller?.fcId ? `Minutekart Partner • ${seller.fcId}` : 'Minutekart Partner';
 
     return {
       ...normalized,
       sellerId: seller?._id || null,
-      storeName: seller?.shopName || seller?.name || '',
+      storeName: brandedName,
       seller: seller
         ? {
             _id: seller._id,
-            name: seller.name || '',
-            shopName: seller.shopName || seller.name || 'Store',
+            name: brandedName,
+            shopName: brandedName,
           }
         : null,
     };
@@ -695,7 +702,7 @@ export const getOrderById = async (req, res) => {
     const sellerOrder = await SellerOrder.findOne({ orderId: order.orderId }).lean();
     const seller =
       sellerOrder?.sellerId
-        ? await Seller.findById(sellerOrder.sellerId).select('_id name shopName location').lean()
+        ? await Seller.findById(sellerOrder.sellerId).select('_id name shopName location fcId').lean()
         : null;
 
     const deliveryAddress = order.deliveryAddress || {};
@@ -707,6 +714,7 @@ export const getOrderById = async (req, res) => {
       : null;
     const dropOtp = order.deliveryVerification?.dropOtp || {};
     const handoverOtp = String(order.deliveryOtp || '').trim();
+    const brandedName = seller?.fcId ? `Minutekart Partner • ${seller.fcId}` : 'Minutekart Partner';
 
     return res.json({
       success: true,
@@ -728,8 +736,8 @@ export const getOrderById = async (req, res) => {
           ? {
               _id: seller._id,
               id: seller._id,
-              name: seller.shopName || seller.name || 'Store',
-              shopName: seller.shopName || seller.name || 'Store',
+              name: brandedName,
+              shopName: brandedName,
               location: seller.location || null,
             }
           : null,

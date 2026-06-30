@@ -86,6 +86,7 @@ const mapCart = async (idQuery) => {
       const weight = variant ? variant.name : (product.weight || product.unit || "1 unit");
 
         const seller = product.sellerId ? sellerMap[String(product.sellerId)] : null;
+        const brandedName = seller?.fcId ? `Minutekart Partner • ${seller.fcId}` : 'Minutekart Partner';
         
         return {
           id: variant ? `${product._id}::${variant.sku}` : String(product._id),
@@ -94,7 +95,7 @@ const mapCart = async (idQuery) => {
           subcategoryId: product.subcategoryId ? String(product.subcategoryId) : null,
           headerId: product.headerId ? String(product.headerId) : null,
           sellerId: product.sellerId ? String(product.sellerId) : null,
-          storeName: seller?.shopName || seller?.name || '',
+          storeName: brandedName,
           name,
         image: product.mainImage || product.image || '',
         mainImage: product.mainImage || product.image || '',

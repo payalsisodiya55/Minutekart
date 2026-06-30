@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { QuickProduct } from '../models/product.model.js';
 import { QuickWishlist } from '../models/wishlist.model.js';
 import { ensureQuickCommerceSeedData } from '../services/seed.service.js';
+import { buildSellerMap, mapProduct } from './catalog.controller.js';
 
 const approvedProductFilter = {
   $or: [
@@ -51,7 +52,10 @@ const buildWishlistResponse = async (wishlistDoc, { idsOnly = false } = {}) => {
     ...approvedProductFilter,
   }).lean();
 
-  const productMap = products.reduce((acc, product) => {
+  const sellerMap = await buildSellerMap(products);
+  const mappedProducts = products.map(product => mapProduct(product, sellerMap));
+
+  const productMap = mappedProducts.reduce((acc, product) => {
     acc[String(product._id)] = product;
     return acc;
   }, {});
