@@ -41,7 +41,7 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
           const categoryConfig = section.config?.categories || {};
           const hydratedItems = categoryConfig.items || [];
           const rows = categoryConfig.rows || 1;
-          const visibleCount = rows * 4;
+          const visibleCount = Math.min(categoryConfig.maxItems || (rows * 4), rows * 4);
 
           const items = hydratedItems.map(c => ({
             ...c,

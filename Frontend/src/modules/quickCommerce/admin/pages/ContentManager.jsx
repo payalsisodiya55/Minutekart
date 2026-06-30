@@ -488,7 +488,7 @@ const ContentManager = () => {
                                                     {section.displayType === 'banners' && `${section.config?.banners?.items?.length || 0} banners configured`}
                                                     {section.displayType === 'categories' && `${section.config?.categories?.categoryIds?.length || 0} categories • ${section.config?.categories?.rows || 1} rows`}
                                                     {section.displayType === 'subcategories' && `${section.config?.subcategories?.subcategoryIds?.length || 0} subcategories • ${section.config?.subcategories?.rows || 1} rows`}
-                                                    {section.displayType === 'products' && `${section.config?.products?.productIds?.length || 0} products • ${section.config?.products?.rows || 1}x${section.config?.products?.columns || 2}${section.config?.products?.singleRowScrollable ? ' • Single row scroll' : ''}`}
+                                                    {section.displayType === 'products' && `${section.config?.products?.productIds?.length || section.config?.products?.items?.length || 0} products • ${section.config?.products?.rows || 1}x${section.config?.products?.columns || 2}${section.config?.products?.singleRowScrollable ? ' • Single row scroll' : ''}`}
                                                 </p>
                                             </div>
                                             <div className="flex flex-col gap-2 items-end">

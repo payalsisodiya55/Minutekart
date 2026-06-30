@@ -109,25 +109,7 @@ export const setQuickHeroConfig = async (data) => {
   return result;
 };
 
-export const getQuickExperienceSections = async ({ pageType = 'home', headerId = null } = {}) => {
-  const cacheKey = `${pageType}:${headerId}`;
-  if (cache.experience.data.has(cacheKey) && !isExpired(cache.experience.expiry)) {
-    return cache.experience.data.get(cacheKey);
-  }
-
-  const collection = getCollection('quick_experience_sections');
-  if (!collection) return [];
-
-  const query = {
-    pageType,
-    ...normalizeStatusQuery(),
-  };
-
-  if (pageType === 'header') {
-    query.headerId = headerId ? String(headerId) : null;
-  }
-
-  const sections = await QuickExperienceSection.find(query).sort({ order: 1, createdAt: 1 }).lean();
+export const hydrateSectionsList = async (sections = []) => {
   if (!sections.length) return [];
 
   // --- Category Tree Logic (Optimized) ---
@@ -303,6 +285,30 @@ export const getQuickExperienceSections = async ({ pageType = 'home', headerId =
     };
   });
 
+  return finalSections;
+};
+
+export const getQuickExperienceSections = async ({ pageType = 'home', headerId = null } = {}) => {
+  const cacheKey = `${pageType}:${headerId}`;
+  if (cache.experience.data.has(cacheKey) && !isExpired(cache.experience.expiry)) {
+    return cache.experience.data.get(cacheKey);
+  }
+
+  const collection = getCollection('quick_experience_sections');
+  if (!collection) return [];
+
+  const query = {
+    pageType,
+    ...normalizeStatusQuery(),
+  };
+
+  if (pageType === 'header') {
+    query.headerId = headerId ? String(headerId) : null;
+  }
+
+  const sections = await QuickExperienceSection.find(query).sort({ order: 1, createdAt: 1 }).lean();
+  const finalSections = await hydrateSectionsList(sections);
+
   cache.experience.data.set(cacheKey, finalSections);
   cache.experience.expiry = Date.now() + CACHE_TTL;
   return finalSections;
@@ -316,15 +322,26 @@ export const createQuickExperienceSection = async (data) => {
   }).sort({ order: -1 });
   
   const order = (maxSection?.order ?? -1) + 1;
-  return QuickExperienceSection.create({ ...data, order });
+  const created = await QuickExperienceSection.create({ ...data, order });
+  clearContentCache();
+
+  const hydrated = await hydrateSectionsList([created.toObject()]);
+  return hydrated[0];
 };
 
 export const updateQuickExperienceSection = async (id, data) => {
-  return QuickExperienceSection.findByIdAndUpdate(id, { $set: data }, { new: true }).lean();
+  const updated = await QuickExperienceSection.findByIdAndUpdate(id, { $set: data }, { new: true }).lean();
+  if (!updated) return null;
+  clearContentCache();
+
+  const hydrated = await hydrateSectionsList([updated]);
+  return hydrated[0];
 };
 
 export const deleteQuickExperienceSection = async (id) => {
-  return QuickExperienceSection.findByIdAndDelete(id);
+  const deleted = await QuickExperienceSection.findByIdAndDelete(id);
+  clearContentCache();
+  return deleted;
 };
 
 export const reorderQuickExperienceSections = async (items = []) => {
@@ -335,7 +352,9 @@ export const reorderQuickExperienceSections = async (items = []) => {
     },
   }));
   if (!ops.length) return;
-  return QuickExperienceSection.bulkWrite(ops);
+  const result = await QuickExperienceSection.bulkWrite(ops);
+  clearContentCache();
+  return result;
 };
 
 export const getQuickCoupons = async () => {
