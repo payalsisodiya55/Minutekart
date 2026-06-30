@@ -161,7 +161,7 @@ export default function AdminSidebar({ isOpen = false, onClose, onCollapseChange
       food: true,
       quickCommerce: true,
       ...cached,
-      dudhwala: true // Force it to true for now
+      dudhwala: false // Force it to false/hide for now
     };
   })
 
@@ -252,7 +252,7 @@ export default function AdminSidebar({ isOpen = false, onClose, onCollapseChange
           setCompanyName(cached.companyName)
         }
         if (cached.modules) {
-          setEnabledModules({ ...cached.modules, dudhwala: true })
+          setEnabledModules({ ...cached.modules, dudhwala: false })
         }
       }
     }
@@ -833,7 +833,7 @@ export default function AdminSidebar({ isOpen = false, onClose, onCollapseChange
                           : "text-neutral-400 hover:text-white"
                       )}
                     >
-                      ChotuuFood
+                      Food
                     </button>
                   )}
                   {enabledModules.quickCommerce && (!adminInfo?.servicesAccess || adminInfo.role === 'ADMIN' || adminInfo.servicesAccess.includes('quickCommerce')) && (
@@ -848,11 +848,11 @@ export default function AdminSidebar({ isOpen = false, onClose, onCollapseChange
                           : "text-neutral-400 hover:text-white"
                       )}
                     >
-                      ChotuuMart
+                      Instamart
                     </button>
                   )}
 
-                  {(!adminInfo?.servicesAccess || adminInfo.role === 'ADMIN' || adminInfo.servicesAccess.includes('dudhwala')) && (
+                  {enabledModules.dudhwala && (!adminInfo?.servicesAccess || adminInfo.role === 'ADMIN' || adminInfo.servicesAccess.includes('dudhwala')) && (
                     <button
                     key="dudhwala-module-btn"
                     type="button"
