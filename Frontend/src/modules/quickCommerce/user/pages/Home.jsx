@@ -1058,11 +1058,11 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                               {/* 2x2 Image Grid inside the card */}
                               <div className="relative w-full aspect-square grid grid-cols-2 gap-1 md:gap-1.5">
                                 {card.previewImages.slice(0, 4).map((imgUrl, i) => (
-                                  <div key={i} className="aspect-square bg-white dark:bg-neutral-900 rounded-[6px] md:rounded-lg flex items-center justify-center p-0.5 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.01)]">
+                                  <div key={i} className="aspect-square bg-white dark:bg-neutral-900 rounded-[6px] md:rounded-lg flex items-center justify-center p-0 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.01)]">
                                     <img
                                       src={resolveQuickImageUrl(imgUrl)}
                                       alt=""
-                                      className="w-full h-full object-contain scale-[1.32] mix-blend-multiply dark:mix-blend-normal group-hover:scale-[1.38] transition-transform duration-300"
+                                      className="w-full h-full object-contain scale-[1.45] mix-blend-multiply dark:mix-blend-normal group-hover:scale-[1.52] transition-transform duration-300"
                                       loading="lazy"
                                     />
                                   </div>
