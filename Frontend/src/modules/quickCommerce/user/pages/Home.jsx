@@ -1053,34 +1053,34 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                                   state: { activeSubcategoryId: card.subcategoryId }
                                 });
                               }}
-                              className="bg-[#F3F4F6] dark:bg-neutral-800 p-2.5 md:p-3 rounded-[24px] flex flex-col items-center justify-between text-center cursor-pointer border border-[#E5E7EB] dark:border-neutral-700/50 hover:shadow-md transition-all duration-300 group w-full"
+                              className="bg-[#F3F4F6] dark:bg-neutral-800 p-1.5 md:p-2 rounded-2xl md:rounded-[24px] flex flex-col items-center justify-between text-center cursor-pointer border border-[#E5E7EB] dark:border-neutral-700/50 hover:shadow-md transition-all duration-300 group w-full"
                             >
                               {/* 2x2 Image Grid inside the card */}
-                              <div className="relative w-full aspect-square grid grid-cols-2 gap-2 mb-2">
+                              <div className="relative w-full aspect-square grid grid-cols-2 gap-1 md:gap-1.5 mb-1.5">
                                 {card.previewImages.slice(0, 4).map((imgUrl, i) => (
-                                  <div key={i} className="aspect-square bg-white dark:bg-neutral-900 rounded-xl md:rounded-2xl flex items-center justify-center p-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-slate-100/50 dark:border-neutral-800">
+                                  <div key={i} className="aspect-square bg-white dark:bg-neutral-900 rounded-lg md:rounded-xl flex items-center justify-center p-1 shadow-[0_1px_4px_rgba(0,0,0,0.01)]">
                                     <img
                                       src={resolveQuickImageUrl(imgUrl)}
                                       alt=""
-                                      className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-300"
+                                      className="w-[92%] h-[92%] object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-300"
                                       loading="lazy"
                                     />
                                   </div>
                                 ))}
                                 {Array.from({ length: Math.max(0, 4 - card.previewImages.length) }).map((_, i) => (
-                                  <div key={`pad-${i}`} className="aspect-square bg-white dark:bg-neutral-900/50 rounded-xl md:rounded-2xl border border-dashed border-slate-200/50" />
+                                  <div key={`pad-${i}`} className="aspect-square bg-white dark:bg-neutral-900/50 rounded-lg md:rounded-xl border border-dashed border-slate-200/50" />
                                 ))}
                                 
                                 {/* Centered Bottom Badge overlay inside the container */}
                                 {moreCount > 0 && (
-                                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-neutral-900 px-2 py-0.5 rounded-full border border-slate-100 dark:border-neutral-800 shadow-sm whitespace-nowrap z-10">
+                                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] md:text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-neutral-900 px-1.5 py-0.5 rounded-full border border-slate-100 dark:border-neutral-800 shadow-sm whitespace-nowrap z-10">
                                     +{moreCount} more
                                   </span>
                                 )}
                               </div>
 
                               {/* Subcategory Name inside the card */}
-                              <span className="text-[11px] md:text-xs font-bold text-slate-800 dark:text-slate-200 mt-2 mb-1 text-center leading-tight line-clamp-2 px-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                              <span className="text-[10px] md:text-xs font-bold text-slate-800 dark:text-slate-200 mt-1 mb-0.5 text-center leading-tight line-clamp-2 px-0.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                 {card.subcategoryName}
                               </span>
                             </motion.div>
