@@ -1053,7 +1053,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                                   state: { activeSubcategoryId: card.subcategoryId }
                                 });
                               }}
-                              className="bg-[#F3F4F6] dark:bg-neutral-800 pt-2.5 px-2.5 pb-4 md:pt-3 md:px-3 md:pb-5 rounded-2xl md:rounded-[24px] flex flex-col items-center justify-between text-center cursor-pointer border border-[#E5E7EB] dark:border-neutral-700/50 hover:shadow-md transition-all duration-300 group w-full"
+                              className="bg-[#F3F4F6] dark:bg-neutral-800 pt-2 px-1.5 pb-4 md:pt-3 md:px-3 md:pb-5 rounded-2xl md:rounded-[24px] flex flex-col items-center justify-between text-center cursor-pointer border border-[#E5E7EB] dark:border-neutral-700/50 hover:shadow-md transition-all duration-300 group w-full aspect-[3/4.15]"
                             >
                               {/* 2x2 Image Grid inside the card */}
                               <div className="relative w-full aspect-square grid grid-cols-2 gap-1 md:gap-1.5">
@@ -1062,7 +1062,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                                     <img
                                       src={resolveQuickImageUrl(imgUrl)}
                                       alt=""
-                                      className="w-full h-full object-contain scale-[1.12] mix-blend-multiply dark:mix-blend-normal group-hover:scale-[1.18] transition-transform duration-300"
+                                      className="w-full h-full object-contain scale-[1.32] mix-blend-multiply dark:mix-blend-normal group-hover:scale-[1.38] transition-transform duration-300"
                                       loading="lazy"
                                     />
                                   </div>
