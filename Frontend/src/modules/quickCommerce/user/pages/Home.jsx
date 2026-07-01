@@ -1053,16 +1053,16 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                                   state: { activeSubcategoryId: card.subcategoryId }
                                 });
                               }}
-                              className="bg-[#F3F4F6] dark:bg-neutral-800 p-1.5 md:p-2 rounded-2xl md:rounded-[24px] flex flex-col items-center justify-between text-center cursor-pointer border border-[#E5E7EB] dark:border-neutral-700/50 hover:shadow-md transition-all duration-300 group w-full"
+                              className="bg-[#F3F4F6] dark:bg-neutral-800 pt-2.5 px-2.5 pb-4 md:pt-3 md:px-3 md:pb-5 rounded-2xl md:rounded-[24px] flex flex-col items-center justify-between text-center cursor-pointer border border-[#E5E7EB] dark:border-neutral-700/50 hover:shadow-md transition-all duration-300 group w-full"
                             >
                               {/* 2x2 Image Grid inside the card */}
-                              <div className="relative w-full aspect-square grid grid-cols-2 gap-1 md:gap-1.5 mb-1.5">
+                              <div className="relative w-full aspect-square grid grid-cols-2 gap-1 md:gap-1.5">
                                 {card.previewImages.slice(0, 4).map((imgUrl, i) => (
-                                  <div key={i} className="aspect-square bg-white dark:bg-neutral-900 rounded-lg md:rounded-xl flex items-center justify-center p-1 shadow-[0_1px_4px_rgba(0,0,0,0.01)]">
+                                  <div key={i} className="aspect-square bg-white dark:bg-neutral-900 rounded-lg md:rounded-xl flex items-center justify-center p-0.5 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.01)]">
                                     <img
                                       src={resolveQuickImageUrl(imgUrl)}
                                       alt=""
-                                      className="w-[92%] h-[92%] object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-300"
+                                      className="w-full h-full object-contain scale-[1.12] mix-blend-multiply dark:mix-blend-normal group-hover:scale-[1.18] transition-transform duration-300"
                                       loading="lazy"
                                     />
                                   </div>
@@ -1080,7 +1080,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                               </div>
 
                               {/* Subcategory Name inside the card */}
-                              <span className="text-[10px] md:text-xs font-bold text-slate-800 dark:text-slate-200 mt-1 mb-0.5 text-center leading-tight line-clamp-2 px-0.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                              <span className="text-[11px] md:text-xs font-bold text-slate-800 dark:text-slate-200 mt-2.5 text-center leading-tight line-clamp-2 px-0.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                 {card.subcategoryName}
                               </span>
                             </motion.div>
