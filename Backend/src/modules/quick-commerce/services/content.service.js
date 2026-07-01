@@ -13,6 +13,7 @@ const cache = {
   hero: { data: new Map(), expiry: 0 },
   experience: { data: new Map(), expiry: 0 },
   offerSections: { data: null, expiry: 0 },
+  bestSellerSections: { data: null, expiry: 0 },
   categories: { data: null, expiry: 0 }
 };
 
@@ -23,6 +24,7 @@ export const clearContentCache = () => {
   cache.hero.data.clear();
   cache.experience.data.clear();
   cache.offerSections.expiry = 0;
+  cache.bestSellerSections.expiry = 0;
   cache.categories.expiry = 0;
 };
 
@@ -33,6 +35,15 @@ const toIdString = (value) => {
     if (value.id) return String(value.id);
   }
   return String(value);
+};
+
+const toId = (value) => {
+  if (!value) return null;
+  try {
+    return new mongoose.Types.ObjectId(String(value));
+  } catch {
+    return value;
+  }
 };
 
 const normalizeStatusQuery = () => ({
@@ -461,6 +472,7 @@ export const createQuickOfferSection = async (data) => {
   };
 
   const result = await collection.insertOne(section);
+  cache.offerSections.expiry = 0;
   return { ...section, _id: result.insertedId };
 };
 
@@ -480,6 +492,7 @@ export const updateQuickOfferSection = async (id, data) => {
     { returnDocument: 'after' }
   );
 
+  cache.offerSections.expiry = 0;
   return result;
 };
 
@@ -488,6 +501,7 @@ export const deleteQuickOfferSection = async (id) => {
   if (!collection) throw new Error('Collection not found');
 
   await collection.deleteOne({ _id: toId(id) });
+  cache.offerSections.expiry = 0;
   return true;
 };
 
@@ -505,6 +519,7 @@ export const reorderQuickOfferSections = async (items = []) => {
   if (ops.length > 0) {
     await collection.bulkWrite(ops);
   }
+  cache.offerSections.expiry = 0;
   return true;
 };
 
@@ -528,4 +543,231 @@ export const getQuickCategories = async (query = {}) => {
     cache.categories.expiry = Date.now() + CACHE_TTL;
   }
   return categories;
+};
+
+// ============================================================
+// Best Seller Sections (Blinkit-style subcategory cards)
+// ============================================================
+
+const toObjectId = (id) => {
+  try {
+    return new mongoose.Types.ObjectId(String(id));
+  } catch {
+    return id;
+  }
+};
+
+export const getQuickBestSellerSections = async (query = {}) => {
+  if (cache.bestSellerSections.data && !isExpired(cache.bestSellerSections.expiry) && !query.skipCache && !query.flat) {
+    return cache.bestSellerSections.data;
+  }
+
+  const collection = getCollection('quick_best_seller_sections');
+  if (!collection) return [];
+
+  const filter = normalizeStatusQuery();
+  if (query.status && query.status !== 'all') {
+    filter.$and = filter.$and.filter(f => !f.status);
+    filter.$and.push({ status: query.status });
+  }
+
+  const cardsRaw = await collection
+    .find(filter)
+    .sort({ order: 1, createdAt: 1 })
+    .toArray();
+
+  if (!cardsRaw.length) return [];
+
+  const allCategoryIds = new Set();
+  const allSubcategoryIds = new Set();
+  cardsRaw.forEach(card => {
+    if (card.categoryId) allCategoryIds.add(String(card.categoryId));
+    if (card.subcategoryId) allSubcategoryIds.add(String(card.subcategoryId));
+  });
+
+  const categoryDocs = await QuickCategory.find({
+    _id: { $in: [...Array.from(allCategoryIds), ...Array.from(allSubcategoryIds)] }
+  }).select('_id name type parentId').lean();
+
+  const categoryById = new Map(categoryDocs.map(c => [String(c._id), c]));
+
+  if (query.flat) {
+    const flatCards = cardsRaw.map(card => {
+      const catIdStr = String(card.categoryId);
+      const subIdStr = String(card.subcategoryId);
+      const category = categoryById.get(catIdStr);
+      const subcategory = categoryById.get(subIdStr);
+      return {
+        _id: card._id,
+        categoryId: card.categoryId,
+        subcategoryId: card.subcategoryId,
+        categoryName: category?.name || 'Unknown',
+        subcategoryName: subcategory?.name || 'Unknown',
+        order: card.order ?? 0,
+        status: card.status || 'active',
+        createdAt: card.createdAt,
+        updatedAt: card.updatedAt,
+      };
+    });
+    return flatCards;
+  }
+
+  const subcategoryIdArr = Array.from(allSubcategoryIds);
+  const productFilter = {
+    $and: [
+      {
+        $or: [
+          { subcategoryId: { $in: subcategoryIdArr } },
+          { categoryId: { $in: subcategoryIdArr } },
+        ],
+      },
+      {
+        $or: [
+          { approvalStatus: 'approved' },
+          { approvalStatus: { $exists: false } },
+        ],
+      },
+      { isActive: { $ne: false } },
+    ],
+  };
+
+  const products = subcategoryIdArr.length > 0
+    ? await QuickProduct.find(productFilter)
+        .select('_id name mainImage image categoryId subcategoryId sellerId')
+        .sort({ createdAt: -1 })
+        .limit(1000)
+        .lean()
+    : [];
+
+  const productsBySubcategory = new Map();
+  products.forEach(p => {
+    if (p.categoryId) {
+      const catId = String(p.categoryId);
+      if (!productsBySubcategory.has(catId)) productsBySubcategory.set(catId, []);
+      productsBySubcategory.get(catId).push(p);
+    }
+    if (p.subcategoryId) {
+      const subId = String(p.subcategoryId);
+      if (!productsBySubcategory.has(subId)) productsBySubcategory.set(subId, []);
+      productsBySubcategory.get(subId).push(p);
+    }
+  });
+
+  const cardsByCategory = new Map();
+  cardsRaw.forEach(card => {
+    const catIdStr = String(card.categoryId);
+    const subIdStr = String(card.subcategoryId);
+
+    const subcategory = categoryById.get(subIdStr);
+    const subcategoryProducts = productsBySubcategory.get(subIdStr) || [];
+
+    const previewImages = subcategoryProducts
+      .slice(0, 4)
+      .map(p => p.mainImage || p.image)
+      .filter(Boolean);
+
+    const hydratedCard = {
+      _id: card._id,
+      categoryId: card.categoryId,
+      subcategoryId: card.subcategoryId,
+      order: card.order ?? 0,
+      status: card.status || 'active',
+      subcategoryName: subcategory?.name || 'Unknown',
+      previewImages,
+      totalProducts: subcategoryProducts.length,
+      createdAt: card.createdAt,
+      updatedAt: card.updatedAt,
+    };
+
+    if (!cardsByCategory.has(catIdStr)) {
+      cardsByCategory.set(catIdStr, []);
+    }
+    cardsByCategory.get(catIdStr).push(hydratedCard);
+  });
+
+  const hydratedSections = [];
+  for (const [catIdStr, cardsList] of cardsByCategory.entries()) {
+    const category = categoryById.get(catIdStr);
+    cardsList.sort((a, b) => a.order - b.order);
+
+    hydratedSections.push({
+      _id: catIdStr,
+      title: 'Bestsellers',
+      categoryId: catIdStr,
+      categoryName: category?.name || '',
+      cards: cardsList.filter(c => c.totalProducts > 0 || c.previewImages.length > 0),
+    });
+  }
+
+  cache.bestSellerSections.data = hydratedSections;
+  cache.bestSellerSections.expiry = Date.now() + CACHE_TTL;
+  return hydratedSections;
+};
+
+export const createQuickBestSellerSection = async (data) => {
+  const collection = getCollection('quick_best_seller_sections');
+  if (!collection) throw new Error('Collection not found');
+
+  const card = {
+    categoryId: toObjectId(data.categoryId) || null,
+    subcategoryId: toObjectId(data.subcategoryId) || null,
+    order: Number(data.order ?? 0),
+    status: data.status || 'active',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  const result = await collection.insertOne(card);
+  cache.bestSellerSections.expiry = 0;
+  return { ...card, _id: result.insertedId };
+};
+
+export const updateQuickBestSellerSection = async (id, data) => {
+  const collection = getCollection('quick_best_seller_sections');
+  if (!collection) throw new Error('Collection not found');
+
+  const update = {
+    categoryId: toObjectId(data.categoryId) || null,
+    subcategoryId: toObjectId(data.subcategoryId) || null,
+    order: Number(data.order ?? 0),
+    status: data.status || 'active',
+    updatedAt: new Date(),
+  };
+  delete update._id;
+
+  const result = await collection.findOneAndUpdate(
+    { _id: toObjectId(id) },
+    { $set: update },
+    { returnDocument: 'after' }
+  );
+
+  cache.bestSellerSections.expiry = 0;
+  return result;
+};
+
+export const deleteQuickBestSellerSection = async (id) => {
+  const collection = getCollection('quick_best_seller_sections');
+  if (!collection) throw new Error('Collection not found');
+
+  await collection.deleteOne({ _id: toObjectId(id) });
+  cache.bestSellerSections.expiry = 0;
+  return true;
+};
+
+export const reorderQuickBestSellerSections = async (items = []) => {
+  const collection = getCollection('quick_best_seller_sections');
+  if (!collection) throw new Error('Collection not found');
+
+  const ops = items.map((item) => ({
+    updateOne: {
+      filter: { _id: toObjectId(item.id) },
+      update: { $set: { order: item.order, updatedAt: new Date() } },
+    },
+  }));
+
+  if (ops.length > 0) {
+    await collection.bulkWrite(ops);
+  }
+  cache.bestSellerSections.expiry = 0;
+  return true;
 };

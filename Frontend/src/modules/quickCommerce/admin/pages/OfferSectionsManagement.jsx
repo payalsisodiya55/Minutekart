@@ -295,9 +295,9 @@ const OfferSectionsManagement = () => {
             return (
               <div
                 key={section._id}
-                className="px-4 py-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-slate-50/40 transition-colors"
+                className="px-6 py-4 md:grid md:grid-cols-[1fr_150px_140px] md:items-center gap-4 flex flex-col hover:bg-slate-50/40 transition-colors"
               >
-                <div className="flex items-center gap-3 md:min-w-[200px]">
+                <div className="flex items-center gap-3">
                   <div
                     className="h-14 w-14 rounded-2xl flex-shrink-0 bg-cover bg-center ring-2 ring-slate-100"
                     style={{
@@ -316,7 +316,7 @@ const OfferSectionsManagement = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex-1 flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <span
                     className="inline-block w-6 h-6 rounded-full border border-slate-200"
                     style={{
@@ -328,7 +328,7 @@ const OfferSectionsManagement = () => {
                     {section.sideImageKey || "—"}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 md:justify-center">
                   <div className="flex items-center gap-1">
                     <button
                       disabled={idx === 0}

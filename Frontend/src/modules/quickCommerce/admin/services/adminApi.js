@@ -417,6 +417,13 @@ export const adminApi = {
   updateOfferSection: (id, payload) => axiosInstance.put(`/quick-commerce/admin/offer-sections/${id}`, payload),
   deleteOfferSection: (id) => axiosInstance.delete(`/quick-commerce/admin/offer-sections/${id}`),
   reorderOfferSections: (items) => axiosInstance.post('/quick-commerce/admin/offer-sections/reorder', items),
+
+  // Best Seller Sections Management
+  getBestSellerSections: () => axiosInstance.get('/quick-commerce/admin/best-seller-sections'),
+  createBestSellerSection: (payload) => axiosInstance.post('/quick-commerce/admin/best-seller-sections', payload),
+  updateBestSellerSection: (id, payload) => axiosInstance.put(`/quick-commerce/admin/best-seller-sections/${id}`, payload),
+  deleteBestSellerSection: (id) => axiosInstance.delete(`/quick-commerce/admin/best-seller-sections/${id}`),
+  reorderBestSellerSections: (items) => axiosInstance.post('/quick-commerce/admin/best-seller-sections/reorder', items),
   getCoupons: (params) => axiosInstance.get('/quick-commerce/admin/coupons', { params }),
   createCoupon: (payload) => axiosInstance.post('/quick-commerce/admin/coupons', payload),
   updateCoupon: (id, payload) => axiosInstance.put(`/quick-commerce/admin/coupons/${id}`, payload),

@@ -172,9 +172,12 @@ const CategoryProductsPage = () => {
 
     const safeProducts = Array.isArray(products) ? products : [];
 
-    const filteredProducts = safeProducts.filter(p =>
-        selectedSubCategory === 'all' || p.subcategoryId?._id === selectedSubCategory || p.subcategoryId === selectedSubCategory
-    );
+    const filteredProducts = safeProducts.filter(p => {
+        if (selectedSubCategory === 'all') return true;
+        const subId = String(p.subcategoryId?._id || p.subcategoryId || '');
+        const catIdStr = String(p.categoryId?._id || p.categoryId || '');
+        return subId === selectedSubCategory || catIdStr === selectedSubCategory;
+    });
 
     const productsById = React.useMemo(() => {
         const map = {};
@@ -246,11 +249,11 @@ const CategoryProductsPage = () => {
 
                     {/* Content */}
                     <main className="flex-1 px-3 pt-1 pb-24 bg-white dark:bg-background transition-colors">
-                        {selectedSubCategory === 'all' && experienceSections.filter(s => (s.title || '').trim().toLowerCase() !== 'best sellers').length > 0 && (
+                        {selectedSubCategory === 'all' && experienceSections.filter(s => !['bestseller', 'bestsellers', 'best seller', 'best sellers'].includes((s.title || '').trim().toLowerCase())).length > 0 && (
                             <div className="mb-4">
                                 <SectionRenderer
                                     sections={experienceSections.filter(s => 
-                                        (s.title || '').trim().toLowerCase() !== 'best sellers'
+                                        !['bestseller', 'bestsellers', 'best seller', 'best sellers'].includes((s.title || '').trim().toLowerCase())
                                     )}
                                     productsById={productsById}
                                     categoriesById={categoryMap}

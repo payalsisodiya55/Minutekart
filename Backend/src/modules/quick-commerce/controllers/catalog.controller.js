@@ -13,6 +13,7 @@ import {
   getQuickOfferSections,
   getQuickOffers,
   getQuickSettings,
+  getQuickBestSellerSections,
 } from '../services/content.service.js';
 
 const setNoCache = (res) => {
@@ -155,13 +156,14 @@ export const getHomeData = async (req, res) => {
   const pageType = req.query?.pageType || 'home';
   const headerId = req.query?.headerId || null;
 
-  const [categories, products, settings, heroConfig, experienceSections, offerSections] = await Promise.all([
+  const [categories, products, settings, heroConfig, experienceSections, offerSections, bestSellerSections] = await Promise.all([
     getQuickCategories(),
     QuickProduct.find(publicProductFilter).sort({ createdAt: -1 }).limit(18).lean(),
     getQuickSettings(),
     getQuickHeroConfig({ pageType, headerId }),
     getQuickExperienceSections({ pageType, headerId }),
     getQuickOfferSections(),
+    getQuickBestSellerSections(),
   ]);
   const sellerMap = await buildSellerMap(products);
 
@@ -216,6 +218,7 @@ export const getHomeData = async (req, res) => {
     hero: resolvedHero,
     sections: resolvedSections,
     offerSections,
+    bestSellerSections,
   };
 
   // Partial returns for specialized frontend calls
@@ -229,6 +232,10 @@ export const getHomeData = async (req, res) => {
 
   if (req.path.includes('/offer-sections')) {
     return res.json({ success: true, results: offerSections });
+  }
+
+  if (req.path.includes('/best-seller-sections')) {
+    return res.json({ success: true, results: bestSellerSections });
   }
 
   return res.json({

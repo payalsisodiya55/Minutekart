@@ -496,6 +496,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
     quickCategories,
     experienceSections,
     offerSections,
+    bestSellerSections,
     categoryMap,
     subcategoryMap,
     headerSections,
@@ -1020,12 +1021,93 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
             </div>
           </div>
 
+          {/* Best Seller Sections (Blinkit-style subcategory cards) */}
+          {bestSellerSections && bestSellerSections.length > 0 && (
+            <div className="w-full px-4 md:px-8 lg:px-[50px] mb-6">
+              {bestSellerSections
+                .filter(section => {
+                  const activeCatId = activeCategory?._id || activeCategory?.id;
+                  if (!activeCatId || activeCatId === "all") return true;
+                  return String(section.categoryId) === String(activeCatId);
+                })
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                .map((section) => {
+                  if (!section.cards || section.cards.length === 0) return null;
+                  return (
+                    <div key={section._id} className="mb-6 bg-white dark:bg-neutral-900 rounded-[24px] p-4 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-neutral-800/50">
+                      <div className="flex items-center justify-between mb-4 px-1">
+                        <div className="flex flex-col">
+                          <h3 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                            {section.sectionTitle || section.title || "Bestsellers"}
+                          </h3>
+                          {section.categoryName && (
+                            <span className="text-[10px] md:text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mt-0.5">
+                              {section.categoryName} Essentials
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 md:gap-4">
+                        {section.cards.map((card) => {
+                          const moreCount = Math.max(0, card.totalProducts - card.previewImages.length);
+                          return (
+                            <motion.div
+                              key={card.subcategoryId}
+                              whileHover={{ y: -4, scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => {
+                                navigate(getQuickCategoryPath(section.categoryId), {
+                                  state: { activeSubcategoryId: card.subcategoryId }
+                                });
+                              }}
+                              className="bg-slate-50/60 dark:bg-neutral-800/40 p-2.5 rounded-2xl flex flex-col items-center justify-between text-center cursor-pointer border border-slate-100/50 dark:border-neutral-800/20 hover:shadow-md transition-all duration-300 group"
+                            >
+                              {/* 2x2 Image Grid */}
+                              <div className="relative w-full aspect-square bg-white dark:bg-neutral-950 p-1.5 rounded-xl grid grid-cols-2 gap-1 overflow-hidden shadow-inner border border-slate-100 dark:border-neutral-800/40">
+                                {card.previewImages.slice(0, 4).map((imgUrl, i) => (
+                                  <div key={i} className="aspect-square bg-slate-50 dark:bg-neutral-900 rounded-lg overflow-hidden flex items-center justify-center p-0.5 border border-slate-50 dark:border-neutral-800/20">
+                                    <img
+                                      src={resolveQuickImageUrl(imgUrl)}
+                                      alt=""
+                                      className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
+                                      loading="lazy"
+                                    />
+                                  </div>
+                                ))}
+                                {Array.from({ length: Math.max(0, 4 - card.previewImages.length) }).map((_, i) => (
+                                  <div key={`pad-${i}`} className="aspect-square bg-slate-50/50 dark:bg-neutral-900/50 rounded-lg border border-dashed border-slate-200/50" />
+                                ))}
+                              </div>
+
+                              {/* Overlays / Badges */}
+                              {moreCount > 0 && (
+                                <span className="text-[9px] md:text-[10px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full mt-2.5 shadow-sm">
+                                  +{moreCount} more
+                                </span>
+                              )}
+
+                              {/* Subcategory Name */}
+                              <span className="text-[11px] md:text-xs font-black text-slate-800 dark:text-slate-200 mt-2 line-clamp-2 leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                {card.subcategoryName}
+                              </span>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+
           {/* Offer Sections (admin-configured: Trending, etc.) – show on Home so user sees them */}
           {offerSections.length > 0 && (
             <div className="w-full px-0 pt-0 pb-2 md:pb-4">
               {[...offerSections]
                 .filter(section => {
-                  if ((section.title || '').trim().toLowerCase() === 'best sellers') return false;
+                  const lowerTitle = (section.title || '').trim().toLowerCase();
+                  if (lowerTitle === 'best sellers' || lowerTitle === 'best seller' || lowerTitle === 'bestseller' || lowerTitle === 'bestsellers') return false;
                   // If a specific category is active, only show sections that match it
                   const activeCatId = activeCategory?._id || activeCategory?.id;
                   if (!activeCatId || activeCatId === "all") return true;

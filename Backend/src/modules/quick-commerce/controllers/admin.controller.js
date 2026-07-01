@@ -22,6 +22,11 @@ import {
   updateQuickOfferSection,
   deleteQuickOfferSection,
   reorderQuickOfferSections,
+  getQuickBestSellerSections,
+  createQuickBestSellerSection,
+  updateQuickBestSellerSection,
+  deleteQuickBestSellerSection,
+  reorderQuickBestSellerSections,
 } from '../services/content.service.js';
 import {
   getQuickCommerceDeliveryWithdrawals,
@@ -1409,6 +1414,36 @@ export const deleteAdminOfferSection = async (req, res) => {
 
 export const reorderAdminOfferSections = async (req, res) => {
   await reorderQuickOfferSections(req.body);
+  return res.json({ success: true, result: { reordered: true } });
+};
+
+// --- Best Seller Sections ---
+
+export const getAdminBestSellerSections = async (req, res) => {
+  const sections = await getQuickBestSellerSections({ ...req.query, skipCache: true, flat: true });
+  return res.json({ success: true, results: sections });
+};
+
+export const createAdminBestSellerSection = async (req, res) => {
+  const section = await createQuickBestSellerSection(req.body);
+  return res.status(201).json({ success: true, result: section });
+};
+
+export const updateAdminBestSellerSection = async (req, res) => {
+  const section = await updateQuickBestSellerSection(req.params.id, req.body);
+  if (!section) {
+    return res.status(404).json({ success: false, message: 'Section not found' });
+  }
+  return res.json({ success: true, result: section });
+};
+
+export const deleteAdminBestSellerSection = async (req, res) => {
+  await deleteQuickBestSellerSection(req.params.id);
+  return res.json({ success: true, result: { deleted: true } });
+};
+
+export const reorderAdminBestSellerSections = async (req, res) => {
+  await reorderQuickBestSellerSections(req.body);
   return res.json({ success: true, result: { reordered: true } });
 };
 

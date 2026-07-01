@@ -38,6 +38,7 @@ export const quickAdminSidebarMenu = [
           { label: "Send Notifications", path: "/admin/quick-commerce/notifications" },
           { label: "Coupons & Promos", path: "/admin/quick-commerce/coupons" },
           { label: "Offer Sections", path: "/admin/quick-commerce/offer-sections" },
+          { label: "Best Sellers", path: "/admin/quick-commerce/best-seller-sections" },
           { label: "Shop by Store", path: "/admin/quick-commerce/shop-by-store" },
         ],
       },

@@ -90,6 +90,11 @@ import {
   createAdminCoupon,
   updateAdminCoupon,
   deleteAdminCoupon,
+  getAdminBestSellerSections,
+  createAdminBestSellerSection,
+  updateAdminBestSellerSection,
+  deleteAdminBestSellerSection,
+  reorderAdminBestSellerSections,
 } from "../controllers/admin.controller.js";
 import {
   getSellerCommissionBootstrap,
@@ -146,6 +151,7 @@ router.get("/home", getHomeData);
 router.get("/experience", getHomeData); // Bridge experience to home data for now
 router.get("/experience/hero", getHomeData); // Bridge hero to home data for now
 router.get("/offer-sections", getHomeData); // Bridge offer-sections
+router.get("/best-seller-sections", getHomeData); // Bridge best-seller-sections
 router.get("/offers", getOffers);
 router.get("/coupons", getCoupons);
 router.post("/coupons/apply", applyCoupon);
@@ -334,6 +340,21 @@ router.post(
   "/admin/offer-sections/reorder",
   ...adminOnly,
   reorderAdminOfferSections,
+);
+
+// Best Seller Sections Management
+router.get("/admin/best-seller-sections", ...adminOnly, getAdminBestSellerSections);
+router.post("/admin/best-seller-sections", ...adminOnly, createAdminBestSellerSection);
+router.put("/admin/best-seller-sections/:id", ...adminOnly, updateAdminBestSellerSection);
+router.delete(
+  "/admin/best-seller-sections/:id",
+  ...adminOnly,
+  deleteAdminBestSellerSection,
+);
+router.post(
+  "/admin/best-seller-sections/reorder",
+  ...adminOnly,
+  reorderAdminBestSellerSections,
 );
 
 // Coupons Management

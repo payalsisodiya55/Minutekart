@@ -97,6 +97,7 @@ export const customerApi = {
   getExperienceSections: (params) => quickGetWithDedupe("/quick-commerce/experience", params),
   getHeroConfig: (params) => quickGetWithDedupe("/quick-commerce/experience/hero", params),
   getOfferSections: (params) => quickGetWithDedupe("/quick-commerce/offer-sections", params),
+  getBestSellerSections: (params) => quickGetWithDedupe("/quick-commerce/best-seller-sections", params),
   getHomeData: () => quickGetWithDedupe("/quick-commerce/home", {}),
 
   getCoupons: () => quickGetWithDedupe("/quick-commerce/coupons", {}),

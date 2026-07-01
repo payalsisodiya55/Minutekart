@@ -126,7 +126,7 @@ let globalQuickHomeCache = {
   lastFetched: 0,
 };
 
-const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_EXPIRY_MS = 5 * 1000; // 5 seconds
 
 export const useQuickHomeData = ({ currentLocation }) => {
   const hasValidCache = globalQuickHomeCache.data && (Date.now() - globalQuickHomeCache.lastFetched < CACHE_EXPIRY_MS);
@@ -139,6 +139,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
   const [quickCategories, setQuickCategories] = useState(globalQuickHomeCache.data?.quickCategories || []);
   const [experienceSections, setExperienceSections] = useState(globalQuickHomeCache.data?.experienceSections || []);
   const [offerSections, setOfferSections] = useState(globalQuickHomeCache.data?.offerSections || []);
+  const [bestSellerSections, setBestSellerSections] = useState(globalQuickHomeCache.data?.bestSellerSections || []);
   const [categoryMap, setCategoryMap] = useState(globalQuickHomeCache.data?.categoryMap || {});
   const [subcategoryMap, setSubcategoryMap] = useState(globalQuickHomeCache.data?.subcategoryMap || {});
   const [heroConfig, setHeroConfig] = useState(globalQuickHomeCache.data?.heroConfig || { banners: { items: [] }, categoryIds: [] });
@@ -178,12 +179,13 @@ export const useQuickHomeData = ({ currentLocation }) => {
         quickCategories: [],
         experienceSections: [],
         offerSections: [],
+        bestSellerSections: [],
         heroConfig: { banners: { items: [] }, categoryIds: [] },
         categoryMap: {},
         subcategoryMap: {},
       };
 
-      let pendingTasks = 5;
+      let pendingTasks = 6;
       const checkDone = () => {
         pendingTasks--;
         if (pendingTasks <= 0) {
@@ -296,6 +298,15 @@ export const useQuickHomeData = ({ currentLocation }) => {
         }
       }).catch(console.error).finally(checkDone);
 
+      // 6. Best Seller Sections
+      customerApi.getBestSellerSections().then(bestRes => {
+        if (seq !== fetchDataSeqRef.current) return;
+        const sectionsList = bestRes?.data?.results || bestRes?.data?.result || bestRes?.data;
+        const bestSecs = Array.isArray(sectionsList) ? sectionsList : [];
+        setBestSellerSections(bestSecs);
+        newDataCache.bestSellerSections = bestSecs;
+      }).catch(console.error).finally(checkDone);
+
     } catch (error) {
       console.error("Error fetching quick home data:", error);
       setIsLoading(false);
@@ -383,6 +394,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
     quickCategories,
     experienceSections,
     offerSections,
+    bestSellerSections,
     categoryMap,
     subcategoryMap,
     headerSections,
