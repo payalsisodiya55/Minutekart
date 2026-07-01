@@ -1053,12 +1053,12 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                                   state: { activeSubcategoryId: card.subcategoryId }
                                 });
                               }}
-                              className="bg-[#F3F4F6] dark:bg-neutral-800 pt-2 px-1.5 pb-4 md:pt-3 md:px-3 md:pb-5 rounded-2xl md:rounded-[24px] flex flex-col items-center justify-between text-center cursor-pointer border border-[#E5E7EB] dark:border-neutral-700/50 hover:shadow-md transition-all duration-300 group w-full aspect-[3/4.15]"
+                              className="bg-[#F3F4F6] dark:bg-neutral-800 pt-2 px-1.5 pb-4 md:pt-3 md:px-3 md:pb-5 rounded-xl md:rounded-2xl flex flex-col items-center justify-between text-center cursor-pointer border border-[#E5E7EB] dark:border-neutral-700/50 hover:shadow-md transition-all duration-300 group w-full aspect-[3/4.15]"
                             >
                               {/* 2x2 Image Grid inside the card */}
                               <div className="relative w-full aspect-square grid grid-cols-2 gap-1 md:gap-1.5">
                                 {card.previewImages.slice(0, 4).map((imgUrl, i) => (
-                                  <div key={i} className="aspect-square bg-white dark:bg-neutral-900 rounded-lg md:rounded-xl flex items-center justify-center p-0.5 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.01)]">
+                                  <div key={i} className="aspect-square bg-white dark:bg-neutral-900 rounded-[6px] md:rounded-lg flex items-center justify-center p-0.5 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.01)]">
                                     <img
                                       src={resolveQuickImageUrl(imgUrl)}
                                       alt=""
@@ -1068,7 +1068,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                                   </div>
                                 ))}
                                 {Array.from({ length: Math.max(0, 4 - card.previewImages.length) }).map((_, i) => (
-                                  <div key={`pad-${i}`} className="aspect-square bg-white dark:bg-neutral-900/50 rounded-lg md:rounded-xl border border-dashed border-slate-200/50" />
+                                  <div key={`pad-${i}`} className="aspect-square bg-white dark:bg-neutral-900/50 rounded-[6px] md:rounded-lg border border-dashed border-slate-200/50" />
                                 ))}
                                 
                                 {/* Centered Bottom Badge overlay inside the container */}
