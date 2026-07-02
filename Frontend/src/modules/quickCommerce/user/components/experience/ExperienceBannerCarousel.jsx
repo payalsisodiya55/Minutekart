@@ -46,9 +46,15 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
 
   const effectiveSlideGap = fullWidth ? 0 : slideGap;
 
-  const [activeIndex, setActiveIndex] = React.useState(0);
+  const loopedItems = React.useMemo(() => {
+    if (items.length > 1) {
+      return [items[items.length - 1], ...items, items[0]];
+    }
+    return items;
+  }, [items]);
+
+  const [activeIndex, setActiveIndex] = React.useState(items.length > 1 ? 1 : 0);
   const [isResetting, setIsResetting] = React.useState(false);
-  const loopedItems = items.length > 1 ? [...items, items[0]] : items;
   const stepPercent = 100 / loopedItems.length;
 
   React.useEffect(() => {
@@ -62,11 +68,11 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
   }, [items.length]);
 
   React.useEffect(() => {
-    if (items.length <= 1 || activeIndex !== items.length) return;
+    if (items.length <= 1 || activeIndex !== items.length + 1) return;
 
     const timeoutId = window.setTimeout(() => {
       setIsResetting(true);
-      setActiveIndex(0);
+      setActiveIndex(1);
     }, 500);
 
     return () => window.clearTimeout(timeoutId);
@@ -86,11 +92,19 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
     <div className={cn("overflow-hidden", fullWidth && "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]")}>
       <div
         className={cn("flex ease-out", isResetting ? "transition-none" : "transition-transform duration-500")}
-        style={{
-          width: `${loopedItems.length * 100}%`,
-          gap: `${effectiveSlideGap}px`,
-          transform: `translateX(-${activeIndex * stepPercent}%)`,
-        }}
+        style={
+          fullWidth
+            ? {
+                width: `${loopedItems.length * 100}%`,
+                gap: `${effectiveSlideGap}px`,
+                transform: `translateX(-${activeIndex * stepPercent}%)`,
+              }
+            : {
+                width: "100%",
+                gap: `${effectiveSlideGap}px`,
+                transform: `translateX(calc(-${activeIndex} * (85% + ${effectiveSlideGap}px) + 7.5%))`,
+              }
+        }
       >
         {loopedItems.map((banner, idx) => {
           const hasLink = banner.linkType && banner.linkType !== "none" && banner.linkValue;
@@ -99,11 +113,11 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
             <div
               key={idx}
               className={cn(
-                "relative shrink-0 overflow-hidden bg-slate-100 flex items-center justify-center box-border",
-                fullWidth ? "h-[190px] rounded-none px-0" : "h-[190px] px-4 md:px-8"
+                "relative shrink-0 flex items-center justify-center box-border",
+                fullWidth ? "h-[190px] rounded-none px-0 bg-slate-100 overflow-hidden" : "h-[190px] bg-transparent"
               )}
               style={{
-                width: `${stepPercent}%`,
+                width: fullWidth ? `${stepPercent}%` : "85%",
               }}
             >
               {fullWidth ? (
@@ -154,8 +168,8 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
               ) : (
                 <div
                   className={cn(
-                    "relative h-full w-full max-w-[560px] -translate-x-2 md:-translate-x-4 overflow-hidden rounded-3xl bg-slate-100 shadow-[0_12px_30px_rgba(15,23,42,0.08)]",
-                    hasLink && "cursor-pointer hover:shadow-xl active:scale-[0.99] transition-all"
+                    "relative h-full w-full max-w-[560px] overflow-hidden rounded-3xl bg-transparent",
+                    hasLink && "cursor-pointer active:scale-[0.99] transition-all"
                   )}
                   onClick={() => handleBannerClick(banner)}
                 >
