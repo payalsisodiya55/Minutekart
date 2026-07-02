@@ -244,7 +244,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
               ) : (
                 <div
                   className={cn(
-                    "relative h-full w-full max-w-[560px] overflow-hidden rounded-3xl bg-transparent",
+                    "relative h-full w-full max-w-[560px] overflow-hidden rounded-2xl bg-transparent",
                     hasLink && "cursor-pointer active:scale-[0.99] transition-all"
                   )}
                   onClick={() => handleBannerClick(banner)}

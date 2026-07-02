@@ -174,7 +174,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
                 )}
               </div>
             ) : (
-              <div className="h-full w-full max-w-[1400px] overflow-hidden rounded-[32px] bg-transparent relative group">
+              <div className="h-full w-full max-w-[1400px] overflow-hidden rounded-2xl bg-transparent relative group">
                 <img
                   src={resolveQuickImageUrl(banner.imageUrl || banner.image)}
                   alt={banner.title || section?.title || "Banner"}
