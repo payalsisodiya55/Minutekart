@@ -333,7 +333,7 @@ export function CartProvider({ children }) {
 
     // Intercept items that have variants and don't have a variantId chosen yet
     const variants = getFoodVariants(item);
-    if (variants && variants.length > 0 && !item.variantId) {
+    if (nextOrderType !== "quick" && variants && variants.length > 0 && !item.variantId) {
       setVariantSelector({
         isOpen: true,
         dish: item,

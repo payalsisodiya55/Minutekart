@@ -22,7 +22,7 @@ export const CartAnimationProvider = ({ children }) => {
     }, 1600); // Buffer for 1.5s animation
   };
 
-  const animateRemoveFromCart = (imageSrc) => {
+  const animateRemoveFromCart = (rect, imageSrc) => {
     const id = Date.now() + Math.random();
 
     // Calculate start position immediately to handle unmounting
@@ -30,10 +30,10 @@ export const CartAnimationProvider = ({ children }) => {
     let startPos;
 
     if (miniCart) {
-      const rect = miniCart.getBoundingClientRect();
+      const miniRect = miniCart.getBoundingClientRect();
       startPos = {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
+        x: miniRect.left + miniRect.width / 2,
+        y: miniRect.top + miniRect.height / 2,
       };
     } else {
       // Fallback
@@ -45,12 +45,12 @@ export const CartAnimationProvider = ({ children }) => {
       };
     }
 
-    setDroppingItems((prev) => [...prev, { id, imageSrc, startPos }]);
+    setDroppingItems((prev) => [...prev, { id, imageSrc, startPos, targetRect: rect }]);
 
     // Remove item after animation
     setTimeout(() => {
       setDroppingItems((prev) => prev.filter((item) => item.id !== id));
-    }, 600);
+    }, 1600);
   };
 
   return (
@@ -172,10 +172,49 @@ const DroppingItemsOverlay = ({ items }) => {
 };
 
 const DroppingItem = ({ item }) => {
-  const { startPos } = item;
-  const size = 40;
+  const { startPos, targetRect } = item;
+  const size = 48;
 
   if (!startPos) return null;
+
+  if (targetRect) {
+    const targetX = targetRect.left + targetRect.width / 2 - size / 2;
+    const targetY = targetRect.top + targetRect.height / 2 - size / 2;
+
+    return (
+      <motion.img
+        src={item.imageSrc}
+        initial={{
+          position: "fixed",
+          left: startPos.x - size / 2,
+          top: startPos.y - size / 2,
+          width: size,
+          height: size,
+          opacity: 0,
+          scale: 0.5,
+          borderRadius: "50%",
+          boxShadow:
+            "inset 0 4px 8px rgba(255, 255, 255, 0.8), inset 0 -4px 8px rgba(0, 0, 0, 0.1), 0 8px 20px rgba(0, 0, 0, 0.3)",
+        }}
+        animate={{
+          left: targetX,
+          top: targetY,
+          width: size,
+          height: size,
+          opacity: [0, 1, 1, 0],
+          scale: [0.5, 1.2, 1, 0.2],
+          borderRadius: "50%",
+        }}
+        transition={{
+          left: { type: "spring", stiffness: 120, damping: 20 },
+          top: { type: "spring", stiffness: 120, damping: 20 },
+          opacity: { duration: 1.2, times: [0, 0.2, 0.8, 1] },
+          scale: { duration: 1.2, times: [0, 0.2, 0.8, 1] },
+        }}
+        className="object-cover bg-white pointer-events-none z-650"
+      />
+    );
+  }
 
   return (
     <motion.img

@@ -1,6 +1,7 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { Heart, Plus, Minus, Clock } from "lucide-react";
+import { Heart, Plus, Minus, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
@@ -45,6 +46,7 @@ const ProductCard = React.memo(
     const { animateAddToCart, animateRemoveFromCart } = useCartAnimation();
 
     const [showHeartPopup, setShowHeartPopup] = React.useState(false);
+    const [showVariantsModal, setShowVariantsModal] = React.useState(false);
     const imageRef = React.useRef(null);
 
     const getComparableProductId = React.useCallback(
@@ -107,32 +109,54 @@ const ProductCard = React.memo(
         e.preventDefault();
         e.stopPropagation();
 
-        if (product.variants && product.variants.length > 0) {
-          navigate(getQuickProductPath(product.id || product._id), { state: { product } });
+        if (product.variants && product.variants.length > 1) {
+          setShowVariantsModal(true);
           return;
         }
 
-        const stock = Number(product.stock ?? Infinity);
+        let targetProduct = product;
+        if (product.variants && product.variants.length === 1) {
+          const v = product.variants[0];
+          const variantId = `${product.id}::${v.sku}`;
+          const vPrice = v.salePrice > 0 ? v.salePrice : v.price;
+          const vOriginalPrice = Math.max(vPrice, v.price);
+          targetProduct = {
+            ...product,
+            id: variantId,
+            _id: variantId,
+            productId: variantId,
+            itemId: variantId,
+            name: `${product.name} (${v.name})`,
+            price: vPrice,
+            originalPrice: vOriginalPrice,
+            mrp: vOriginalPrice,
+            weight: v.name,
+            stock: v.stock,
+            sku: v.sku,
+          };
+        }
+
+        const stock = Number(targetProduct.stock ?? Infinity);
         if (stock <= 0) {
           showToast("This product is out of stock", "error");
           return;
         }
 
-        const result = await addToCart(product);
+        const result = await addToCart(targetProduct);
         if (result?.ok === false) {
           showToast(result.error || "Cannot add item to cart", "error");
           return;
         }
 
         if (imageRef.current) {
-          const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
+          const resolvedSrc = resolveQuickImageUrl(targetProduct.image || targetProduct.mainImage) || targetProduct.image || targetProduct.mainImage;
           animateAddToCart(
             imageRef.current.getBoundingClientRect(),
             resolvedSrc,
           );
         }
       },
-      [animateAddToCart, product, addToCart, showToast, navigate],
+      [animateAddToCart, product, addToCart, showToast],
     );
 
     const handleIncrement = React.useCallback(
@@ -140,19 +164,26 @@ const ProductCard = React.memo(
         e.preventDefault();
         e.stopPropagation();
 
-        if (product.variants && product.variants.length > 0) {
-          navigate(getQuickProductPath(product.id || product._id), { state: { product } });
+        if (product.variants && product.variants.length > 1) {
+          setShowVariantsModal(true);
           return;
         }
 
-        const stock = Number(product.stock ?? Infinity);
-        if (quantity >= stock) {
-          showToast(`Only ${stock} in stock`, "error");
+        let targetId = product.id || product._id;
+        let targetStock = Number(product.stock ?? Infinity);
+        if (product.variants && product.variants.length === 1) {
+          const v = product.variants[0];
+          targetId = `${product.id}::${v.sku}`;
+          targetStock = Number(v.stock ?? Infinity);
+        }
+
+        if (quantity >= targetStock) {
+          showToast(`Only ${targetStock} in stock`, "error");
           return;
         }
-        updateQuantity(product.id || product._id, 1);
+        updateQuantity(targetId, 1);
       },
-      [updateQuantity, product, quantity, navigate, showToast],
+      [updateQuantity, product, quantity, showToast],
     );
 
     const handleDecrement = React.useCallback(
@@ -160,16 +191,30 @@ const ProductCard = React.memo(
         e.preventDefault();
         e.stopPropagation();
 
-        if (product.variants && product.variants.length > 0) {
-          navigate(getQuickProductPath(product.id || product._id), { state: { product } });
+        if (product.variants && product.variants.length > 1) {
+          setShowVariantsModal(true);
           return;
         }
 
+        let targetId = product.id || product._id;
+        if (product.variants && product.variants.length === 1) {
+          const v = product.variants[0];
+          targetId = `${product.id}::${v.sku}`;
+        }
+
         if (quantity === 1) {
-          animateRemoveFromCart(product.image);
-          removeFromCart(product.id || product._id);
+          const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
+          if (imageRef.current) {
+            animateRemoveFromCart(
+              imageRef.current.getBoundingClientRect(),
+              resolvedSrc,
+            );
+          } else {
+            animateRemoveFromCart(null, resolvedSrc);
+          }
+          removeFromCart(targetId);
         } else {
-          updateQuantity(product.id || product._id, -1);
+          updateQuantity(targetId, -1);
         }
       },
       [
@@ -178,8 +223,86 @@ const ProductCard = React.memo(
         product,
         removeFromCart,
         updateQuantity,
-        navigate,
       ],
+    );
+
+    const handleVariantAddToCart = React.useCallback(
+      async (e, variant) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const variantId = `${product.id}::${variant.sku}`;
+        const stock = Number(variant.stock ?? Infinity);
+        if (stock <= 0) {
+          showToast("This variant is out of stock", "error");
+          return;
+        }
+
+        const vPrice = variant.salePrice > 0 ? variant.salePrice : variant.price;
+        const vOriginalPrice = Math.max(vPrice, variant.price);
+
+        const variantProductObj = {
+          ...product,
+          id: variantId,
+          _id: variantId,
+          productId: variantId,
+          itemId: variantId,
+          name: `${product.name} (${variant.name})`,
+          price: vPrice,
+          originalPrice: vOriginalPrice,
+          mrp: vOriginalPrice,
+          weight: variant.name,
+          stock: variant.stock,
+          sku: variant.sku,
+        };
+
+        const result = await addToCart(variantProductObj);
+        if (result?.ok === false) {
+          showToast(result.error || "Cannot add variant to cart", "error");
+          return;
+        }
+
+        showToast(`${variantProductObj.name} added to cart`, "success");
+      },
+      [product, addToCart, showToast],
+    );
+
+    const handleVariantIncrement = React.useCallback(
+      (e, variant) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const variantId = `${product.id}::${variant.sku}`;
+        const item = cart.find(
+          (item) => String(item.productId || item.itemId || item.id || item._id) === variantId
+        );
+        const stock = Number(variant.stock ?? Infinity);
+        if (item) {
+          if (item.quantity >= stock) {
+            showToast(`Only ${stock} in stock`, "error");
+            return;
+          }
+          updateQuantity(variantId, 1);
+        }
+      },
+      [cart, product.id, updateQuantity, showToast],
+    );
+
+    const handleVariantDecrement = React.useCallback(
+      (e, variant) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const variantId = `${product.id}::${variant.sku}`;
+        const item = cart.find(
+          (item) => String(item.productId || item.itemId || item.id || item._id) === variantId
+        );
+        if (item) {
+          if (item.quantity === 1) {
+            removeFromCart(variantId);
+          } else {
+            updateQuantity(variantId, -1);
+          }
+        }
+      },
+      [cart, product.id, updateQuantity, removeFromCart],
     );
 
     const hasSalePrice = product.salePrice > 0 && product.price > product.salePrice;
@@ -288,34 +411,175 @@ const ProductCard = React.memo(
               </div>
 
               {quantity > 0 ? (
-                <div className="flex items-center bg-[#cc2532] text-white rounded-lg md:rounded-xl shadow-md h-6 md:h-7.5 overflow-hidden ring-1 ring-[#cc2532]/20">
+                <div className="flex items-center bg-[#0c831f] text-white rounded-xl shadow-sm h-8 md:h-9 overflow-hidden w-[72px] md:w-[80px] justify-between">
                   <button
                     onClick={handleDecrement}
-                    className="w-6 md:w-7.5 h-full hover:bg-black/10 transition-colors flex items-center justify-center border-r border-white/10">
-                    <Minus size={9} strokeWidth={4} />
+                    className="w-6 md:w-7.5 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
+                    <Minus size={10} strokeWidth={4} />
                   </button>
-                  <span className="text-[10px] md:text-[12px] font-black min-w-[14px] md:min-w-[18px] text-center px-1">
+                  <span className="text-[11px] md:text-[13px] font-black min-w-[16px] md:min-w-[20px] text-center px-0.5">
                     {quantity}
                   </span>
                   <button
                     onClick={handleIncrement}
-                    className="w-6 md:w-7.5 h-full hover:bg-black/10 transition-colors flex items-center justify-center border-l border-white/10">
-                    <Plus size={9} strokeWidth={4} />
+                    className="w-6 md:w-7.5 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
+                    <Plus size={10} strokeWidth={4} />
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={handleAddToCart}
-                  className={cn(
-                    "w-6 h-6 md:w-7.5 md:h-7.5 flex items-center justify-center bg-white dark:bg-neutral-800 border-[1px] border-[#cc2532] text-[#cc2532] rounded-lg md:rounded-xl shadow-sm transition-all duration-300 active:scale-95 font-bold",
-                    "hover:bg-[#cc2532] hover:text-white dark:hover:text-white"
-                  )}>
-                  <Plus size={14} strokeWidth={3} />
+                  className="flex flex-col items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] rounded-xl shadow-sm transition-all duration-300 active:scale-95 w-[72px] md:w-[80px] h-8 md:h-9 px-1 hover:bg-[#0c831f]/5 font-bold">
+                  <span className="text-[11px] md:text-[12px] font-black uppercase leading-none">ADD</span>
+                  {product.variants && product.variants.length > 1 && (
+                    <span className="text-[7px] md:text-[8px] font-bold text-[#0c831f]/90 leading-none mt-0.5 whitespace-nowrap">
+                      {product.variants.length} options
+                    </span>
+                  )}
                 </button>
               )}
             </div>
           </div>
         </div>
+
+        {/* Variants Modal */}
+        {showVariantsModal && typeof window !== "undefined" && createPortal(
+          <div className="quick-theme-scope">
+            <AnimatePresence>
+              <div 
+                className="fixed inset-0 z-[99999] flex items-end justify-center bg-black/60 backdrop-blur-sm pointer-events-auto"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowVariantsModal(false);
+                }}
+              >
+                <motion.div
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                  className="w-full max-w-[480px] rounded-t-[24px] bg-white dark:bg-neutral-900 p-5 shadow-2xl flex flex-col max-h-[80vh] relative pointer-events-auto mb-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  {/* Close Button */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowVariantsModal(false);
+                    }}
+                    className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-neutral-700 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+
+                  {/* Product Name Title */}
+                  <h3 className="text-[16px] font-black pr-8 text-[#17212f] dark:text-white leading-tight mb-4 text-left">
+                    {product.name}
+                  </h3>
+
+                  {/* Variants List */}
+                  <div className="overflow-y-auto space-y-3 max-h-[50vh] pr-1 py-1">
+                    {product.variants.map((v, idx) => {
+                      const variantId = `${product.id}::${v.sku}`;
+                      const variantQty = cart
+                        .filter(
+                          (item) =>
+                            String(item.productId || item.itemId || item.id || item._id) === variantId
+                        )
+                        .reduce((sum, item) => sum + item.quantity, 0);
+
+                      const vPrice = v.salePrice > 0 ? v.salePrice : v.price;
+                      const vOriginalPrice = Math.max(vPrice, v.price);
+                      const hasDiscount = vOriginalPrice > vPrice;
+                      const discountPct = hasDiscount
+                        ? Math.round(((vOriginalPrice - vPrice) / vOriginalPrice) * 100)
+                        : 0;
+
+                      return (
+                        <div
+                          key={v.sku || idx}
+                          className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/50 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            {/* Variant Image Wrapper */}
+                            <div className="relative w-14 h-14 bg-white rounded-lg flex items-center justify-center overflow-hidden border border-slate-100 p-1 flex-shrink-0">
+                              {hasDiscount && (
+                                <span className="absolute top-0.5 left-0.5 z-10 bg-blue-600 text-white font-extrabold text-[8px] px-1.5 py-0.5 rounded leading-none shadow-sm scale-90 origin-top-left">
+                                  {discountPct}% OFF
+                                </span>
+                              )}
+                              <img
+                                src={resolveQuickImageUrl(product.image || product.mainImage)}
+                                alt={v.name}
+                                className="w-full h-full object-contain"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = "https://cdn-icons-png.flaticon.com/128/2321/2321831.png";
+                                }}
+                              />
+                            </div>
+
+                            <div className="flex flex-col text-left">
+                              <span className="text-[13px] font-black text-slate-800 dark:text-neutral-200">
+                                {v.name}
+                              </span>
+                              <div className="flex items-baseline gap-1.5 mt-0.5">
+                                <span className="text-[14px] font-black text-[#0c831f]">
+                                  ₹{vPrice}
+                                </span>
+                                {hasDiscount && (
+                                  <span className="text-[10px] text-slate-400 line-through font-semibold">
+                                    ₹{vOriginalPrice}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Variant Action Button */}
+                          <div>
+                            {variantQty > 0 ? (
+                              <div className="flex items-center bg-[#0c831f] text-white rounded-xl shadow-sm h-8 overflow-hidden w-[72px] justify-between">
+                                <button
+                                  onClick={(e) => handleVariantDecrement(e, v)}
+                                  className="w-6 h-full hover:bg-black/10 transition-colors flex items-center justify-center"
+                                >
+                                  <Minus size={10} strokeWidth={4} />
+                                </button>
+                                <span className="text-[11px] font-black min-w-[16px] text-center">
+                                  {variantQty}
+                                </span>
+                                <button
+                                  onClick={(e) => handleVariantIncrement(e, v)}
+                                  className="w-6 h-full hover:bg-black/10 transition-colors flex items-center justify-center"
+                                >
+                                  <Plus size={10} strokeWidth={4} />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={(e) => handleVariantAddToCart(e, v)}
+                                className="flex items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] rounded-xl shadow-sm transition-all duration-300 active:scale-95 w-[72px] h-8 font-black text-[11px] hover:bg-[#0c831f]/5"
+                              >
+                                ADD
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              </div>
+            </AnimatePresence>
+          </div>,
+          document.body
+        )}
       </div>
     );
   },

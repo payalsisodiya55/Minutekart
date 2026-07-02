@@ -89,9 +89,14 @@ const ProductCard = memo(({ product, quantity, onAdd, onIncrement, onDecrement, 
                 <motion.button
                   whileTap={{ scale: 0.94 }}
                   onClick={(e) => { e.stopPropagation(); onAdd(product); }}
-                  className="flex items-center justify-center rounded-xl border border-[#0c831f] bg-white w-[72px] h-[32px] text-[11px] font-black uppercase tracking-wide text-[#0c831f] shadow-sm transition-all hover:bg-[#0c831f]/5"
+                  className="flex flex-col items-center justify-center rounded-xl border border-[#0c831f] bg-white w-[72px] h-[32px] text-[#0c831f] shadow-sm transition-all hover:bg-[#0c831f]/5"
                 >
-                  ADD
+                  <span className="text-[11px] font-black uppercase tracking-wide leading-none">ADD</span>
+                  {product.variants && product.variants.length > 1 && (
+                    <span className="text-[7px] md:text-[8px] font-bold text-[#0c831f]/90 leading-none mt-0.5 whitespace-nowrap">
+                      {product.variants.length} options
+                    </span>
+                  )}
                 </motion.button>
               )}
             </div>
