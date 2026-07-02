@@ -10,6 +10,7 @@ import {
   Plus,
   ShieldCheck,
   Star,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -132,6 +133,18 @@ const ProductDetailPage = () => {
   });
   const [loadingProduct, setLoadingProduct] = useState(!initialProduct);
   const [productError, setProductError] = useState("");
+  const [currentImgIdx, setCurrentImgIdx] = useState(0);
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  const detailScrollRef = React.useRef(null);
+
+  useEffect(() => {
+    if (detailScrollRef.current) {
+      const width = detailScrollRef.current.clientWidth;
+      if (width > 0) {
+        detailScrollRef.current.scrollLeft = currentImgIdx * width;
+      }
+    }
+  }, [currentImgIdx]);
   const [reviews, setReviews] = useState([]);
   const [reviewLoading, setReviewLoading] = useState(true);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
@@ -427,16 +440,43 @@ const ProductDetailPage = () => {
 
       <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
         <div className="space-y-4 lg:w-[45%] xl:w-[40%]">
-          <div className="relative aspect-square overflow-hidden rounded-[2rem] border border-border bg-card dark:bg-background shadow-sm transition-colors">
-            <img
-              src={activeImage}
-              alt={product.name}
-              className="h-full w-full object-contain p-6 mix-blend-multiply dark:mix-blend-normal"
-            />
+          {/* Swipeable Carousel */}
+          <div className="relative aspect-square overflow-hidden rounded-[2rem] border border-border bg-card dark:bg-background shadow-sm transition-colors group">
+            <div 
+              ref={detailScrollRef}
+              className="w-full h-full overflow-x-auto flex snap-x snap-mandatory scrollbar-none"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              onScroll={(e) => {
+                const scrollLeft = e.currentTarget.scrollLeft;
+                const width = e.currentTarget.clientWidth;
+                if (width > 0) {
+                  const newIndex = Math.round(scrollLeft / width);
+                  if (newIndex !== currentImgIdx) {
+                    setCurrentImgIdx(newIndex);
+                  }
+                }
+              }}
+            >
+              {product.images.map((image, index) => (
+                <div 
+                  key={`${image}-${index}`}
+                  className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center cursor-zoom-in"
+                  onClick={() => setIsFullscreenOpen(true)}
+                >
+                  <img
+                    src={image}
+                    alt={`${product.name} ${index + 1}`}
+                    className="h-full w-full object-contain p-6 mix-blend-multiply dark:mix-blend-normal"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Wishlist Button */}
             <button
               onClick={handleToggleWishlist}
               className={cn(
-                "absolute right-5 top-5 rounded-full p-3.5 shadow-lg transition-all",
+                "absolute right-5 top-5 rounded-full p-3.5 shadow-lg transition-all z-20",
                 isWishlisted
                   ? "bg-red-50 dark:bg-red-950/30 text-red-500"
                   : "bg-card dark:bg-background text-slate-400 dark:text-slate-300",
@@ -444,27 +484,23 @@ const ProductDetailPage = () => {
             >
               <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} className={cn(isWishlisted && "fill-current")} />
             </button>
-          </div>
 
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {product.images.map((image, index) => (
-              <button
-                key={`${image}-${index}`}
-                onClick={() => setActiveImage(image)}
-                className={cn(
-                  "h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border-2 transition-all md:h-24 md:w-24",
-                  activeImage === image
-                    ? "scale-95 border-[#0c831f] shadow-lg"
-                    : "border-transparent opacity-70 hover:opacity-100",
-                )}
-              >
-                <img
-                  src={image}
-                  alt={`${product.name} ${index + 1}`}
-                  className="h-full w-full object-cover"
-                />
-              </button>
-            ))}
+            {/* Dot Indicators */}
+            {product.images.length > 1 && (
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10 pointer-events-none">
+                {product.images.map((_, dotIdx) => (
+                  <div
+                    key={dotIdx}
+                    className={cn(
+                      "w-2 h-2 rounded-full transition-all duration-300",
+                      dotIdx === currentImgIdx
+                        ? "bg-slate-800 dark:bg-white w-4"
+                        : "bg-slate-300 dark:bg-slate-700"
+                    )}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -772,6 +808,139 @@ const ProductDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Fullscreen Swipeable Gallery Modal */}
+      {isFullscreenOpen && typeof window !== "undefined" && (
+        <div className="fixed inset-0 z-[99999] bg-[#f8f9fa] dark:bg-neutral-900 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          {/* Header Close Button */}
+          <div className="p-4 flex justify-end">
+            <button
+              onClick={() => setIsFullscreenOpen(false)}
+              className="bg-black text-white hover:bg-neutral-800 p-2.5 rounded-full transition-all shadow-md"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Main Gallery Area */}
+          <div className="flex-1 flex flex-col justify-center max-h-[60vh] relative">
+            <div 
+              className="fullscreen-scroll-container w-full h-full overflow-x-auto flex snap-x snap-mandatory scrollbar-none"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              onScroll={(e) => {
+                const scrollLeft = e.currentTarget.scrollLeft;
+                const width = e.currentTarget.clientWidth;
+                if (width > 0) {
+                  const newIndex = Math.round(scrollLeft / width);
+                  if (newIndex !== currentImgIdx) {
+                    setCurrentImgIdx(newIndex);
+                  }
+                }
+              }}
+              ref={(el) => {
+                // When fullscreen opens, scroll to the current active image
+                if (el && el.scrollLeft === 0 && currentImgIdx > 0) {
+                  const width = el.clientWidth;
+                  el.scrollLeft = currentImgIdx * width;
+                }
+              }}
+            >
+              {product.images.map((image, index) => (
+                <div 
+                  key={`fullscreen-${image}-${index}`}
+                  className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center p-4"
+                >
+                  <img
+                    src={image}
+                    alt={`${product.name} ${index + 1}`}
+                    className="max-h-[50vh] max-w-full object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Thumbnails row */}
+          {product.images.length > 1 && (
+            <div className="flex gap-3 justify-center py-4 overflow-x-auto px-4">
+              {product.images.map((image, index) => (
+                <button
+                  key={`thumb-${image}-${index}`}
+                  onClick={() => {
+                    setCurrentImgIdx(index);
+                    // Scroll the main gallery container to the selected index
+                    const container = document.querySelector(".fullscreen-scroll-container");
+                    if (container) {
+                      container.scrollTo({
+                        left: index * container.clientWidth,
+                        behavior: 'smooth'
+                      });
+                    }
+                  }}
+                  className={cn(
+                    "h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border-2 transition-all p-1 bg-white shadow-sm",
+                    currentImgIdx === index
+                      ? "border-[#0c831f] scale-95"
+                      : "border-transparent opacity-70"
+                  )}
+                >
+                  <img
+                    src={image}
+                    alt={`${product.name} thumbnail ${index + 1}`}
+                    className="h-full w-full object-contain"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Footer & Page Indicator Container */}
+          <div className="mt-auto flex flex-col w-full">
+            {/* Footer Area with Price and Cart Button */}
+            <div className="bg-white dark:bg-neutral-800 border-t border-slate-100 dark:border-neutral-700 p-5 pb-6">
+              <div className="max-w-md mx-auto flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-slate-400">{displayWeight}</p>
+                  <div className="flex items-baseline gap-1.5 mt-0.5">
+                    <span className="text-xl font-black text-slate-900 dark:text-white">₹{displayPrice}</span>
+                    {displayOriginalPrice > displayPrice && (
+                      <span className="text-xs text-slate-400 line-through font-bold">₹{displayOriginalPrice}</span>
+                    )}
+                  </div>
+                  <p className="text-[9px] text-slate-400 font-bold leading-none mt-0.5">Inclusive of all taxes</p>
+                </div>
+
+                {quantity > 0 ? (
+                  <div className="flex items-center bg-[#0c831f] text-white rounded-xl shadow-sm h-10 w-24 justify-between">
+                    <button
+                      onClick={handleDecrement}
+                      className="w-8 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black"
+                    >
+                      <Minus size={12} strokeWidth={4} />
+                    </button>
+                    <span className="text-sm font-black min-w-[20px] text-center">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={handleIncrement}
+                      className="w-8 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black"
+                    >
+                      <Plus size={12} strokeWidth={4} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    className="bg-[#0c831f] hover:bg-[#0b721b] text-white font-black text-xs uppercase px-6 py-3 rounded-xl transition-all shadow-md active:scale-95"
+                  >
+                    Add to cart
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

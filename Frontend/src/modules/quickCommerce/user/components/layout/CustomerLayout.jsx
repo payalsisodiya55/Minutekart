@@ -21,7 +21,7 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
     const matchesRoutePrefix = (routePrefix) =>
         path === routePrefix || path.startsWith(`${routePrefix}/`);
 
-    const showBottomNav = showBottomNavProp !== undefined ? showBottomNavProp : !hideBottomNavRoutes.includes(path);
+    const showBottomNav = showBottomNavProp !== undefined ? showBottomNavProp : (!hideBottomNavRoutes.includes(path) && !matchesRoutePrefix('/product'));
     const showCart = showCartProp !== undefined ? showCartProp : (!hideCartRoutes.includes(path) && !matchesRoutePrefix('/orders'));
 
     // Condition to hide the MobileFooterMessage ("India's last minute app") on specific pages
