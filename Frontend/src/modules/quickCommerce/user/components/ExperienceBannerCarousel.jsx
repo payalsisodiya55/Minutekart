@@ -37,14 +37,14 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
   const handleDragEnd = () => {
     if (!isDragging) return;
     setIsDragging(false);
-    
+
     // Swipe threshold (50px)
     if (dragOffset > 50) {
       setActiveIndex((prev) => prev - 1);
     } else if (dragOffset < -50) {
       setActiveIndex((prev) => prev + 1);
     }
-    
+
     setDragOffset(0);
   };
 
@@ -132,15 +132,15 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
         style={
           fullWidth
             ? {
-                width: `${loopedItems.length * 100}%`,
-                gap: `${effectiveSlideGap}px`,
-                transform: `translateX(calc(-${activeIndex * stepPercent}% + ${dragOffset}px))`,
-              }
+              width: `${loopedItems.length * 100}%`,
+              gap: `${effectiveSlideGap}px`,
+              transform: `translateX(calc(-${activeIndex * stepPercent}% + ${dragOffset}px))`,
+            }
             : {
-                width: "100%",
-                gap: `${effectiveSlideGap}px`,
-                transform: `translateX(calc(-${activeIndex} * (85% + ${effectiveSlideGap}px) + 7.5% + ${dragOffset}px))`,
-              }
+              width: "100%",
+              gap: `${effectiveSlideGap}px`,
+              transform: `translateX(calc(-${activeIndex} * (85% + ${effectiveSlideGap}px) + 7.5% + ${dragOffset}px))`,
+            }
         }
       >
         {loopedItems.map((banner, idx) => (

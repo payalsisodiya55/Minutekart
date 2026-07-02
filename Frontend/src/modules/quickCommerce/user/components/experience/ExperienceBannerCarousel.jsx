@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { getCloudinarySrcSet } from "@/shared/utils/cloudinaryUtils";
 import { getQuickProductPath, getQuickCategoryPath } from "../../utils/routes";
+import { resolveQuickImageUrl } from "../../utils/image";
 
 const isVideoUrl = (url) => {
   if (!url) return false;
@@ -76,14 +77,14 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
   const handleDragEnd = () => {
     if (!isDragging) return;
     setIsDragging(false);
-    
+
     // Swipe threshold (50px)
     if (dragOffset > 50) {
       setActiveIndex((prev) => prev - 1);
     } else if (dragOffset < -50) {
       setActiveIndex((prev) => prev + 1);
     }
-    
+
     setDragOffset(0);
   };
 
@@ -171,15 +172,15 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
         style={
           fullWidth
             ? {
-                width: `${loopedItems.length * 100}%`,
-                gap: `${effectiveSlideGap}px`,
-                transform: `translateX(calc(-${activeIndex * stepPercent}% + ${dragOffset}px))`,
-              }
+              width: `${loopedItems.length * 100}%`,
+              gap: `${effectiveSlideGap}px`,
+              transform: `translateX(calc(-${activeIndex * stepPercent}% + ${dragOffset}px))`,
+            }
             : {
-                width: "100%",
-                gap: `${effectiveSlideGap}px`,
-                transform: `translateX(calc(-${activeIndex} * (85% + ${effectiveSlideGap}px) + 7.5% + ${dragOffset}px))`,
-              }
+              width: "100%",
+              gap: `${effectiveSlideGap}px`,
+              transform: `translateX(calc(-${activeIndex} * (85% + ${effectiveSlideGap}px) + 7.5% + ${dragOffset}px))`,
+            }
         }
       >
         {loopedItems.map((banner, idx) => {
@@ -197,13 +198,13 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
               }}
             >
               {fullWidth ? (
-                <div 
+                <div
                   className="relative w-full h-full overflow-hidden"
                   onClick={() => handleBannerClick(banner)}
                 >
                   {isVideo ? (
                     <video
-                      src={banner.imageUrl}
+                      src={resolveQuickImageUrl(banner.imageUrl || banner.image)}
                       autoPlay
                       loop
                       muted
@@ -215,7 +216,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
                     />
                   ) : (
                     <img
-                      src={banner.imageUrl}
+                      src={resolveQuickImageUrl(banner.imageUrl || banner.image)}
                       srcSet={getCloudinarySrcSet(banner.imageUrl)}
                       sizes="100vw"
                       alt={banner.title || section?.title || "Banner"}
@@ -251,7 +252,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
                 >
                   {isVideo ? (
                     <video
-                      src={banner.imageUrl}
+                      src={resolveQuickImageUrl(banner.imageUrl || banner.image)}
                       autoPlay
                       loop
                       muted
@@ -260,7 +261,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
                     />
                   ) : (
                     <img
-                      src={banner.imageUrl}
+                      src={resolveQuickImageUrl(banner.imageUrl || banner.image)}
                       srcSet={getCloudinarySrcSet(banner.imageUrl)}
                       sizes="(max-width: 768px) 100vw, 560px"
                       alt={banner.title || section?.title || "Banner"}
