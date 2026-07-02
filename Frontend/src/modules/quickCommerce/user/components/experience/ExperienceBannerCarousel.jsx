@@ -4,6 +4,17 @@ import { cn } from "@/lib/utils";
 import { getCloudinarySrcSet } from "@/shared/utils/cloudinaryUtils";
 import { getQuickProductPath, getQuickCategoryPath } from "../../utils/routes";
 
+const isVideoUrl = (url) => {
+  if (!url) return false;
+  return (
+    url.endsWith(".mp4") ||
+    url.endsWith(".webm") ||
+    url.endsWith(".mov") ||
+    url.endsWith(".ogg") ||
+    url.includes("/video/upload/")
+  );
+};
+
 const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap = 0, edgeToEdge = false }) => {
   const navigate = useNavigate();
 
@@ -83,6 +94,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
       >
         {loopedItems.map((banner, idx) => {
           const hasLink = banner.linkType && banner.linkType !== "none" && banner.linkValue;
+          const isVideo = isVideoUrl(banner.imageUrl);
           return (
             <div
               key={idx}
@@ -95,34 +107,91 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
               }}
             >
               {fullWidth ? (
-                <img
-                  src={banner.imageUrl}
-                  srcSet={getCloudinarySrcSet(banner.imageUrl)}
-                  sizes="100vw"
-                  alt={banner.title || section?.title || "Banner"}
-                  className={cn(
-                    "w-full h-full object-cover object-center",
-                    hasLink && "cursor-pointer hover:brightness-95 active:scale-[0.99] transition-all"
-                  )}
+                <div 
+                  className="relative w-full h-full overflow-hidden"
                   onClick={() => handleBannerClick(banner)}
-                  loading={idx === 0 ? "eager" : "lazy"}
-                />
+                >
+                  {isVideo ? (
+                    <video
+                      src={banner.imageUrl}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className={cn(
+                        "w-full h-full object-cover object-center",
+                        hasLink && "cursor-pointer hover:brightness-95 active:scale-[0.99] transition-all"
+                      )}
+                    />
+                  ) : (
+                    <img
+                      src={banner.imageUrl}
+                      srcSet={getCloudinarySrcSet(banner.imageUrl)}
+                      sizes="100vw"
+                      alt={banner.title || section?.title || "Banner"}
+                      className={cn(
+                        "w-full h-full object-cover object-center",
+                        hasLink && "cursor-pointer hover:brightness-95 active:scale-[0.99] transition-all"
+                      )}
+                      loading={idx === 0 ? "eager" : "lazy"}
+                    />
+                  )}
+                  {(banner.title || banner.subtitle) && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-6 text-left pointer-events-none">
+                      {banner.subtitle && (
+                        <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-wider mb-0.5">
+                          {banner.subtitle}
+                        </p>
+                      )}
+                      {banner.title && (
+                        <h3 className="text-white font-black text-base md:text-lg leading-tight">
+                          {banner.title}
+                        </h3>
+                      )}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div
                   className={cn(
-                    "h-full w-full max-w-[560px] -translate-x-2 md:-translate-x-4 overflow-hidden rounded-3xl bg-slate-100 shadow-[0_12px_30px_rgba(15,23,42,0.08)]",
+                    "relative h-full w-full max-w-[560px] -translate-x-2 md:-translate-x-4 overflow-hidden rounded-3xl bg-slate-100 shadow-[0_12px_30px_rgba(15,23,42,0.08)]",
                     hasLink && "cursor-pointer hover:shadow-xl active:scale-[0.99] transition-all"
                   )}
                   onClick={() => handleBannerClick(banner)}
                 >
-                  <img
-                    src={banner.imageUrl}
-                    srcSet={getCloudinarySrcSet(banner.imageUrl)}
-                    sizes="(max-width: 768px) 100vw, 560px"
-                    alt={banner.title || section?.title || "Banner"}
-                    className="w-full h-full object-cover object-center"
-                    loading={idx === 0 ? "eager" : "lazy"}
-                  />
+                  {isVideo ? (
+                    <video
+                      src={banner.imageUrl}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover object-center"
+                    />
+                  ) : (
+                    <img
+                      src={banner.imageUrl}
+                      srcSet={getCloudinarySrcSet(banner.imageUrl)}
+                      sizes="(max-width: 768px) 100vw, 560px"
+                      alt={banner.title || section?.title || "Banner"}
+                      className="w-full h-full object-cover object-center"
+                      loading={idx === 0 ? "eager" : "lazy"}
+                    />
+                  )}
+                  {(banner.title || banner.subtitle) && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex flex-col justify-end p-4 md:p-6 text-left pointer-events-none">
+                      {banner.subtitle && (
+                        <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-wider mb-0.5">
+                          {banner.subtitle}
+                        </p>
+                      )}
+                      {banner.title && (
+                        <h3 className="text-white font-black text-base md:text-lg leading-tight">
+                          {banner.title}
+                        </h3>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

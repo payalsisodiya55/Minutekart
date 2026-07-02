@@ -16,11 +16,23 @@ import {
     HiOutlineLink,
     HiOutlineSparkles,
     HiOutlineMegaphone,
+    HiOutlineVideoCamera,
     HiOutlineXMark
 } from 'react-icons/hi2';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { adminApi } from '../services/adminApi';
+
+const isVideoUrl = (url) => {
+    if (!url) return false;
+    return (
+        url.endsWith('.mp4') ||
+        url.endsWith('.webm') ||
+        url.endsWith('.mov') ||
+        url.endsWith('.ogg') ||
+        url.includes('/video/upload/')
+    );
+};
 
 const DISPLAY_TYPES = [
     { id: 'banners', label: 'Banners' },
@@ -66,6 +78,7 @@ const ContentManager = () => {
     });
 
     const bannerFileInputsRef = useRef([]);
+    const bannerListRef = useRef(null);
 
     const selectedHeader = useMemo(
         () => headerCategories.find(h => h._id === selectedHeaderId) || null,
@@ -357,6 +370,14 @@ const ContentManager = () => {
                 { imageUrl: '', title: '', subtitle: '', linkType: 'none', linkValue: '', isUploading: false },
             ],
         }));
+        setTimeout(() => {
+            if (bannerListRef.current) {
+                bannerListRef.current.scrollTo({
+                    top: bannerListRef.current.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }, 100);
     };
 
     const removeBannerItem = (idx) => {
@@ -557,20 +578,54 @@ const ContentManager = () => {
                             <div className="px-4 mb-6">
                                 {sections.find(s => s.displayType === 'banners') ? (
                                     <div className="h-40 rounded-xl overflow-hidden shadow-lg relative">
-                                        <img
-                                            src={
+                                        {(() => {
+                                            const bannerUrl =
                                                 sections.find(s => s.displayType === 'banners')?.config?.banners?.items?.[0]?.imageUrl ||
-                                                sections.find(s => s.displayType === 'banners')?.config?.items?.[0]?.imageUrl
+                                                sections.find(s => s.displayType === 'banners')?.config?.items?.[0]?.imageUrl;
+                                            
+                                            if (!bannerUrl) return null;
+                                            
+                                            if (isVideoUrl(bannerUrl)) {
+                                                return (
+                                                    <video
+                                                        src={bannerUrl}
+                                                        className="h-full w-full object-cover"
+                                                        autoPlay
+                                                        loop
+                                                        muted
+                                                        playsInline
+                                                    />
+                                                );
                                             }
-                                            alt=""
-                                            className="h-full w-full object-cover"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
-                                            <h4 className="text-white font-black text-sm">
-                                                {sections.find(s => s.displayType === 'banners')?.title ||
-                                                    sections.find(s => s.displayType === 'banners')?.config?.banners?.items?.[0]?.title ||
-                                                    sections.find(s => s.displayType === 'banners')?.config?.items?.[0]?.title}
-                                            </h4>
+                                            
+                                            return (
+                                                <img
+                                                    src={bannerUrl}
+                                                    alt=""
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            );
+                                        })()}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex flex-col justify-end p-4 text-left pointer-events-none">
+                                            {(() => {
+                                                const banner = sections.find(s => s.displayType === 'banners')?.config?.banners?.items?.[0] ||
+                                                    sections.find(s => s.displayType === 'banners')?.config?.items?.[0] || {};
+                                                const sectionTitle = sections.find(s => s.displayType === 'banners')?.title;
+                                                return (
+                                                    <>
+                                                        {(banner.subtitle) && (
+                                                            <p className="text-white/80 font-bold text-[8px] uppercase tracking-wider mb-0.5">
+                                                                {banner.subtitle}
+                                                            </p>
+                                                        )}
+                                                        {(banner.title || sectionTitle) && (
+                                                            <h4 className="text-white font-black text-sm leading-tight">
+                                                                {banner.title || sectionTitle}
+                                                            </h4>
+                                                        )}
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 ) : (
@@ -688,7 +743,7 @@ const ContentManager = () => {
                                     Add banner
                                 </button>
                             </div>
-                            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                            <div ref={bannerListRef} className="space-y-3 max-h-72 overflow-y-auto pr-1">
                                 {formData.bannerItems.map((item, idx) => (
                                     <Card key={idx} className="p-3 bg-white border-slate-100">
                                         <div className="flex items-start gap-3">
@@ -696,11 +751,20 @@ const ContentManager = () => {
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center">
                                                         {item.imageUrl ? (
-                                                            <img
-                                                                src={item.imageUrl}
-                                                                alt={item.title || `Banner ${idx + 1}`}
-                                                                className="w-full h-full object-cover"
-                                                            />
+                                                            isVideoUrl(item.imageUrl) ? (
+                                                                <video
+                                                                    src={item.imageUrl}
+                                                                    className="w-full h-full object-cover"
+                                                                    muted
+                                                                    playsInline
+                                                                />
+                                                            ) : (
+                                                                <img
+                                                                    src={item.imageUrl}
+                                                                    alt={item.title || `Banner ${idx + 1}`}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            )
                                                         ) : (
                                                             <HiOutlinePhoto className="h-6 w-6 text-slate-300" />
                                                         )}
@@ -711,7 +775,7 @@ const ContentManager = () => {
                                                                 bannerFileInputsRef.current[idx] = el;
                                                             }}
                                                             type="file"
-                                                            accept="image/*"
+                                                            accept="image/*,video/*"
                                                             className="hidden"
                                                             onChange={(e) =>
                                                                 handleBannerFileChange(idx, e.target.files?.[0])
@@ -724,14 +788,14 @@ const ContentManager = () => {
                                                             }
                                                             className="inline-flex items-center px-3 py-1.5 rounded-lg text-[11px] font-bold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
                                                         >
-                                                            {item.imageUrl ? 'Change image' : 'Choose image file'}
+                                                            {item.imageUrl ? 'Change file' : 'Choose file'}
                                                         </button>
                                                         <p className="text-[10px] text-slate-400">
                                                             {item.isUploading
                                                                 ? 'Uploading...'
                                                                 : item.imageUrl
-                                                                ? 'Image uploaded'
-                                                                : 'PNG, JPG up to 5MB'}
+                                                                ? isVideoUrl(item.imageUrl) ? 'Video uploaded' : 'Image uploaded'
+                                                                : 'Image/Video up to 20MB'}
                                                         </p>
                                                     </div>
                                                 </div>
