@@ -47,7 +47,22 @@ const ProductCard = React.memo(
 
     const [showHeartPopup, setShowHeartPopup] = React.useState(false);
     const [showVariantsModal, setShowVariantsModal] = React.useState(false);
+    const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
     const imageRef = React.useRef(null);
+
+    const allImages = React.useMemo(() => {
+      const main = product.image || product.mainImage;
+      const gallery = Array.isArray(product.galleryImages) ? product.galleryImages : [];
+      const urls = [];
+      if (main) urls.push(main);
+      gallery.forEach(img => {
+        const url = typeof img === 'string' ? img : (img?.url || img?.imageUrl);
+        if (url && url !== main) {
+          urls.push(url);
+        }
+      });
+      return urls;
+    }, [product.image, product.mainImage, product.galleryImages]);
 
     const getComparableProductId = React.useCallback(
       (value) => String(value ?? "").split("::")[0],
@@ -368,16 +383,68 @@ const ProductCard = React.memo(
               )}
             </AnimatePresence>
 
-            <div className="w-full h-full rounded-md overflow-hidden bg-white dark:bg-neutral-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
-              <img
-                ref={imageRef}
-                src={resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage}
-                srcSet={getCloudinarySrcSet(product.image || product.mainImage)}
-                sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
-                alt={product.name}
-                className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal p-0.5 md:p-1"
-                loading="lazy"
-              />
+            <div className="w-full h-full rounded-md overflow-hidden bg-white dark:bg-neutral-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-105 relative">
+              {allImages.length > 1 ? (
+                <div className="w-full h-full relative">
+                  {/* Scrollable image list container */}
+                  <div 
+                    className="w-full h-full overflow-x-auto flex snap-x snap-mandatory scrollbar-none"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    onScroll={(e) => {
+                      const scrollLeft = e.currentTarget.scrollLeft;
+                      const width = e.currentTarget.clientWidth;
+                      if (width > 0) {
+                        const newIndex = Math.round(scrollLeft / width);
+                        if (newIndex !== currentImgIdx) {
+                          setCurrentImgIdx(newIndex);
+                        }
+                      }
+                    }}
+                  >
+                    {allImages.map((imgUrl, imgIdx) => (
+                      <div 
+                        key={imgIdx} 
+                        className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center p-0.5 md:p-1"
+                      >
+                        <img
+                          ref={imgIdx === 0 ? imageRef : null}
+                          src={resolveQuickImageUrl(imgUrl) || imgUrl}
+                          srcSet={getCloudinarySrcSet(imgUrl)}
+                          sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
+                          alt={`${product.name} - ${imgIdx + 1}`}
+                          className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
+                          loading="lazy"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Dot Indicators */}
+                  <div className="absolute bottom-1 left-2 flex items-center gap-1 z-10 pointer-events-none">
+                    {allImages.map((_, dotIdx) => (
+                      <div
+                        key={dotIdx}
+                        className={cn(
+                          "w-1 h-1 rounded-full transition-all duration-300",
+                          dotIdx === currentImgIdx
+                            ? "bg-slate-800 w-2.5"
+                            : "bg-slate-300"
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <img
+                  ref={imageRef}
+                  src={resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage}
+                  srcSet={getCloudinarySrcSet(product.image || product.mainImage)}
+                  sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
+                  alt={product.name}
+                  className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal p-0.5 md:p-1"
+                  loading="lazy"
+                />
+              )}
             </div>
           </div>
 
