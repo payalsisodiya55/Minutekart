@@ -110,8 +110,15 @@ const CategoryProductsPage = () => {
                 const flatten = (items) => {
                     items.forEach(item => {
                         fullMap[item._id] = item;
-                        if (item.type === 'category') cMap[item._id] = item;
-                        else if (item.type === 'subcategory') sMap[item._id] = item;
+                        if (item.slug) fullMap[item.slug] = item;
+                        if (item.type === 'category') {
+                            cMap[item._id] = item;
+                            if (item.slug) cMap[item.slug] = item;
+                        }
+                        else if (item.type === 'subcategory') {
+                            sMap[item._id] = item;
+                            if (item.slug) sMap[item.slug] = item;
+                        }
                         if (item.children && item.children.length > 0) flatten(item.children);
                     });
                 };

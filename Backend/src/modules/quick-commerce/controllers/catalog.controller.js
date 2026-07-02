@@ -350,62 +350,88 @@ export const getCategories = async (req, res) => {
 };
 
 export const getProducts = async (req, res) => {
-  setPublicCache(res, 60);
-  await ensureQuickCommerceSeedData();
+  try {
+    setPublicCache(res, 60);
+    await ensureQuickCommerceSeedData();
 
-  const { categoryId, search, limit } = req.query;
-  const query = { ...publicProductFilter };
+    const { categoryId, search, limit } = req.query;
+    const query = { ...publicProductFilter };
 
-  const andConditions = [];
+    const andConditions = [];
 
-  if (categoryId) {
-    andConditions.push({
-      $or: [
-        { categoryId: categoryId },
-        { subcategoryId: categoryId },
-        { headerId: categoryId }
-      ]
+    if (categoryId) {
+      let resolvedCategoryId = categoryId;
+      const isObjectId = mongoose.Types.ObjectId.isValid(categoryId);
+      if (!isObjectId) {
+        const categoryDoc = await QuickCategory.findOne({ slug: categoryId }).select('_id').lean();
+        if (categoryDoc) {
+          resolvedCategoryId = categoryDoc._id;
+        }
+      }
+
+      andConditions.push({
+        $or: [
+          { categoryId: resolvedCategoryId },
+          { subcategoryId: resolvedCategoryId },
+          { headerId: resolvedCategoryId }
+        ]
+      });
+    }
+    if (req.query.storeId) {
+      const isStoreObjectId = mongoose.Types.ObjectId.isValid(req.query.storeId);
+      if (isStoreObjectId) {
+        andConditions.push({
+          $or: [
+            { sellerId: req.query.storeId },
+            { sellerId: new mongoose.Types.ObjectId(req.query.storeId) }
+          ]
+        });
+      }
+    }
+    
+    if (andConditions.length > 0) {
+      query.$and = (query.$and || []).concat(andConditions);
+    }
+    if (search) query.name = { $regex: String(search).trim(), $options: 'i' };
+
+    const parsedLimit = Number(limit) > 0 ? Math.min(Number(limit), 100) : 50;
+    const products = await QuickProduct.find(query).sort({ createdAt: -1 }).limit(parsedLimit).lean();
+    const sellerMap = await buildSellerMap(products);
+
+    return res.json({
+      success: true,
+      result: {
+        items: products.map((product) => mapProduct(product, sellerMap)),
+      },
     });
+  } catch (error) {
+    console.error('Error in getProducts:', error);
+    return res.status(500).json({ success: false, message: error.message });
   }
-  if (req.query.storeId) {
-    andConditions.push({
-      $or: [
-        { sellerId: req.query.storeId },
-        { sellerId: new mongoose.Types.ObjectId(req.query.storeId) }
-      ]
-    });
-  }
-  
-  if (andConditions.length > 0) {
-    query.$and = (query.$and || []).concat(andConditions);
-  }
-  if (search) query.name = { $regex: String(search).trim(), $options: 'i' };
-
-  const parsedLimit = Number(limit) > 0 ? Math.min(Number(limit), 100) : 50;
-  const products = await QuickProduct.find(query).sort({ createdAt: -1 }).limit(parsedLimit).lean();
-  const sellerMap = await buildSellerMap(products);
-
-  return res.json({
-    success: true,
-    result: {
-      items: products.map((product) => mapProduct(product, sellerMap)),
-    },
-  });
 };
 
 export const getProductById = async (req, res) => {
-  setPublicCache(res, 600); // 10 minutes cache
-  await ensureQuickCommerceSeedData();
+  try {
+    setPublicCache(res, 600); // 10 minutes cache
+    await ensureQuickCommerceSeedData();
 
-  const product = await QuickProduct.findOne({ _id: req.params.productId, ...publicProductFilter }).lean();
+    const identifier = req.params.productId;
+    const isObjectId = mongoose.Types.ObjectId.isValid(identifier);
+    const query = isObjectId ? { _id: identifier } : { slug: identifier };
 
-  if (!product) {
-    return res.status(404).json({ success: false, message: 'Product not found' });
+    const product = await QuickProduct.findOne({ ...query, ...publicProductFilter }).lean();
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const sellerMap = await buildSellerMap([product]);
+
+    return res.json({ success: true, result: mapProduct(product, sellerMap) });
+  } catch (error) {
+    console.error('Error in getProductById:', error);
+    return res.status(500).json({ success: false, message: error.message });
   }
-
-  const sellerMap = await buildSellerMap([product]);
-
-  return res.json({ success: true, result: mapProduct(product, sellerMap) });
 };
 
 export const getProductReviews = async (req, res) => {
@@ -413,8 +439,19 @@ export const getProductReviews = async (req, res) => {
   const { productId } = req.params;
 
   try {
+    let targetProductId = productId;
+    const isObjectId = mongoose.Types.ObjectId.isValid(productId);
+    if (!isObjectId) {
+      // Find the product by slug to get its ObjectId
+      const product = await QuickProduct.findOne({ slug: productId }).select('_id').lean();
+      if (!product) {
+        return res.json({ success: true, results: [] });
+      }
+      targetProductId = product._id;
+    }
+
     const reviews = await QuickReview.find({
-      productId,
+      productId: targetProductId,
       status: 'approved',
     }).populate('userId', 'name profileImage').sort({ createdAt: -1 }).lean();
 

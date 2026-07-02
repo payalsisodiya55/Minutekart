@@ -173,21 +173,21 @@ const ContentManager = () => {
             displayType,
             title: title || '',
             status: status || 'active',
-            bannerItems: config.banners?.items?.length
-                ? config.banners.items.map(b => ({ ...b, isUploading: false }))
+            bannerItems: (config.banners?.items?.length || config.items?.length)
+                ? (config.banners?.items || config.items).map(b => ({ ...b, isUploading: false }))
                 : [{ imageUrl: '', title: '', subtitle: '', linkType: 'none', linkValue: '', isUploading: false }],
-            maxCategories: config.categories?.maxItems || 4,
-            categoryIds: config.categories?.categoryIds || [],
-            categoryRows: config.categories?.rows || 1,
-            subCategoryCategoryIds: config.subcategories?.categoryIds || [],
-            subCategoryIds: config.subcategories?.subcategoryIds || [],
-            subCategoryRows: config.subcategories?.rows || 1,
-            productCategoryIds: config.products?.categoryIds || [],
-            productSubCategoryIds: config.products?.subcategoryIds || [],
-            productIds: config.products?.productIds || [],
-            productRows: config.products?.rows || 1,
-            productColumns: config.products?.columns || 2,
-            singleRowScrollable: !!config.products?.singleRowScrollable,
+            maxCategories: config.categories?.maxItems || config.maxItems || 4,
+            categoryIds: config.categories?.categoryIds || config.categoryIds || [],
+            categoryRows: config.categories?.rows || config.rows || 1,
+            subCategoryCategoryIds: config.subcategories?.categoryIds || config.categoryIds || [],
+            subCategoryIds: config.subcategories?.subcategoryIds || config.subcategoryIds || [],
+            subCategoryRows: config.subcategories?.rows || config.rows || 1,
+            productCategoryIds: config.products?.categoryIds || config.categoryIds || [],
+            productSubCategoryIds: config.products?.subcategoryIds || config.subcategoryIds || [],
+            productIds: config.products?.productIds || config.productIds || [],
+            productRows: config.products?.rows || config.rows || 1,
+            productColumns: config.products?.columns || config.columns || 2,
+            singleRowScrollable: !!(config.products?.singleRowScrollable || config.singleRowScrollable),
         };
         setFormData(next);
         setActiveTab(displayType);
@@ -485,10 +485,10 @@ const ContentManager = () => {
                                                     {section.title || '(No heading)'}
                                                 </h4>
                                                 <p className="text-[11px] text-slate-500">
-                                                    {section.displayType === 'banners' && `${section.config?.banners?.items?.length || 0} banners configured`}
-                                                    {section.displayType === 'categories' && `${section.config?.categories?.categoryIds?.length || 0} categories • ${section.config?.categories?.rows || 1} rows`}
-                                                    {section.displayType === 'subcategories' && `${section.config?.subcategories?.subcategoryIds?.length || 0} subcategories • ${section.config?.subcategories?.rows || 1} rows`}
-                                                    {section.displayType === 'products' && `${section.config?.products?.productIds?.length || section.config?.products?.items?.length || 0} products • ${section.config?.products?.rows || 1}x${section.config?.products?.columns || 2}${section.config?.products?.singleRowScrollable ? ' • Single row scroll' : ''}`}
+                                                    {section.displayType === 'banners' && `${section.config?.banners?.items?.length || section.config?.items?.length || 0} banners configured`}
+                                                    {section.displayType === 'categories' && `${section.config?.categories?.categoryIds?.length || section.config?.categoryIds?.length || 0} categories • ${section.config?.categories?.rows || section.config?.rows || 1} rows`}
+                                                    {section.displayType === 'subcategories' && `${section.config?.subcategories?.subcategoryIds?.length || section.config?.subcategoryIds?.length || 0} subcategories • ${section.config?.subcategories?.rows || section.config?.rows || 1} rows`}
+                                                    {section.displayType === 'products' && `${section.config?.products?.productIds?.length || section.config?.productIds?.length || section.config?.products?.items?.length || section.config?.items?.length || 0} products • ${section.config?.products?.rows || section.config?.rows || 1}x${section.config?.products?.columns || section.config?.columns || 2}${section.config?.products?.singleRowScrollable || section.config?.singleRowScrollable ? ' • Single row scroll' : ''}`}
                                                 </p>
                                             </div>
                                             <div className="flex flex-col gap-2 items-end">
@@ -558,14 +558,18 @@ const ContentManager = () => {
                                 {sections.find(s => s.displayType === 'banners') ? (
                                     <div className="h-40 rounded-xl overflow-hidden shadow-lg relative">
                                         <img
-                                            src={sections.find(s => s.displayType === 'banners')?.config?.banners?.items?.[0]?.imageUrl}
+                                            src={
+                                                sections.find(s => s.displayType === 'banners')?.config?.banners?.items?.[0]?.imageUrl ||
+                                                sections.find(s => s.displayType === 'banners')?.config?.items?.[0]?.imageUrl
+                                            }
                                             alt=""
                                             className="h-full w-full object-cover"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
                                             <h4 className="text-white font-black text-sm">
                                                 {sections.find(s => s.displayType === 'banners')?.title ||
-                                                    sections.find(s => s.displayType === 'banners')?.config?.banners?.items?.[0]?.title}
+                                                    sections.find(s => s.displayType === 'banners')?.config?.banners?.items?.[0]?.title ||
+                                                    sections.find(s => s.displayType === 'banners')?.config?.items?.[0]?.title}
                                             </h4>
                                         </div>
                                     </div>

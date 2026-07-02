@@ -551,6 +551,21 @@ const ProductManagement = () => {
                                             <Badge variant="primary" className="text-[7px] font-bold uppercase tracking-widest px-1">SYSTEM</Badge>
                                             <HiOutlineChevronRight className="h-2.5 w-2.5 text-slate-300" />
                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formData.sku || 'PENDING SKU'}</span>
+                                            {editingItem?._id && (
+                                                <>
+                                                    <HiOutlineChevronRight className="h-2.5 w-2.5 text-slate-300" />
+                                                    <span 
+                                                        className="text-[10px] font-mono text-slate-500 font-bold bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded cursor-pointer transition-colors" 
+                                                        title="Click to copy database ID"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(editingItem._id);
+                                                            toast.success('Database Product ID copied!');
+                                                        }}
+                                                    >
+                                                        ID: {editingItem._id}
+                                                    </span>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
