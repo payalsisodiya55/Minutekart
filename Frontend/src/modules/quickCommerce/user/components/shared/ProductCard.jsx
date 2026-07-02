@@ -345,7 +345,7 @@ const ProductCard = React.memo(
             "hover:shadow-md",
           )}>
           {/* Top Image Section */}
-          <div className="relative overflow-hidden w-full h-[90px] md:h-[110px] p-1 md:p-2 bg-white dark:bg-neutral-800">
+          <div className="relative overflow-hidden w-full h-[115px] md:h-[135px] p-1 md:p-2 bg-white dark:bg-neutral-800">
             {/* Badge (Professional Tag) */}
             {(badge || product.discount || discountPercent > 0) && (
               <div className="absolute top-0.5 left-0.5 z-10">
