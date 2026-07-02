@@ -19,6 +19,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { useToast } from "@shared/components/ui/Toast";
 import { customerApi } from "../services/customerApi";
 import { resolveQuickImageUrl } from "../utils/image";
+import ProductCard from "../components/shared/ProductCard";
 
 const getProductIdentifier = (value) =>
   String(value?.productId || value?.itemId || value?.id || value?._id || "").split("::")[0];
@@ -135,6 +136,8 @@ const ProductDetailPage = () => {
   const [productError, setProductError] = useState("");
   const [currentImgIdx, setCurrentImgIdx] = useState(0);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  const [similarProducts, setSimilarProducts] = useState([]);
+  const [similarLoading, setSimilarLoading] = useState(true);
   const detailScrollRef = React.useRef(null);
 
   useEffect(() => {
@@ -265,6 +268,65 @@ const ProductDetailPage = () => {
       cancelled = true;
     };
   }, [resolvedProductId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!product) return;
+
+    const fetchSimilar = async () => {
+      setSimilarLoading(true);
+      try {
+        const catId = product.subcategoryId?._id || product.subcategoryId || product.categoryId?._id || product.categoryId;
+        const storeId = product.sellerId || product.storeId || (product.seller?._id || product.seller?.id);
+
+        if (!catId) {
+          setSimilarProducts([]);
+          return;
+        }
+
+        const response = await customerApi.getProducts({
+          categoryId: catId,
+          storeId: storeId,
+          limit: 20
+        });
+
+        if (!cancelled && response?.data?.success) {
+          const rawResult = response.data.result;
+          const dbProds = Array.isArray(response.data.results)
+            ? response.data.results
+            : Array.isArray(rawResult?.items)
+              ? rawResult.items
+              : Array.isArray(rawResult)
+                ? rawResult
+                : [];
+
+          const formattedProds = dbProds.map(p => ({
+            ...p,
+            id: p._id || p.id,
+            image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+            price: p.salePrice || p.price,
+            originalPrice: p.price,
+            weight: p.weight || p.unit || "1 unit",
+            deliveryTime: "8-15 mins"
+          }));
+
+          const filtered = formattedProds.filter(p => String(p.id) !== String(product.id));
+          setSimilarProducts(filtered);
+        }
+      } catch (error) {
+        console.error("Error fetching similar products:", error);
+        if (!cancelled) setSimilarProducts([]);
+      } finally {
+        if (!cancelled) setSimilarLoading(false);
+      }
+    };
+
+    fetchSimilar();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product]);
 
   const averageRating = useMemo(() => {
     if (!reviews.length) return "4.8";
@@ -808,6 +870,49 @@ const ProductDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Similar products section */}
+      {!similarLoading && similarProducts.length > 0 && (
+        <div className="mt-20 border-t border-border pt-16">
+          <h3 className="mb-8 text-2xl font-black text-foreground">
+            Similar products
+          </h3>
+
+          <div className="grid grid-cols-3 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {similarProducts.slice(0, 6).map((item) => (
+              <ProductCard key={item.id} product={item} compact={true} />
+            ))}
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => navigate(`/quick/product/${product.id}/similar`)}
+              className="flex items-center justify-between w-full max-w-md rounded-2xl bg-blue-50/50 dark:bg-slate-900/50 border border-blue-100/50 dark:border-slate-800/50 px-5 py-3.5 hover:shadow-sm transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-3 overflow-hidden">
+                  {similarProducts.slice(0, 3).map((item, idx) => (
+                    <div
+                      key={item.id || idx}
+                      className="inline-block h-10 w-10 rounded-full border-2 border-white dark:border-slate-900 bg-white overflow-hidden shadow-sm flex items-center justify-center p-0.5"
+                    >
+                      <img
+                        src={item.image || item.mainImage}
+                        alt={item.name}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <span className="text-sm font-black text-slate-700 dark:text-slate-300">
+                  See all products
+                </span>
+              </div>
+              <span className="text-[#0c831f] font-black text-lg">›</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Fullscreen Swipeable Gallery Modal */}
       {isFullscreenOpen && typeof window !== "undefined" && (
