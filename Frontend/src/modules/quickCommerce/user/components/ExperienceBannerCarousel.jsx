@@ -18,25 +18,94 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
   const [isResetting, setIsResetting] = useState(false);
   const stepPercent = 100 / loopedItems.length;
 
-  useEffect(() => {
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startXRef = React.useRef(0);
+
+  const handleDragStart = (clientX) => {
     if (items.length <= 1) return;
+    setIsDragging(true);
+    startXRef.current = clientX;
+  };
+
+  const handleDragMove = (clientX) => {
+    if (!isDragging) return;
+    const diff = clientX - startXRef.current;
+    setDragOffset(diff);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    
+    // Swipe threshold (50px)
+    if (dragOffset > 50) {
+      setActiveIndex((prev) => prev - 1);
+    } else if (dragOffset < -50) {
+      setActiveIndex((prev) => prev + 1);
+    }
+    
+    setDragOffset(0);
+  };
+
+  const handleTouchStart = (e) => {
+    handleDragStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    handleDragMove(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    handleDragEnd();
+  };
+
+  const handleMouseDown = (e) => {
+    // Avoid default image dragging outlines
+    e.preventDefault();
+    handleDragStart(e.clientX);
+  };
+
+  const handleMouseMove = (e) => {
+    handleDragMove(e.clientX);
+  };
+
+  const handleMouseUp = () => {
+    handleDragEnd();
+  };
+
+  const handleMouseLeave = () => {
+    handleDragEnd();
+  };
+
+  useEffect(() => {
+    if (items.length <= 1 || isDragging) return;
 
     const intervalId = setInterval(() => {
       setActiveIndex((prev) => prev + 1);
     }, 4000);
 
     return () => clearInterval(intervalId);
-  }, [items.length]);
+  }, [items.length, isDragging]);
 
   useEffect(() => {
-    if (items.length <= 1 || activeIndex !== items.length + 1) return;
+    if (items.length <= 1) return;
 
-    const timeoutId = window.setTimeout(() => {
-      setIsResetting(true);
-      setActiveIndex(1);
-    }, 500);
+    if (activeIndex === items.length + 1) {
+      const timeoutId = window.setTimeout(() => {
+        setIsResetting(true);
+        setActiveIndex(1);
+      }, 500);
+      return () => window.clearTimeout(timeoutId);
+    }
 
-    return () => window.clearTimeout(timeoutId);
+    if (activeIndex === 0) {
+      const timeoutId = window.setTimeout(() => {
+        setIsResetting(true);
+        setActiveIndex(items.length);
+      }, 500);
+      return () => window.clearTimeout(timeoutId);
+    }
   }, [activeIndex, items.length]);
 
   useEffect(() => {
@@ -52,18 +121,25 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
   return (
     <div className={cn("overflow-hidden", fullWidth && "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]")}>
       <div
-        className={cn("flex ease-out", isResetting ? "transition-none" : "transition-transform duration-500")}
+        className={cn("flex ease-out select-none", (isResetting || isDragging) ? "transition-none" : "transition-transform duration-500")}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
         style={
           fullWidth
             ? {
                 width: `${loopedItems.length * 100}%`,
                 gap: `${effectiveSlideGap}px`,
-                transform: `translateX(-${activeIndex * stepPercent}%)`,
+                transform: `translateX(calc(-${activeIndex * stepPercent}% + ${dragOffset}px))`,
               }
             : {
                 width: "100%",
                 gap: `${effectiveSlideGap}px`,
-                transform: `translateX(calc(-${activeIndex} * (85% + ${effectiveSlideGap}px) + 7.5%))`,
+                transform: `translateX(calc(-${activeIndex} * (85% + ${effectiveSlideGap}px) + 7.5% + ${dragOffset}px))`,
               }
         }
       >
