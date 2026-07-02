@@ -60,7 +60,7 @@ export const useUserNotifications = () => {
     const socketUrl = `${backendUrl}`;
     
     // Auth token
-    const token = localStorage.getItem('user_accessToken') || localStorage.getItem('accessToken');
+    const token = localStorage.getItem('auth_customer') || localStorage.getItem('user_accessToken') || localStorage.getItem('accessToken') || localStorage.getItem('token');
     if (!token) return;
 
     debugLog('🔌 Connecting to User Socket.IO:', socketUrl);

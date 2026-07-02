@@ -548,6 +548,7 @@ const transformOrderForTracking = (apiOrder, previousOrder = null, explicitResta
     },
     pickupSources,
     items: apiOrder?.items?.map(item => ({
+      productId: item.itemId || item._id || '',
       name: item.name,
       variantName: item.variantName || '',
       quantity: item.quantity,
@@ -860,6 +861,8 @@ export default function OrderTracking() {
   const [selectedDeliveryRating, setSelectedDeliveryRating] = useState(null)
   const [restaurantFeedbackText, setRestaurantFeedbackText] = useState("")
   const [deliveryFeedbackText, setDeliveryFeedbackText] = useState("")
+  const [productRatings, setProductRatings] = useState({})
+  const [productComments, setProductComments] = useState({})
   const [submittingRating, setSubmittingRating] = useState(false)
   const [shownRatingForOrders, setShownRatingForOrders] = useState(() => {
     try {
@@ -1472,21 +1475,32 @@ export default function OrderTracking() {
     const idStr = String(orderIdToRate);
     const hasShownPopup = shownRatingForOrders.has(idStr);
     
+    // Also check global popup key to avoid double triggers
+    let globalShown = new Set();
+    try {
+      const stored = localStorage.getItem('quickReviewShownOrders');
+      if (stored) globalShown = new Set(JSON.parse(stored));
+    } catch {}
+    
     // Check if already rated (using structure from transformOrderForTracking)
     const hasRestaurantRating = Number.isFinite(Number(order.ratings?.restaurant?.rating));
     const hasDeliveryPartner = !!order.deliveryPartnerId;
     const hasDeliveryRating = Number.isFinite(Number(order.ratings?.deliveryPartner?.rating));
     const hasRating = hasRestaurantRating && (!hasDeliveryPartner || hasDeliveryRating);
 
-    if (!hasRating && !hasShownPopup) {
+    if (!hasRating && !hasShownPopup && !globalShown.has(idStr)) {
       debugLog('? Auto-triggering rating popup for delivered order:', idStr);
       
-      // Mark as shown to avoid re-triggering
+      // Mark as shown to avoid re-triggering (both local and global keys)
       setShownRatingForOrders(prev => {
         const next = new Set(prev);
         next.add(idStr);
         return next;
       });
+      try {
+        globalShown.add(idStr);
+        localStorage.setItem('quickReviewShownOrders', JSON.stringify(Array.from(globalShown)));
+      } catch {}
 
       // Show after a short delay for better UX
       const timer = setTimeout(() => {
@@ -1682,6 +1696,8 @@ export default function OrderTracking() {
     setSelectedDeliveryRating(null)
     setRestaurantFeedbackText("")
     setDeliveryFeedbackText("")
+    setProductRatings({})
+    setProductComments({})
   }
 
   const handleSubmitRating = async () => {
@@ -1695,6 +1711,21 @@ export default function OrderTracking() {
 
     try {
       setSubmittingRating(true);
+
+      // Submit product reviews concurrently if ratings exist
+      const submitProductReviewsPromises = Object.entries(productRatings).map(([prodId, rating]) => {
+        const comment = productComments[prodId] || "";
+        return customerApi.submitReview({
+          productId: prodId,
+          rating,
+          comment
+        });
+      });
+      
+      if (submitProductReviewsPromises.length > 0) {
+        await Promise.all(submitProductReviewsPromises);
+      }
+
       const targetId = order.mongoId || order._id || orderId;
       
       const response = await orderAPI.submitOrderRatings(targetId, {
@@ -3045,6 +3076,58 @@ export default function OrderTracking() {
                     placeholder="Tell us what you liked (optional)"
                   />
                 </div>
+
+                {/* Product reviews list */}
+                {(isQuickOrder || order?.orderType === "quick") && order?.items && order.items.length > 0 && (
+                  <div className="pt-4 border-t border-gray-100 dark:border-neutral-800 space-y-4">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                      Rate the products
+                    </p>
+                    <div className="space-y-4 max-h-[200px] overflow-y-auto pr-1 scrollbar-thin">
+                      {order.items.map((item, idx) => {
+                        const prodId = item.productId || item.id;
+                        if (!prodId) return null;
+                        const rating = productRatings[prodId] || 0;
+                        const comment = productComments[prodId] || "";
+
+                        return (
+                          <div key={prodId || idx} className="p-3 bg-slate-50 dark:bg-neutral-800 rounded-2xl border border-slate-100 dark:border-neutral-700 space-y-2">
+                            <p className="text-xs font-bold text-gray-800 dark:text-gray-200">
+                              {item.name} {item.variantName && `(${item.variantName})`}
+                            </p>
+                            
+                            <div className="flex items-center gap-1">
+                              {[1, 2, 3, 4, 5].map((num) => (
+                                <button
+                                  key={`prod-${prodId}-${num}`}
+                                  type="button"
+                                  onClick={() => setProductRatings(prev => ({ ...prev, [prodId]: num }))}
+                                  className="p-1 transition-transform hover:scale-110 active:scale-95"
+                                >
+                                  <Star
+                                    className={`w-6 h-6 transition-all ${
+                                      rating >= num
+                                        ? "text-yellow-400 fill-yellow-400"
+                                        : "text-gray-200 dark:text-gray-600 hover:text-yellow-200"
+                                    }`}
+                                  />
+                                </button>
+                              ))}
+                            </div>
+                            
+                            <input
+                              type="text"
+                              value={comment}
+                              onChange={(e) => setProductComments(prev => ({ ...prev, [prodId]: e.target.value }))}
+                              className="w-full h-8 rounded-lg border border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 text-xs text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none"
+                              placeholder="Add a comment for this item (optional)"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {!!order?.deliveryPartnerId && (
                   <div className="pt-4 border-t border-gray-100 dark:border-neutral-800">

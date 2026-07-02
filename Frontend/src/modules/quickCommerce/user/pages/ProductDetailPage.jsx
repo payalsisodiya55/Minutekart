@@ -249,7 +249,25 @@ const ProductDetailPage = () => {
       try {
         const response = await customerApi.getProductReviews(resolvedProductId);
         if (!cancelled) {
-          setReviews(response?.data?.results || []);
+          const rawReviews = response?.data?.results || [];
+          const uniqueReviews = [];
+          const seenKeys = new Set();
+          
+          rawReviews.forEach(review => {
+            const id = review._id || review.id;
+            const uniqueKey = `${review.userId || review.userName || ''}-${review.rating || 0}-${(review.comment || '').trim()}`;
+            
+            if (id && !seenKeys.has(id) && !seenKeys.has(uniqueKey)) {
+              seenKeys.add(id);
+              seenKeys.add(uniqueKey);
+              uniqueReviews.push(review);
+            } else if (!id && !seenKeys.has(uniqueKey)) {
+              seenKeys.add(uniqueKey);
+              uniqueReviews.push(review);
+            }
+          });
+
+          setReviews(uniqueReviews);
         }
       } catch (error) {
         if (!cancelled) {
@@ -728,146 +746,80 @@ const ProductDetailPage = () => {
         </div>
       </div>
 
-      <div className="mt-20 border-t border-border pt-16">
-        <div className="flex flex-col gap-12 lg:flex-row">
-          <div className="lg:w-[40%]">
-            <div className="sticky top-24 rounded-[2.5rem] border border-border bg-card p-8 shadow-sm transition-colors">
-              <h3 className="mb-2 text-2xl font-black text-foreground">Write a Review</h3>
-              <p className="mb-6 text-sm font-medium text-slate-500 dark:text-slate-400">
-                Share your experience with this product
-              </p>
-
-              <form onSubmit={handleReviewSubmit} className="space-y-6">
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                    Your Rating
-                  </label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setNewReview((current) => ({ ...current, rating: star }))}
-                        className={cn(
-                          "flex h-12 w-12 items-center justify-center rounded-xl transition-all",
-                          newReview.rating >= star
-                            ? "bg-red-50 dark:bg-red-950/30 text-red-500"
-                            : "bg-card dark:bg-background text-slate-300 dark:text-slate-600",
-                        )}
-                      >
-                        <Star
-                          className={cn("h-6 w-6", newReview.rating >= star && "fill-current")}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                    Comment
-                  </label>
-                  <textarea
-                    value={newReview.comment}
-                    onChange={(event) =>
-                      setNewReview((current) => ({
-                        ...current,
-                        comment: event.target.value,
-                      }))
-                    }
-                    placeholder="What did you like or dislike?"
-                    className="min-h-[120px] w-full rounded-2xl bg-card dark:bg-background border border-border p-4 text-sm font-bold outline-none ring-1 ring-transparent transition-all focus:ring-[#0c831f]/20 dark:text-white"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isSubmittingReview}
-                  className="h-14 w-full rounded-2xl bg-foreground font-black text-background shadow-xl shadow-slate-100 dark:shadow-none transition-all hover:bg-slate-800 active:scale-95"
-                >
-                  {isSubmittingReview ? "SUBMITTING..." : "SUBMIT REVIEW"}
-                </Button>
-                <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Reviews are moderated before publishing
-                </p>
-              </form>
+      <div className="mt-20 border-t border-border pt-16 max-w-4xl mx-auto w-full">
+        <div className="space-y-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-3xl font-black text-foreground">Customer Reviews</h3>
+            <div className="flex items-center gap-2 rounded-xl border border-[#0c831f]/10 bg-[#0c831f]/5 px-4 py-2">
+              <MessageSquare size={18} className="text-[#0c831f]" />
+              <span className="font-black text-[#0c831f]">
+                {reviews.length} Verified
+              </span>
             </div>
           </div>
 
-          <div className="space-y-8 lg:w-[60%]">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-3xl font-black text-foreground">Customer Reviews</h3>
-              <div className="flex items-center gap-2 rounded-xl border border-[#0c831f]/10 bg-[#0c831f]/5 px-4 py-2">
-                <MessageSquare size={18} className="text-[#0c831f]" />
-                <span className="font-black text-[#0c831f]">
-                  {reviews.length} Verified
-                </span>
-              </div>
+          {reviewLoading ? (
+            <div className="flex justify-center p-20">
+              <Loader2 className="animate-spin text-[#0c831f]" size={32} />
             </div>
-
-            {reviewLoading ? (
-              <div className="flex justify-center p-20">
-                <Loader2 className="animate-spin text-[#0c831f]" size={32} />
-              </div>
-            ) : reviews.length > 0 ? (
-              <div className="space-y-6">
-                {reviews.map((review) => (
-                  <div
-                    key={review._id}
-                    className="rounded-[2rem] border border-border bg-card p-8 shadow-sm transition-colors"
-                  >
-                    <div className="mb-4 flex items-start justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="ds-h2 flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-card dark:bg-background border border-border text-slate-400 dark:text-slate-500">
-                          {(review.userId?.profileImage || review.userId?.image || review.userAvatar) ? (
-                            <img
-                              src={resolveQuickImageUrl(review.userId?.profileImage || review.userId?.image || review.userAvatar)}
-                              alt={review.userId?.name || review.userName || "Reviewer"}
-                              className="h-full w-full object-cover"
+          ) : reviews.length > 0 ? (
+            <div className="space-y-6">
+              {reviews.map((review) => (
+                <div
+                  key={review._id}
+                  className="rounded-[2rem] border border-border bg-card p-8 shadow-sm transition-colors"
+                >
+                  <div className="mb-4 flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="ds-h2 flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-card dark:bg-background border border-border text-slate-400 dark:text-slate-500">
+                        {(review.userId?.profileImage || review.userId?.image || review.userAvatar) ? (
+                          <img
+                            src={resolveQuickImageUrl(review.userId?.profileImage || review.userId?.image || review.userAvatar)}
+                            alt={review.userId?.name || review.userName || "Reviewer"}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          (review.userId?.name || review.userName || "?")[0]
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="font-black text-foreground transition-colors">
+                          {review.userId?.name || review.userName || "Anonymous"}
+                        </h4>
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, index) => (
+                            <Star
+                              key={index}
+                              size={12}
+                              className={cn(
+                                index < review.rating
+                                  ? "fill-red-400 text-red-400"
+                                  : "text-slate-200 dark:text-slate-700",
+                              )}
                             />
-                          ) : (
-                            (review.userId?.name || review.userName || "?")[0]
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-black text-foreground transition-colors">
-                            {review.userId?.name || review.userName || "Anonymous"}
-                          </h4>
-                          <div className="flex items-center gap-1">
-                            {[...Array(5)].map((_, index) => (
-                              <Star
-                                key={index}
-                                size={12}
-                                className={cn(
-                                  index < review.rating
-                                    ? "fill-red-400 text-red-400"
-                                    : "text-slate-200 dark:text-slate-700",
-                                )}
-                              />
-                            ))}
-                          </div>
+                          ))}
                         </div>
                       </div>
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                        {review.createdAt
-                          ? new Date(review.createdAt).toLocaleDateString()
-                          : ""}
-                      </span>
                     </div>
-                    <p className="font-medium leading-relaxed text-slate-600 dark:text-slate-300 transition-colors">
-                      {review.comment}
-                    </p>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      {review.createdAt
+                        ? new Date(review.createdAt).toLocaleDateString()
+                        : ""}
+                    </span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-[3rem] border-2 border-dashed border-border bg-background p-20 text-center">
-                <p className="text-sm font-black uppercase text-slate-400">
-                  No reviews yet. Be the first!
-                </p>
-              </div>
-            )}
-          </div>
+                  <p className="font-medium leading-relaxed text-slate-600 dark:text-slate-300 transition-colors">
+                    {review.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-[3rem] border-2 border-dashed border-border bg-background p-20 text-center">
+              <p className="text-sm font-black uppercase text-slate-400">
+                No reviews yet. Be the first!
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

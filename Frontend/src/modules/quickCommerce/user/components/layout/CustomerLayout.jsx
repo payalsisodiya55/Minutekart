@@ -3,6 +3,7 @@ import Footer from './Footer';
 import BottomNav from './BottomNav';
 import MiniCart from '../shared/MiniCart';
 import ProductDetailSheet from '../shared/ProductDetailSheet';
+import DeliveredOrderReviewPopup from '../shared/DeliveredOrderReviewPopup';
 import MobileFooterMessage from './MobileFooterMessage';
 import { useProductDetail } from '../../context/ProductDetailContext';
 import { cn } from '@/lib/utils';
@@ -39,6 +40,7 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
 
             {showCart && <MiniCart />}
             <ProductDetailSheet />
+            <DeliveredOrderReviewPopup />
 
             <div className="hidden md:block">
                 <Footer />
