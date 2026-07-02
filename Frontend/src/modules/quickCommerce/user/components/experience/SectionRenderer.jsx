@@ -99,19 +99,18 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
                     className="flex flex-col items-center group cursor-pointer"
                   >
                     <div
-                      className="w-full aspect-square rounded-2xl p-2.5 mb-1.5 group-hover:scale-[1.05] transition-all duration-300 flex items-center justify-center overflow-hidden shadow-sm border border-white/50"
-                      style={{ backgroundColor: categoryBgColors[idx % categoryBgColors.length] }}
+                      className="w-full aspect-square rounded-2xl p-1 mb-1.5 bg-[#EBF3F4] group-hover:scale-[1.03] transition-all duration-300 flex items-center justify-center overflow-hidden"
                     >
                       <img
                         src={cat.image}
                         srcSet={getCloudinarySrcSet(cat.image)}
                         sizes="(max-width: 768px) 25vw, 150px"
                         alt={cat.name}
-                        className="w-full h-full object-contain group-hover:rotate-6 transition-transform duration-500 drop-shadow-sm mix-blend-multiply"
+                        className="w-full h-full object-contain transition-transform duration-500 mix-blend-multiply"
                         loading="lazy"
                       />
                     </div>
-                    <span className="text-[10px] md:text-xs font-bold text-slate-700 text-center line-clamp-1 group-hover:text-black transition-colors">
+                    <span className="text-[11px] md:text-xs font-semibold text-slate-800 text-center line-clamp-2 leading-tight px-0.5 group-hover:text-black transition-colors">
                       {cat.name}
                     </span>
                   </motion.div>
