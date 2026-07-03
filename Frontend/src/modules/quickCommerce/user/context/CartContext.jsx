@@ -552,7 +552,7 @@ export const CartProvider = ({ children }) => {
     const updateQuantity = async (productId, delta) => {
       const resolvedProductId = normalizeProductId(productId);
       if (!resolvedProductId) return;
-      const currentItem = foodCart.getCartItem(resolvedProductId);
+      const currentItem = foodCart.getCartItem(resolvedProductId, "", "quick");
       if (!currentItem) return;
       const nextQuantity = Math.max(0, (currentItem.quantity || 0) + delta);
       const nextQuickItems =

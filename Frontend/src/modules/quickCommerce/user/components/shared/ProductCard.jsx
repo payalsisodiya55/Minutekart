@@ -196,9 +196,18 @@ const ProductCard = React.memo(
           showToast(`Only ${targetStock} in stock`, "error");
           return;
         }
+
+        if (imageRef.current) {
+          const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
+          animateAddToCart(
+            imageRef.current.getBoundingClientRect(),
+            resolvedSrc,
+          );
+        }
+
         updateQuantity(targetId, 1);
       },
-      [updateQuantity, product, quantity, showToast],
+      [updateQuantity, product, quantity, showToast, animateAddToCart],
     );
 
     const handleDecrement = React.useCallback(
@@ -217,16 +226,17 @@ const ProductCard = React.memo(
           targetId = `${product.id}::${v.sku}`;
         }
 
+        const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
+        if (imageRef.current) {
+          animateRemoveFromCart(
+            imageRef.current.getBoundingClientRect(),
+            resolvedSrc,
+          );
+        } else {
+          animateRemoveFromCart(null, resolvedSrc);
+        }
+
         if (quantity === 1) {
-          const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
-          if (imageRef.current) {
-            animateRemoveFromCart(
-              imageRef.current.getBoundingClientRect(),
-              resolvedSrc,
-            );
-          } else {
-            animateRemoveFromCart(null, resolvedSrc);
-          }
           removeFromCart(targetId);
         } else {
           updateQuantity(targetId, -1);

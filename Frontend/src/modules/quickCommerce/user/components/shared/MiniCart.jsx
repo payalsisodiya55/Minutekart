@@ -91,10 +91,10 @@ const MiniCart = ({
                                 </div>
 
                                 <div className="flex flex-col text-left">
-                                    <span className="text-[12.5px] font-extrabold tracking-wide leading-none text-white">
+                                    <span className="text-[12.5px] font-extrabold tracking-wide leading-none text-white whitespace-nowrap">
                                         View cart
                                     </span>
-                                    <span className="text-[9px] font-bold text-white/95 leading-none mt-0.5">
+                                    <span className="text-[9px] font-bold text-white/95 leading-none mt-0.5 whitespace-nowrap">
                                         {cartCount} {cartCount === 1 ? 'item' : 'items'}
                                     </span>
                                 </div>
