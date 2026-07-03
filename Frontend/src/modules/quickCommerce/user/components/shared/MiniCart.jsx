@@ -42,6 +42,7 @@ const MiniCart = ({
     const isPrivacyPage = isEmbedded ? false : normalizedQuickPath.startsWith('/privacy');
     const isAboutPage = isEmbedded ? false : normalizedQuickPath.startsWith('/about');
     const isBottomRight = position === "bottom-right";
+    const isProductDetailPage = normalizedQuickPath.startsWith('/product/') && !normalizedQuickPath.includes('/similar');
 
     const miniCartContent = (
         <AnimatePresence>
@@ -51,7 +52,8 @@ const MiniCart = ({
                     id="mini-cart-target"
                     className={cn(
                         "fixed z-[100] pointer-events-auto",
-                        "bottom-[92px] left-1/2 -translate-x-1/2 flex justify-center w-auto max-w-[90vw]",
+                        isProductDetailPage ? "bottom-[120px] md:bottom-[92px]" : "bottom-[92px]",
+                        "left-1/2 -translate-x-1/2 flex justify-center w-auto max-w-[90vw]",
                         className,
                     )}
                 >
@@ -64,15 +66,15 @@ const MiniCart = ({
                     >
                         <Link
                             to={resolvedLinkTo}
-                            className="flex items-center justify-between gap-3 h-[46px] bg-[#0c831f] text-white rounded-full shadow-[0_10px_35px_rgba(12,131,31,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300 px-4 min-w-[210px] relative overflow-hidden"
+                            className="flex items-center justify-between gap-3 h-[54px] bg-[#0c831f] text-white rounded-full shadow-[0_10px_35px_rgba(12,131,31,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300 pl-2 pr-4 min-w-[210px] relative overflow-hidden"
                         >
                             <div className="flex items-center gap-2">
                                 {/* Stack of up to 3 latest product images */}
-                                <div className="flex items-center -space-x-3 pl-0.5">
+                                <div className="flex items-center -space-x-5 pl-0.5">
                                     {displayItems.map((item, idx) => (
                                         <div
                                             key={item.id || item._id || idx}
-                                            className="w-8 h-8 rounded-full bg-white border-2 border-[#0c831f] flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0"
+                                            className="w-11 h-11 rounded-full bg-white border-2 border-white flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0"
                                             style={{ zIndex: 10 - idx }}
                                         >
                                             <img
