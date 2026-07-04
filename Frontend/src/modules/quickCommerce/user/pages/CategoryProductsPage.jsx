@@ -477,70 +477,70 @@ const CategoryProductsPage = () => {
                     {/* Content */}
                     <main className="flex-1 min-w-0 px-3 pt-1 pb-12 bg-white dark:bg-background transition-colors flex flex-col min-h-[50vh]">
                         {/* Horizontal Filters Pill Bar */}
-                        <div className="sticky top-[60px] md:top-[68px] z-40 bg-white dark:bg-background mb-3">
-                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2.5 border-b border-slate-50 dark:border-neutral-800">
+                        <div className="sticky top-[72px] md:top-[72px] z-40 bg-white dark:bg-background mb-3">
+                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2.5 border-b border-slate-100 dark:border-neutral-800">
                                 {/* Filter 1: Filters */}
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'filters' ? null : 'filters')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-[12px] font-medium shrink-0 shadow-sm transition-all active:scale-95",
+                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'filters' || selectedType !== 'all' || selectedPriceRange !== 'all'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
-                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
                                     )}
                                 >
-                                    <SlidersHorizontal size={13} className={cn(activeDropdown === 'filters' || selectedType !== 'all' || selectedPriceRange !== 'all' ? "text-[#0c831f]" : "text-slate-500")} />
+                                    <SlidersHorizontal size={13} className={cn(activeDropdown === 'filters' || selectedType !== 'all' || selectedPriceRange !== 'all' ? "text-[#0c831f]" : "text-slate-600 dark:text-slate-400")} />
                                     <span>Filters</span>
-                                    <ChevronDown size={13} className="text-slate-400 ml-0.5" />
+                                    <ChevronDown size={13} className={cn(activeDropdown === 'filters' || selectedType !== 'all' || selectedPriceRange !== 'all' ? "text-[#0c831f]" : "text-slate-500 dark:text-slate-400 ml-0.5")} />
                                 </button>
 
                                 {/* Filter 2: Sort */}
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'sort' ? null : 'sort')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-[12px] font-medium shrink-0 shadow-sm transition-all active:scale-95",
+                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'sort' || selectedSort !== 'default'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
-                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
                                     )}
                                 >
-                                    <ArrowUpDown size={13} className={cn(activeDropdown === 'sort' || selectedSort !== 'default' ? "text-[#0c831f]" : "text-slate-500")} />
+                                    <ArrowUpDown size={13} className={cn(activeDropdown === 'sort' || selectedSort !== 'default' ? "text-[#0c831f]" : "text-slate-600 dark:text-slate-400")} />
                                     <span>
                                         {selectedSort === 'default' ? 'Sort' : selectedSort === 'price-low-high' ? 'Low to High' : 'High to Low'}
                                     </span>
-                                    <ChevronDown size={13} className="text-slate-400 ml-0.5" />
+                                    <ChevronDown size={13} className={cn(activeDropdown === 'sort' || selectedSort !== 'default' ? "text-[#0c831f]" : "text-slate-500 dark:text-slate-400 ml-0.5")} />
                                 </button>
 
                                 {/* Filter 3: Type */}
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'type' ? null : 'type')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-[12px] font-medium shrink-0 shadow-sm transition-all active:scale-95",
+                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'type' || selectedType !== 'all'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
-                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
                                     )}
                                 >
                                     <span>
                                         {selectedType === 'all' ? 'Type' : selectedType === 'veg' ? 'Veg Only' : 'Non-Veg'}
                                     </span>
-                                    <ChevronDown size={13} className="text-slate-400 ml-0.5" />
+                                    <ChevronDown size={13} className={cn(activeDropdown === 'type' || selectedType !== 'all' ? "text-[#0c831f]" : "text-slate-500 dark:text-slate-400 ml-0.5")} />
                                 </button>
 
                                 {/* Filter 4: Price */}
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'price' ? null : 'price')}
                                     className={cn(
-                                        "flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-[12px] font-medium shrink-0 shadow-sm transition-all active:scale-95",
+                                        "flex items-center gap-1.5 px-3.5 py-1.5 border rounded-[10px] text-[12px] font-bold shrink-0 transition-all active:scale-95 shadow-none",
                                         activeDropdown === 'price' || selectedPriceRange !== 'all'
                                             ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
-                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
                                     )}
                                 >
                                     <span>
                                         {selectedPriceRange === 'all' ? 'Price' : selectedPriceRange === 'under-150' ? 'Under ₹150' : selectedPriceRange === '150-300' ? '₹150-300' : 'Above ₹300'}
                                     </span>
-                                    <ChevronDown size={13} className="text-slate-400 ml-0.5" />
+                                    <ChevronDown size={13} className={cn(activeDropdown === 'price' || selectedPriceRange !== 'all' ? "text-[#0c831f]" : "text-slate-500 dark:text-slate-400 ml-0.5")} />
                                 </button>
                             </div>
 
