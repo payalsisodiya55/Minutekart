@@ -666,8 +666,8 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
   return (
     <div
       className={cn(
-        "bg-[#F5F7F8] dark:bg-background",
-        embedded ? "min-h-0 bg-[#F5F7F8] dark:bg-card pt-0" : "min-h-screen pt-[176px] md:pt-[210px]",
+        "bg-white dark:bg-background",
+        embedded ? "min-h-0 bg-white dark:bg-card pt-0" : "min-h-screen pt-[176px] md:pt-[210px]",
       )}>
       {/* Top Dynamic Gradient Section */}
       <div
@@ -1077,6 +1077,8 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                                   product={product}
                                   className="bg-white border border-slate-100 dark:border-white/5 shadow-sm rounded-xl"
                                   compact
+                                  hideBadge={true}
+                                  showTimeOnImage={true}
                                 />
                               </div>
                             ))}
@@ -1093,7 +1095,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
           {sectionsForRenderer.length > 0 && (
             <div
               className={cn(
-                "container mx-auto px-4 md:px-8 lg:px-[50px] bg-[#F0F9FF] dark:bg-slate-900 rounded-none pt-4 pb-10 mt-[-28px] mb-10 relative z-[1] border-x-2 border-b-2 border-sky-200/50 dark:border-sky-900/50 shadow-sm overflow-hidden",
+                "container mx-auto px-4 md:px-8 lg:px-[50px] bg-white dark:bg-slate-900 rounded-none pt-4 pb-10 mt-[-28px] mb-10 relative z-[1] shadow-sm overflow-hidden",
               )}>
               {/* Animated Top Border Glow */}
               <motion.div

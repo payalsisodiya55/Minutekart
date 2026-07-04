@@ -33,7 +33,7 @@ const OfferBadge = ({ text, className, isBestOffer }) => {
 };
 
 const ProductCard = React.memo(
-  ({ product, badge, className, compact = false, neutralBg = false, curvedInfo = false, isBestOffer = false }) => {
+  ({ product, badge, className, compact = false, neutralBg = false, curvedInfo = false, isBestOffer = false, hideBadge = false, showTimeOnImage = false }) => {
     const navigate = useNavigate();
     const { toggleWishlist: toggleWishlistGlobal, isInWishlist } =
       useWishlist();
@@ -353,12 +353,19 @@ const ProductCard = React.memo(
           {/* Top Image Section */}
           <div className="relative overflow-hidden w-full h-[115px] md:h-[135px] p-1 md:p-2 bg-white dark:bg-neutral-800">
             {/* Badge (Professional Tag) */}
-            {(badge || product.discount || discountPercent > 0) && (
+            {!hideBadge && (badge || product.discount || discountPercent > 0) && (
               <div className={cn("absolute z-10", isBestOffer ? "top-1.5 left-1.5 md:top-2 md:left-2" : "top-1.5 left-1.5")}>
                 <OfferBadge
                   isBestOffer={isBestOffer}
                   text={badge || product.discount || (discountPercent > 0 ? `${discountPercent}% OFF` : null)}
                 />
+              </div>
+            )}
+
+            {/* Time Badge on Image */}
+            {showTimeOnImage && (
+              <div className="absolute top-1 left-1 z-10 bg-[#E5F7ED] dark:bg-emerald-900/50 text-[#0c831f] dark:text-emerald-400 font-bold text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-sm flex items-center justify-center leading-tight">
+                {product.deliveryTime || "10-15 mins"}
               </div>
             )}
 
@@ -460,11 +467,13 @@ const ProductCard = React.memo(
             "flex flex-col flex-1 px-1.5 py-1 space-y-0.5 bg-white dark:bg-neutral-900 border-t border-slate-100 dark:border-neutral-800 relative product-content-area transition-all duration-300",
           )}>
             <div className="space-y-0">
-              <div className="flex items-center gap-1 text-[7.5px] md:text-[8px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
-                <Clock size={7} className="text-emerald-600 dark:text-emerald-400" />
-                <span>{product.deliveryTime || "10 MINS"}</span>
-              </div>
-              <h3 className="text-[11px] md:text-[12.5px] font-bold text-slate-900 dark:text-white line-clamp-1 leading-tight">
+              {!showTimeOnImage && (
+                <div className="flex items-center gap-1 text-[7.5px] md:text-[8px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
+                  <Clock size={7} className="text-emerald-600 dark:text-emerald-400" />
+                  <span>{product.deliveryTime || "10 MINS"}</span>
+                </div>
+              )}
+              <h3 className={cn("text-[11px] md:text-[12.5px] font-bold text-slate-900 dark:text-white line-clamp-1 leading-tight", showTimeOnImage && "pt-1")}>
                 {product.name}
               </h3>
               <p className="text-[8px] md:text-[10px] text-slate-400 font-semibold italic">
