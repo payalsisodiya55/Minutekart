@@ -1,7 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronRight, ShoppingBag } from 'lucide-react';
+import { ChevronRight, ShoppingBag, ShoppingCart } from 'lucide-react';
 import Lottie from 'lottie-react';
 import { useCart } from '../../context/CartContext';
 import { cn } from '@/lib/utils';
@@ -18,11 +18,16 @@ const MiniCart = ({
     linkTo,
     className = "",
 }) => {
-    const { cart, cartCount } = useCart();
+    const { cart, cartCount, cartTotal } = useCart();
     const location = useLocation();
 
     // Show up to 3 latest added product images (items at the end of the cart array)
     const displayItems = cart.slice(-3).reverse();
+
+    const savingsTotal = cart.reduce(
+        (total, item) => total + Math.max(0, ((item.originalPrice || item.mrp || 0) - (item.price || 0)) * item.quantity),
+        0
+    );
 
     const path = location.pathname.replace(/\/$/, '') || '/';
     const normalizedQuickPath =
@@ -52,8 +57,8 @@ const MiniCart = ({
                     id="mini-cart-target"
                     className={cn(
                         "fixed z-[100] pointer-events-auto",
-                        isProductDetailPage ? "bottom-[120px] md:bottom-[92px]" : "bottom-[92px]",
-                        "left-1/2 -translate-x-1/2 flex justify-center w-auto max-w-[90vw]",
+                        isProductDetailPage ? "bottom-[130px] md:bottom-[92px]" : "bottom-[84px]",
+                        "left-0 right-0 px-4 flex justify-center w-full max-w-full",
                         className,
                     )}
                 >
@@ -62,46 +67,37 @@ const MiniCart = ({
                         animate={{ y: 0, opacity: 1, scale: 1 }}
                         exit={{ y: 50, opacity: 0, scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                        className="w-full pointer-events-auto"
+                        className="w-full max-w-xl pointer-events-auto"
                     >
                         <Link
                             to={resolvedLinkTo}
-                            className="flex items-center justify-between gap-3 h-[54px] bg-[#0c831f] text-white rounded-full shadow-[0_10px_35px_rgba(12,131,31,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300 pl-2 pr-4 min-w-[210px] relative overflow-hidden"
+                            className="flex items-center justify-between gap-3 h-[58px] bg-[#0c831f] text-white rounded-[16px] shadow-[0_8px_25px_rgba(12,131,31,0.35)] hover:scale-[1.01] active:scale-[0.99] transition-transform duration-300 px-4 w-full relative overflow-hidden"
                         >
-                            <div className="flex items-center gap-2">
-                                {/* Stack of up to 3 latest product images */}
-                                <div className="flex items-center -space-x-5 pl-0.5">
-                                    {displayItems.map((item, idx) => (
-                                        <div
-                                            key={item.id || item._id || idx}
-                                            className="w-11 h-11 rounded-full bg-white border-2 border-white flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0"
-                                            style={{ zIndex: 10 - idx }}
-                                        >
-                                            <img
-                                                src={resolveQuickImageUrl(item.image || item.mainImage)}
-                                                alt={item.name}
-                                                className="w-full h-full object-contain p-0.5"
-                                                onError={(e) => {
-                                                    e.target.onerror = null;
-                                                    e.target.src = "https://cdn-icons-png.flaticon.com/128/2321/2321831.png";
-                                                }}
-                                            />
-                                        </div>
-                                    ))}
+                            <div className="flex items-center gap-3">
+                                {/* Shopping Cart Icon with Red Circle Badge */}
+                                <div className="relative p-1">
+                                    <ShoppingCart size={24} className="text-white" />
+                                    <span className="absolute -top-1.5 -right-1.5 bg-[#e23737] text-white text-[9.5px] font-black rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center border border-white shadow-sm">
+                                        {cartCount}
+                                    </span>
                                 </div>
 
                                 <div className="flex flex-col text-left">
-                                    <span className="text-[12.5px] font-extrabold tracking-wide leading-none text-white whitespace-nowrap">
-                                        View cart
+                                    <span className="text-[13.5px] md:text-[14.5px] font-extrabold tracking-wide leading-tight text-white whitespace-nowrap">
+                                        {cartCount} Item{cartCount === 1 ? '' : 's'} | ₹{cartTotal.toLocaleString()}
                                     </span>
-                                    <span className="text-[9px] font-bold text-white/95 leading-none mt-0.5 whitespace-nowrap">
-                                        {cartCount} {cartCount === 1 ? 'item' : 'items'}
-                                    </span>
+                                    {savingsTotal > 0 && (
+                                        <span className="text-[9.5px] md:text-[10.5px] font-semibold text-[#FFE500] leading-tight mt-0.5">
+                                            You saved ₹{savingsTotal.toLocaleString()}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20 ml-2">
-                                <ChevronRight size={14} strokeWidth={3} className="text-white" />
+                            {/* White Button: View Cart -> */}
+                            <div className="flex items-center gap-1.5 bg-white text-[#0c831f] font-black text-[13px] md:text-[14px] px-3.5 py-1.5 rounded-[10px] shadow-sm hover:bg-white/95 transition-colors">
+                                <span>View Cart</span>
+                                <ChevronRight size={13} strokeWidth={3} className="text-[#0c831f]" />
                             </div>
                         </Link>
                     </motion.div>

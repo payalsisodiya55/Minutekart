@@ -531,7 +531,7 @@ const MainLocationHeader = ({
             backgroundImage: embedded ? "none" : headerGradient,
           }}
           className={cn(
-            "px-4 transition-all duration-300",
+            "px-0 md:px-4 transition-all duration-300",
             embedded
               ? "backdrop-blur-xl border-b-0 shadow-none"
               : "sticky top-0 shadow-[0_4px_20px_rgba(0,0,0,0.15)]",
@@ -655,7 +655,7 @@ const MainLocationHeader = ({
           )}
 
           {/* Collapsible Delivery Info & Location (MOBILE ONLY) */}
-          {!embedded && showTopContent && showLocation && <div className="md:hidden">
+          {!embedded && showTopContent && showLocation && <div className="md:hidden px-4">
             <motion.div
               style={{
                 height: contentHeight,
@@ -744,7 +744,7 @@ const MainLocationHeader = ({
                   overflowY: "hidden",
                 }}
                  className={cn(
-                   "relative flex items-center justify-start gap-3 overflow-x-auto no-scrollbar pl-1 pr-3 md:px-6 md:justify-center z-10 snap-x min-h-[90px] md:min-h-[100px] pb-2",
+                   "relative flex items-center justify-start gap-3 overflow-x-auto no-scrollbar pl-4 pr-4 md:px-6 md:justify-center z-10 snap-x min-h-[90px] md:min-h-[100px] pb-2",
                    embedded ? "pt-2" : "pt-3",
                  )}>
                 {/* 1. Leftmost Header Category Selector */}
