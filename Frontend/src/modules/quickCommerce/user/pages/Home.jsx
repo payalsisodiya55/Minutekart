@@ -1048,6 +1048,74 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                       weight: p.weight,
                       deliveryTime: p.deliveryTime,
                     }));
+                  const getSectionCategoryInfo = () => {
+                    let catId = null;
+                    let subId = null;
+
+                    if (section.categoryIds && section.categoryIds.length > 0) {
+                      const firstCat = section.categoryIds[0];
+                      catId = typeof firstCat === 'object' && firstCat !== null ? firstCat._id : firstCat;
+                    }
+
+                    if (section.subcategoryId) {
+                      subId = typeof section.subcategoryId === 'object' ? section.subcategoryId._id : section.subcategoryId;
+                    }
+
+                    const pIds = section.productIds || [];
+                    if (pIds.length > 0) {
+                      const firstItem = pIds[0];
+                      const fullProd = typeof firstItem === 'object' && firstItem !== null 
+                        ? firstItem 
+                        : productsById[firstItem];
+                      if (fullProd) {
+                        // Extract subcategory ID
+                        const subcatVal = fullProd.subcategoryId || fullProd.subcategory;
+                        if (subcatVal && !subId) {
+                          subId = typeof subcatVal === 'object' ? (subcatVal._id || subcatVal.id) : subcatVal;
+                        }
+
+                        // Extract category ID
+                        const catVal = fullProd.categoryId || fullProd.category;
+                        if (catVal && !catId) {
+                          catId = typeof catVal === 'object' ? (catVal._id || catVal.id) : catVal;
+                        }
+                      }
+                    }
+
+                    // If we found a subcategory but not a main category, try to resolve parent from categoryMap or subcategoryMap
+                    if (subId && !catId) {
+                      const subObj = categoryMap[subId] || subcategoryMap[subId];
+                      if (subObj) {
+                        const parentId = subObj.parentId || subObj.headerId || subObj.parent?._id || subObj.parent || subObj.header?._id || subObj.header;
+                        catId = parentId ? (typeof parentId === 'object' ? (parentId._id || parentId.id) : parentId) : subId;
+                      }
+                    }
+
+                    // If we found a category, see if we can resolve its parent if it's actually a subcategory
+                    if (catId) {
+                      const catObj = categoryMap[catId] || subcategoryMap[catId];
+                      if (catObj) {
+                        const parentId = catObj.parentId || catObj.headerId || catObj.parent?._id || catObj.parent || catObj.header?._id || catObj.header;
+                        const resolvedParentId = parentId ? (typeof parentId === 'object' ? (parentId._id || parentId.id) : parentId) : null;
+                        if (resolvedParentId) {
+                          // The catId was actually a subcategory! Update subId to catId, and catId to the parent category
+                          if (!subId) subId = catId;
+                          catId = resolvedParentId;
+                        }
+                      }
+                    }
+
+                    // Fallbacks
+                    if (!catId && activeCategory?._id && activeCategory?._id !== 'all') {
+                      catId = activeCategory._id;
+                    }
+
+                    return { catId, subId };
+                  };
+
+                  const { catId: finalCatId, subId: finalSubId } = getSectionCategoryInfo();
+                  const previewProducts = sectionProducts.slice(0, 3);
+                  
                   return (
                     <motion.div
                       key={section._id}
@@ -1070,21 +1138,53 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                             No products in this section yet.
                           </div>
                         ) : (
-                          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
-                            {sectionProducts.map((product) => (
-                              <div
-                                key={product.id}
-                                className="w-full">
-                                <ProductCard
-                                  product={product}
-                                  className="bg-white border border-slate-100 dark:border-white/5 shadow-sm rounded-xl"
-                                  compact
-                                  hideBadge={true}
-                                  showTimeOnImage={true}
-                                />
+                          <>
+                            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
+                              {sectionProducts.map((product) => (
+                                <div
+                                  key={product.id}
+                                  className="w-full">
+                                  <ProductCard
+                                    product={product}
+                                    className="bg-white border border-slate-100 dark:border-white/5 shadow-sm rounded-xl"
+                                    compact
+                                    hideBadge={true}
+                                    showTimeOnImage={true}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            
+                            {/* See all products card at the bottom of the section */}
+                            {finalCatId && (
+                              <div 
+                                onClick={() => {
+                                  navigate(`/quick/categories/${finalCatId}`, { state: { activeSubcategoryId: finalSubId || 'all' } });
+                                }}
+                                className="w-full flex items-center justify-center bg-[#F4F6F8] dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-700/30 rounded-2xl py-3 px-4 mt-4 shadow-sm hover:bg-[#EDF0F3] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {/* Overlapping Thumbnails */}
+                                  <div className="flex items-center -space-x-3.5">
+                                    {previewProducts.map((p, pIdx) => (
+                                      <div 
+                                        key={p.id || pIdx}
+                                        className="w-9 h-9 rounded-full border-[2.5px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-md flex items-center justify-center p-0.5 overflow-hidden"
+                                        style={{ zIndex: 3 - pIdx }}
+                                      >
+                                        <img src={p.image} alt="" className="w-full h-full object-contain" />
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5 text-[#3B4C69] dark:text-slate-300 font-[900] text-sm tracking-tight">
+                                    <span>See all products</span>
+                                    <ChevronRight size={16} className="text-[#3B4C69] dark:text-slate-300 group-hover:translate-x-0.5 transition-transform" />
+                                  </div>
+                                </div>
                               </div>
-                            ))}
-                          </div>
+                            )}
+                          </>
                         )}
                       </div>
                     </motion.div>

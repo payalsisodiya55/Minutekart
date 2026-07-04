@@ -7,6 +7,7 @@ import { resolveQuickImageUrl } from "../../utils/image";
 import { getCloudinarySrcSet } from "@/shared/utils/cloudinaryUtils";
 import { motion } from "framer-motion";
 import { getQuickCategoryPath } from "../../utils/routes";
+import { ChevronRight } from "lucide-react";
 
 const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}, subcategoriesById = {} }) => {
   const navigate = useNavigate();
@@ -208,6 +209,70 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
 
           if (!allProducts.length) return null;
 
+          const getSectionCategoryInfo = () => {
+            let catId = null;
+            let subId = null;
+
+            if (productConfig.categoryIds && productConfig.categoryIds.length > 0) {
+              const firstCat = productConfig.categoryIds[0];
+              catId = typeof firstCat === 'object' && firstCat !== null ? firstCat._id : firstCat;
+            }
+
+            if (section.config?.products?.subcategoryId) {
+              const sId = section.config.products.subcategoryId;
+              subId = typeof sId === 'object' && sId !== null ? sId._id : sId;
+            }
+
+            const pItems = hydratedItems || [];
+            if (pItems.length > 0) {
+              const firstItem = pItems[0];
+              const fullProd = typeof firstItem === 'object' && firstItem !== null 
+                ? firstItem 
+                : productsById[firstItem?._id || firstItem?.id || firstItem];
+              if (fullProd) {
+                // Extract subcategory ID
+                const subcatVal = fullProd.subcategoryId || fullProd.subcategory;
+                if (subcatVal && !subId) {
+                  subId = typeof subcatVal === 'object' ? (subcatVal._id || subcatVal.id) : subcatVal;
+                }
+
+                // Extract category ID
+                const catVal = fullProd.categoryId || fullProd.category;
+                if (catVal && !catId) {
+                  catId = typeof catVal === 'object' ? (catVal._id || catVal.id) : catVal;
+                }
+              }
+            }
+
+            // If we found a subcategory but not a main category, try to resolve parent from categoryMap or subcategoryMap
+            if (subId && !catId) {
+              const subObj = categoriesById[subId] || subcategoriesById[subId];
+              if (subObj) {
+                const parentId = subObj.parentId || subObj.headerId || subObj.parent?._id || subObj.parent || subObj.header?._id || subObj.header;
+                catId = parentId ? (typeof parentId === 'object' ? (parentId._id || parentId.id) : parentId) : subId;
+              }
+            }
+
+            // If we found a category, see if we can resolve its parent if it's actually a subcategory
+            if (catId) {
+              const catObj = categoriesById[catId] || subcategoriesById[catId];
+              if (catObj) {
+                const parentId = catObj.parentId || catObj.headerId || catObj.parent?._id || catObj.parent || catObj.header?._id || catObj.header;
+                const resolvedParentId = parentId ? (typeof parentId === 'object' ? (parentId._id || parentId.id) : parentId) : null;
+                if (resolvedParentId) {
+                  // The catId was actually a subcategory! Update subId to catId, and catId to the parent category
+                  if (!subId) subId = catId;
+                  catId = resolvedParentId;
+                }
+              }
+            }
+
+            return { catId, subId };
+          };
+
+          const { catId: finalCatId, subId: finalSubId } = getSectionCategoryInfo();
+          const previewProducts = allProducts.slice(0, 3);
+
           if (singleRowScrollable) {
             return (
               <div
@@ -235,6 +300,35 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
                     </div>
                   ))}
                 </div>
+                {/* See all products card at the bottom of the section */}
+                {finalCatId && (
+                  <div 
+                    onClick={() => {
+                      navigate(`/quick/categories/${finalCatId}`, { state: { activeSubcategoryId: finalSubId || 'all' } });
+                    }}
+                    className="w-full flex items-center justify-center bg-[#F4F6F8] dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-700/30 rounded-2xl py-3 px-4 mt-4 shadow-sm hover:bg-[#EDF0F3] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Overlapping Thumbnails */}
+                      <div className="flex items-center -space-x-3.5">
+                        {previewProducts.map((p, pIdx) => (
+                          <div 
+                            key={p.id || pIdx}
+                            className="w-9 h-9 rounded-full border-[2.5px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-md flex items-center justify-center p-0.5 overflow-hidden"
+                            style={{ zIndex: 3 - pIdx }}
+                          >
+                            <img src={p.image} alt="" className="w-full h-full object-contain" />
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-[#3B4C69] dark:text-slate-300 font-[900] text-sm tracking-tight">
+                        <span>See all products</span>
+                        <ChevronRight size={16} className="text-[#3B4C69] dark:text-slate-300 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           }
@@ -280,6 +374,35 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
                   </div>
                 ))}
               </div>
+              {/* See all products card at the bottom of the section */}
+              {finalCatId && (
+                <div 
+                  onClick={() => {
+                    navigate(`/quick/categories/${finalCatId}`, { state: { activeSubcategoryId: finalSubId || 'all' } });
+                  }}
+                  className="w-full flex items-center justify-center bg-[#F4F6F8] dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-700/30 rounded-2xl py-3 px-4 mt-4 shadow-sm hover:bg-[#EDF0F3] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Overlapping Thumbnails */}
+                    <div className="flex items-center -space-x-3.5">
+                      {previewProducts.map((p, pIdx) => (
+                        <div 
+                          key={p.id || pIdx}
+                          className="w-9 h-9 rounded-full border-[2.5px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-md flex items-center justify-center p-0.5 overflow-hidden"
+                          style={{ zIndex: 3 - pIdx }}
+                        >
+                          <img src={p.image} alt="" className="w-full h-full object-contain" />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-[#3B4C69] dark:text-slate-300 font-[900] text-sm tracking-tight">
+                      <span>See all products</span>
+                      <ChevronRight size={16} className="text-[#3B4C69] dark:text-slate-300 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           );
         }

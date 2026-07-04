@@ -174,7 +174,12 @@ export default function UserLayout({ children }) {
     normalizedPath === "" // Handle empty string case for root relative to /food
 
   const isUnder250 = normalizedPath === "/under-250" || normalizedPath === "/user/under-250"
-  const showFoodBottomNav = showBottomNav && !isSharedQuickProfile && !isSharedDudhwalaProfile
+  
+  // Hide all bottom navs on the profile pages
+  const isProfilePage = normalizedPath === "/profile" || normalizedPath === "/user/profile";
+  const showFoodBottomNav = showBottomNav && !isSharedQuickProfile && !isSharedDudhwalaProfile && !isProfilePage;
+  const showQuickBottomNav = isSharedQuickProfile && !isProfilePage;
+  const showDudhwalaBottomNav = isSharedDudhwalaProfile && !isProfilePage;
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] dark:bg-[#0a0a0a] transition-colors duration-200">
@@ -193,8 +198,8 @@ export default function UserLayout({ children }) {
                     {children || <Outlet />}
                   </main>
                   {!hideExtras && showFoodBottomNav && <BottomNavigation />}
-                  {!hideExtras && isSharedQuickProfile && <QuickBottomNav />}
-                  {!hideExtras && isSharedDudhwalaProfile && <DudhwalaBottomNav />}
+                  {!hideExtras && showQuickBottomNav && <QuickBottomNav />}
+                  {!hideExtras && showDudhwalaBottomNav && <DudhwalaBottomNav />}
                 </LocationSelectorProvider>
               </SearchOverlayProvider>
           </OrdersProvider>
