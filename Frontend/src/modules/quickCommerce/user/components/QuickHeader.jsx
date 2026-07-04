@@ -76,23 +76,23 @@ function CategoryNavColumn({
       onClick={() => onCategorySelect && onCategorySelect(cat)}
       className={cn(
         "relative z-[2] flex min-w-[48px] shrink-0 cursor-pointer flex-col items-center gap-0.5 border-b-2 px-2 pb-0.5 pt-0.5 snap-start md:min-w-[58px] transition-all duration-300",
-        isActive ? "border-white" : "border-transparent"
+        isActive ? "border-black" : "border-transparent"
       )}
     >
       <div className="relative z-10 flex h-9 w-9 items-center justify-center md:h-11 md:w-11">
         {cat.id === 'all' || cat._id === 'all' ? (
           <LayoutGrid 
-            className={cn("h-5 w-5 md:h-6 md:w-6 transition-colors", isActive ? "text-white scale-110" : "text-white/40")} 
+            className={cn("h-5 w-5 md:h-6 md:w-6 transition-colors", isActive ? "text-black scale-110" : "text-gray-400")} 
           />
         ) : imageSrc && !imgBroken ? (
           <img
             src={imageSrc}
             alt={cat.name}
-            className={cn("h-5 w-5 object-contain md:h-6 md:w-6 transition-all", isActive ? "opacity-100 scale-110 brightness-200" : "opacity-50 brightness-0 invert")}
+            className={cn("h-6 w-6 object-contain md:h-8 md:w-8 transition-all", isActive ? "opacity-100 scale-110 drop-shadow-sm" : "opacity-70 grayscale-[0.5]")}
             onError={() => setImgBroken(true)}
           />
         ) : (
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-[10px] font-black uppercase text-white/60 md:h-6 md:w-6 md:text-[11px]">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-[10px] font-black uppercase text-gray-500 md:h-6 md:w-6 md:text-[11px]">
             {(cat.name || '?').charAt(0)}
           </div>
         )}
@@ -102,7 +102,7 @@ function CategoryNavColumn({
           ref={labelRef}
           className={cn(
             "relative z-10 mx-auto block max-w-[72px] truncate px-1 pb-0.5 text-center text-[8px] uppercase tracking-tight md:max-w-[88px] md:text-[10px] transition-all",
-            isActive ? "font-black text-white" : "font-semibold text-white/50",
+            isActive ? "font-black text-black" : "font-semibold text-gray-500",
           )}
         >
           {cat.name}
@@ -111,7 +111,7 @@ function CategoryNavColumn({
       {isActive && (
         <motion.div
           layoutId="active-nav-glow"
-          className="absolute inset-0 bg-white/5 rounded-xl -z-10 blur-md"
+          className="absolute inset-0 bg-black/5 rounded-xl -z-10 blur-md"
         />
       )}
     </motion.div>
@@ -188,7 +188,7 @@ export default function QuickHeader({ showSearch = true, activeCategory = null, 
   });
 
   const staticText = "Search ";
-  const typingPhrases = ['"milk"', '"bread"', '"chips"', '"eggs"', '"chocolate"'];
+  const typingPhrases = ['"milk, atta, chips..."', '"bread, butter..."', '"fruits, vegetables..."', '"eggs, dairy..."', '"chocolates, snacks..."'];
 
   useEffect(() => {
     const { textIndex, charIndex, isDeleting, isPaused } = typingState;
@@ -258,11 +258,10 @@ export default function QuickHeader({ showSearch = true, activeCategory = null, 
           paddingTop: headerTopPadding,
           paddingBottom: headerBottomPadding,
           borderBottomLeftRadius: headerRoundness,
-          borderBottomRightRadius: headerRoundness,
           opacity: bgOpacity,
-          backgroundImage: headerGradient,
+          backgroundColor: "#ffffff",
         }}
-        className="px-4 shadow-[0_4px_20px_rgba(0,0,0,0.15)] overflow-hidden transition-all duration-300">
+        className="px-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] overflow-hidden transition-all duration-300">
         
         {/* Subtle Glow Overlay */}
         <div className="absolute inset-0 bg-white/8 pointer-events-none" />
@@ -274,32 +273,32 @@ export default function QuickHeader({ showSearch = true, activeCategory = null, 
             <div
               onClick={() => navigate(getQuickHomePath(pathname))}
               className="flex items-center gap-3 cursor-pointer group shrink-0">
-              <div className="group-hover:scale-110 transition-all duration-300 drop-shadow-[0_2px_8px_rgba(255,255,255,0.2)]">
+              <div className="group-hover:scale-110 transition-all duration-300 drop-shadow-sm">
                 <img
                   src={logo}
                   alt="Logo"
-                  className="h-10 w-auto object-contain brightness-0 invert"
+                  className="h-10 w-auto object-contain"
                 />
               </div>
             </div>
 
             {/* Location Block (Desktop inline row) */}
-            <div className="flex flex-col border-l border-white/20 pl-4 lg:pl-8 h-10 justify-center">
+            <div className="flex flex-col border-l border-gray-200 pl-4 lg:pl-8 h-10 justify-center">
               <div className="flex items-center gap-1.5 opacity-70">
-                <AccessTimeIcon sx={{ fontSize: 13, color: "#ffffff" }} />
-                <span className="text-[11px] font-black text-white uppercase tracking-widest leading-none">
+                <AccessTimeIcon sx={{ fontSize: 13, color: "#333333" }} />
+                <span className="text-[11px] font-black text-gray-800 uppercase tracking-widest leading-none">
                   Delivery in 10 mins
                 </span>
               </div>
               <button
                 type="button"
-                className="flex items-center gap-1 text-white hover:text-white/80 cursor-pointer group active:scale-95 transition-all border-0 bg-transparent p-0 text-left">
-                <LocationOnIcon sx={{ fontSize: 14, color: "inherit" }} />
+                className="flex items-center gap-1 text-black hover:text-gray-700 cursor-pointer group active:scale-95 transition-all border-0 bg-transparent p-0 text-left">
+                <LocationOnIcon sx={{ fontSize: 18, color: "#0c831f" }} />
                 <div className="text-[13px] font-bold leading-tight max-w-[250px] lg:max-w-[320px] truncate">
                   Home - Gurgaon, Haryana
                 </div>
                 <ChevronDownIcon
-                  sx={{ fontSize: 12, opacity: 0.5, color: "#ffffff" }}
+                  sx={{ fontSize: 12, opacity: 0.5, color: "#000000" }}
                 />
               </button>
             </div>
@@ -311,19 +310,19 @@ export default function QuickHeader({ showSearch = true, activeCategory = null, 
               onClick={handleSearchClick}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              style={{ backgroundColor: searchBarBg }}
-              className="rounded-full px-4 h-11 shadow-md flex items-center border border-white/50 transition-all duration-200 focus-within:ring-2 focus-within:ring-white/60 cursor-pointer backdrop-blur-md">
-              <SearchIcon sx={{ color: "#ffffff", fontSize: 20 }} />
-              <div className="flex-1 min-w-0 pl-2 text-white font-semibold flex items-center">
-                   <span className="block truncate opacity-60 text-[15px]">{searchPlaceholder}</span>
+              style={{ backgroundColor: "#f3f4f6" }}
+              className="rounded-full px-4 h-11 shadow-sm flex items-center border border-gray-200 transition-all duration-200 focus-within:ring-2 focus-within:ring-gray-300 cursor-pointer">
+              <SearchIcon sx={{ color: "#6b7280", fontSize: 20 }} />
+              <div className="flex-1 min-w-0 pl-2 text-gray-800 font-semibold flex items-center">
+                   <span className="block truncate opacity-80 text-[15px]">{searchPlaceholder}</span>
               </div>
-              <div className="shrink-0 flex items-center gap-2 border-l border-white/10 pl-3">
+              <div className="shrink-0 flex items-center gap-2 border-l border-gray-300 pl-3">
                 <button
                   type="button"
                   onClick={handleVoiceSearch}
                   className={cn(
                     "p-1.5 rounded-full transition-all",
-                    isListening ? "bg-white text-[#0c831f] scale-110 animate-pulse" : "text-white hover:bg-white/10"
+                    isListening ? "bg-white text-[#0c831f] scale-110 animate-pulse" : "text-gray-500 hover:bg-gray-200"
                   )}
                 >
                   <MicIcon sx={{ color: "inherit", fontSize: 20 }} />
@@ -338,7 +337,7 @@ export default function QuickHeader({ showSearch = true, activeCategory = null, 
               whileHover={{ scale: 1.15, rotate: 5 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => navigate(getQuickWishlistPath(pathname))}
-              className="text-white hover:text-white/80 transition-all">
+              className="text-black hover:text-gray-700 transition-all">
               <FavoriteBorderOutlinedIcon sx={{ fontSize: 24 }} />
             </motion.button>
 
@@ -363,7 +362,7 @@ export default function QuickHeader({ showSearch = true, activeCategory = null, 
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => navigate(getQuickWalletPath())}
-              className="text-white lg:bg-white/10 p-1.5 lg:rounded-full hover:bg-white/20 transition-all transform backdrop-blur-sm"
+              className="text-black lg:bg-gray-100 p-1.5 lg:rounded-full hover:bg-gray-200 transition-all transform"
               aria-label="Open wallet">
               <Wallet className="h-7 w-7" />
             </motion.button>
@@ -382,27 +381,27 @@ export default function QuickHeader({ showSearch = true, activeCategory = null, 
             }}
             className="relative z-10">
             <div className="mb-1">
-              <span className="inline-flex items-center rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-white backdrop-blur-sm">
+              <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-gray-800">
                 Blinkit
               </span>
             </div>
             <div className="flex justify-between items-start gap-3">
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <AccessTimeIcon sx={{ fontSize: 16, color: "#ffffff" }} />
-                  <span className="text-base font-bold text-white tracking-tight leading-none">
+                  <AccessTimeIcon sx={{ fontSize: 16, color: "#333333" }} />
+                  <span className="text-base font-bold text-black tracking-tight leading-none">
                     10 mins
                   </span>
                 </div>
                 <button
                   type="button"
-                  className="flex items-center gap-1 text-white/90 cursor-pointer group active:scale-95 transition-transform border-0 bg-transparent p-0 text-left">
-                  <LocationOnIcon sx={{ fontSize: 14, color: "#ffffff" }} />
+                  className="flex items-center gap-1 text-gray-800 cursor-pointer group active:scale-95 transition-transform border-0 bg-transparent p-0 text-left">
+                  <LocationOnIcon sx={{ fontSize: 16, color: "#0c831f" }} />
                   <div className="text-[10px] font-medium leading-tight max-w-[280px] truncate">
                     Home - Gurgaon, Haryana
                   </div>
                   <ChevronDownIcon
-                    sx={{ fontSize: 12, opacity: 0.5, color: "#ffffff" }}
+                    sx={{ fontSize: 12, opacity: 0.5, color: "#000000" }}
                   />
                 </button>
               </div>
@@ -410,7 +409,7 @@ export default function QuickHeader({ showSearch = true, activeCategory = null, 
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.92 }}
                 onClick={() => navigate(getQuickWalletPath())}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-sm transition-all"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-black shadow-sm transition-all"
                 aria-label="Open wallet"
               >
                 <Wallet className="h-5 w-5" />
@@ -424,19 +423,19 @@ export default function QuickHeader({ showSearch = true, activeCategory = null, 
           <motion.div
             onClick={handleSearchClick}
             whileTap={{ scale: 0.98 }}
-            style={{ backgroundColor: searchBarBg }}
-            className="flex-1 rounded-[10px] px-3 h-10 shadow-md flex items-center border border-white/50 transition-all duration-200 focus-within:ring-2 focus-within:ring-white/60 cursor-pointer backdrop-blur-md">
-            <SearchIcon sx={{ color: "#ffffff", fontSize: 18 }} />
-            <div className="flex-1 min-w-0 pl-2 text-white font-semibold">
-                <span className="block truncate opacity-60 text-[14px]">{searchPlaceholder}</span>
+            style={{ backgroundColor: "#f3f4f6" }}
+            className="flex-1 rounded-[10px] px-3 h-10 shadow-sm flex items-center border border-gray-200 transition-all duration-200 focus-within:ring-2 focus-within:ring-gray-300 cursor-pointer">
+            <SearchIcon sx={{ color: "#6b7280", fontSize: 18 }} />
+            <div className="flex-1 min-w-0 pl-2 text-gray-800 font-semibold">
+                <span className="block truncate opacity-80 text-[14px]">{searchPlaceholder}</span>
             </div>
-            <div className="shrink-0 flex items-center gap-2 border-l border-white/10 pl-2.5">
+            <div className="shrink-0 flex items-center gap-2 border-l border-gray-300 pl-2.5">
               <button
                 type="button"
                 onClick={handleVoiceSearch}
                 className={cn(
                   "p-1 rounded-full transition-all",
-                  isListening ? "bg-white text-[#0c831f] scale-110 animate-pulse" : "text-white hover:bg-white/10"
+                  isListening ? "bg-white text-[#0c831f] scale-110 animate-pulse" : "text-gray-500 hover:bg-gray-200"
                 )}
               >
                 <MicIcon sx={{ color: "inherit", fontSize: 18 }} />

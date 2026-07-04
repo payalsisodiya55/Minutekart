@@ -72,13 +72,13 @@ const withAlpha = (hex, alpha) => {
 const quickTheme = (baseColor) => {
   const base = normalizeHex(baseColor, "#379702");
   return {
-    topBg: `linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.18) 100%), ${withAlpha(base, 0.82)}`,
+    topBg: "#ffffff",
     accent: base,
-    text: "#ffffff",
+    text: "#1f2937",
     activeBg: base,
     activeText: "#ffffff",
-    inactiveBg: "rgba(0,0,0,0.3)",
-    inactiveBorder: "rgba(255,255,255,0.08)",
+    inactiveBg: "rgba(0,0,0,0.05)",
+    inactiveBorder: "rgba(0,0,0,0.08)",
   };
 };
 
@@ -376,7 +376,7 @@ export default function HomeHeader({
     <motion.div
       className={`relative transition-all duration-400 ${isFood
           ? "rounded-b-[36px] min-h-[345px] overflow-hidden"
-          : "rounded-b-none min-h-[88px] overflow-visible"
+          : "rounded-b-none min-h-0 overflow-visible pb-1"
         }`}
       style={{ background: isFood && slides.length > 0 ? "#121212" : theme.topBg, color: theme.text }}
     >
@@ -466,7 +466,7 @@ export default function HomeHeader({
 
 
 
-      <div className="flex items-center justify-between px-5 pt-5 mb-2 relative z-10">
+      <div className={cn("flex items-center justify-between px-5 relative z-10", isFood ? "pt-5 mb-2" : "pt-3 mb-0")}>
         <button
           type="button"
           className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 bg-transparent border-0 p-0 text-left outline-none"
@@ -487,12 +487,12 @@ export default function HomeHeader({
             })()}
             <div className="flex min-w-0 flex-col">
               <div className="flex items-center gap-[3px]">
-                <span className="truncate text-[16px] font-extrabold tracking-[-0.3px] text-white">
+                <span className={cn("truncate text-[16px] font-extrabold tracking-[-0.3px]", activeTab === "quick" ? "text-slate-800" : "text-white")}>
                   {displayLabel}
                 </span>
-                <ChevronDown className="h-[14px] w-[14px] shrink-0 opacity-85 text-white" strokeWidth={3} />
+                <ChevronDown className={cn("h-[14px] w-[14px] shrink-0 opacity-85", activeTab === "quick" ? "text-slate-800" : "text-white")} strokeWidth={3} />
               </div>
-              <span className="truncate text-[11px] font-medium text-white/75 max-w-[200px] sm:max-w-[260px]">
+              <span className={cn("truncate font-medium max-w-[200px] sm:max-w-[260px]", activeTab === "quick" ? "text-[9px] text-slate-400" : "text-[11px] text-white/75")}>
                 {locationSubtitleText}
               </span>
             </div>
@@ -502,13 +502,30 @@ export default function HomeHeader({
         <div className="flex items-center gap-2 shrink-0">
           {!hideExtras && (
             <>
-              <Link
-                to={walletPath}
-                className="h-[38px] w-[38px] rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-                aria-label="Open wallet"
-              >
-                <img src={geminiWalletImage} alt="Wallet" className="h-[24px] w-[24px] object-contain" />
-              </Link>
+              {activeTab === "quick" ? (
+                <div className="flex items-center rounded-lg border border-gray-200 bg-white p-[2px] shadow-sm">
+                  <button
+                    type="button"
+                    className="flex h-[26px] w-[30px] items-center justify-center rounded-md bg-[#0c831f] text-[10px] font-black text-white"
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    className="flex h-[26px] w-[30px] items-center justify-center text-[10px] font-bold text-gray-500 hover:text-gray-700"
+                  >
+                    HI
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  to={walletPath}
+                  className="h-[38px] w-[38px] rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                  aria-label="Open wallet"
+                >
+                  <img src={geminiWalletImage} alt="Wallet" className="h-[24px] w-[24px] object-contain" />
+                </Link>
+              )}
 
           <Popover>
             <PopoverTrigger asChild>

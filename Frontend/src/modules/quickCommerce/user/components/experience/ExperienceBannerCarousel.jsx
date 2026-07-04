@@ -159,7 +159,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
   }, [isResetting]);
 
   return (
-    <div className={cn("overflow-hidden", fullWidth && "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]")}>
+    <div className={cn("overflow-hidden", edgeToEdge && "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]")}>
       <div
         className={cn("flex ease-out select-none", (isResetting || isDragging) ? "transition-none" : "transition-transform duration-500")}
         onTouchStart={handleTouchStart}
@@ -199,7 +199,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
             >
               {fullWidth ? (
                 <div
-                  className="relative w-full h-full overflow-hidden"
+                  className="relative w-full h-full overflow-hidden rounded-2xl bg-transparent"
                   onClick={() => handleBannerClick(banner)}
                 >
                   {isVideo ? (
@@ -289,6 +289,32 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
           );
         })}
       </div>
+
+      {/* Pagination Dots */}
+      {items.length > 1 && (
+        <div className="flex items-center justify-center gap-1.5 pt-2 pb-1">
+          {items.map((_, idx) => {
+            // Map looped activeIndex back to real index
+            let realIndex = activeIndex - 1;
+            if (realIndex < 0) realIndex = items.length - 1;
+            if (realIndex >= items.length) realIndex = 0;
+            const isActive = realIndex === idx;
+            return (
+              <button
+                key={idx}
+                onClick={() => setActiveIndex(idx + 1)}
+                className={cn(
+                  "rounded-full border-0 p-0 cursor-pointer transition-all duration-300",
+                  isActive
+                    ? "w-[18px] h-[6px] bg-[#0c831f]"
+                    : "w-[6px] h-[6px] bg-gray-300 hover:bg-gray-400"
+                )}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

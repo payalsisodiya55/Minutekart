@@ -241,7 +241,12 @@ export const useQuickHomeData = ({ currentLocation }) => {
           setActiveCategory(initialActive);
           newDataCache.activeCategory = initialActive;
 
-          const formattedQuickCats = dbCats.filter((cat) => cat.type === "category").map((cat) => ({ id: cat._id, name: cat.name, image: getQuickCategoryImage(cat) }));
+          const formattedQuickCats = dbCats.filter((cat) => cat.type === "category").map((cat) => ({
+            id: cat._id,
+            name: cat.name,
+            image: getQuickCategoryImage(cat),
+            parentId: cat.parentId || cat.headerId || cat.parent?._id || cat.header?._id || cat.parent || cat.header
+          }));
           setQuickCategories(formattedQuickCats);
           newDataCache.quickCategories = formattedQuickCats;
         }

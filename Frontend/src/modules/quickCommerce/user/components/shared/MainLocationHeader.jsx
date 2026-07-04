@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useLocation as useRouterLocation, useNavigate } from "react-router-dom";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import Lottie from "lottie-react";
 import LocationDrawer from "./LocationDrawer";
 import { useLocation } from "../../context/LocationContext";
@@ -19,10 +19,11 @@ import {
   getQuickHomePath,
   getQuickSearchPath,
   getQuickWishlistPath,
+  getQuickCategoryPath,
 } from "../../utils/routes";
 import LogoImage from "@/assets/Logo.png";
 import shoppingCartAnimation from "@/assets/lottie/shopping-cart.json";
-import { Sparkles } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { customerApi } from "../../services/customerApi";
 import { resolveQuickImageUrl } from "../../utils/image";
 import ThemeToggle from "../layout/ThemeToggle";
@@ -146,122 +147,148 @@ const lightenHex = (hex, amount = 0.18) => {
   return `#${toHex(mix(r))}${toHex(mix(g))}${toHex(mix(b))}`;
 };
 
-/** Full-width bottom stroke + tab curve; l/r are 0–100% of column where the inner bump sits. */
-function buildActiveTabPath(l, r) {
-  const y = 20;
-  const mapX = (x) => l + ((x - 1.5) / (98.5 - 1.5)) * (r - l);
-  return `M 0 ${y} L ${l} ${y} L ${l} 12 C ${mapX(2.6)} 7 ${mapX(8.2)} 1.55 ${mapX(15)} 1.55 L ${mapX(85)} 1.55 C ${mapX(91.8)} 1.55 ${mapX(97.4)} 7 ${mapX(98.5)} 12 V ${y} L 100 ${y}`;
-}
-
-function CategoryNavColumn({
+function CircularCategoryItem({
   cat,
-  isActive,
-  categoryAccent,
-  onCategorySelect,
+  isActive = false,
+  isDropdown = false,
+  onClick,
 }) {
-  const iconColor = "#ffffff";
-  const colRef = useRef(null);
-  const labelRef = useRef(null);
-  const [lr, setLr] = useState({ l: 22, r: 78 });
-
-  const measure = () => {
-    if (!isActive || !colRef.current || !labelRef.current) return;
-    const col = colRef.current.getBoundingClientRect();
-    const lab = labelRef.current.getBoundingClientRect();
-    if (col.width < 4) return;
-    const pad = 5;
-    const l = Math.max(0, ((lab.left - col.left - pad) / col.width) * 100);
-    const r = Math.min(100, ((lab.right - col.left + pad) / col.width) * 100);
-    if (r - l > 6) setLr({ l, r });
-  };
-
-  useLayoutEffect(() => {
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (colRef.current) ro.observe(colRef.current);
-    window.addEventListener("resize", measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, [isActive, cat.name]);
-
-  const pathD = isActive ? buildActiveTabPath(lr.l, lr.r) : "";
-
   return (
-    <motion.div
-      ref={colRef}
-      layout
-      whileTap={{ scale: 0.96 }}
-      transition={{
-        layout: { type: "spring", stiffness: 520, damping: 38, mass: 0.55 },
-      }}
-      onClick={() => onCategorySelect && onCategorySelect(cat)}
-      style={{
-        borderBottomColor: isActive ? "transparent" : categoryAccent,
-      }}
-      className="relative z-[2] flex min-w-[48px] shrink-0 cursor-pointer flex-col items-center gap-0.5 border-b-2 px-2 pb-0.5 pt-0.5 snap-start md:min-w-[58px]">
-      <div className="relative z-10 flex h-9 w-9 items-center justify-center md:h-11 md:w-11">
+    <motion.button
+      whileTap={{ scale: 0.94 }}
+      onClick={onClick}
+      className="flex flex-col items-center gap-2 snap-center bg-transparent border-0 select-none outline-none cursor-pointer group shrink-0"
+      style={{ minWidth: "64px", maxWidth: "72px" }}
+    >
+      <div
+        className={cn(
+          "h-[60px] w-[60px] rounded-full flex items-center justify-center transition-all",
+          isActive 
+            ? "bg-[#E8F5E9] ring-2 ring-[#0c831f]/30" 
+            : "bg-[#f4f5f4]"
+        )}
+      >
         {typeof cat.icon === "function" ||
           (typeof cat.icon === "object" && cat.icon.$$typeof) ? (
           <cat.icon
             sx={{
-              fontSize: { xs: 20, md: 24 },
-              color: iconColor,
-              opacity: isActive ? 1 : 0.92,
-              transition: "opacity 0.2s, transform 0.2s",
+              fontSize: 28,
+              color: isActive ? "#0c831f" : "#4b5563",
             }}
           />
         ) : (
           <img
-            src={cat.icon}
+            src={cat.icon || cat.image}
             alt={cat.name}
-            className="h-6 w-6 object-contain md:h-8 md:w-8"
-            style={{ opacity: isActive ? 1 : 0.92 }}
+            className="h-10 w-10 object-contain"
           />
         )}
       </div>
-      <div className="relative mt-px w-full">
+      <div className="flex items-center justify-center w-full">
         <span
-          ref={labelRef}
           className={cn(
-            "relative z-10 mx-auto block max-w-[72px] truncate px-1 pb-1 text-center text-[9px] uppercase tracking-tight md:max-w-[88px] md:text-[11px]",
-            isActive ? "font-black" : "font-semibold",
+            "text-[10px] uppercase tracking-wide text-center leading-tight font-bold text-gray-600 line-clamp-1",
+            isActive && "text-[#0c831f] font-black"
           )}
-          style={{
-            color: "#ffffff",
-            opacity: isActive ? 1 : 0.94,
-          }}>
+          style={{ maxWidth: isDropdown ? "52px" : "64px" }}
+        >
           {cat.name}
         </span>
-      </div>
-      {isActive && (
-        <motion.svg
-          layoutId="active-category-curve"
-          aria-hidden
-          className="pointer-events-none absolute bottom-0 left-0 right-0 z-[6] h-[22px] w-full overflow-visible"
-          viewBox="0 0 100 20"
-          preserveAspectRatio="none"
-          shapeRendering="geometricPrecision"
-          transition={{
-            layout: { type: "spring", stiffness: 560, damping: 40, mass: 0.5 },
-          }}>
-          <path
-            d={pathD}
-            fill="none"
-            stroke={categoryAccent}
-            strokeWidth="2"
-            strokeLinecap="butt"
-            strokeLinejoin="round"
+        {isDropdown && (
+          <ChevronDownIcon
+            sx={{
+              fontSize: 14,
+              color: isActive ? "#0c831f" : "#4b5563",
+              marginLeft: "1px",
+              flexShrink: 0,
+            }}
           />
-        </motion.svg>
+        )}
+      </div>
+    </motion.button>
+  );
+}
+
+function HeaderCategoryDrawer({ isOpen, onClose, categories, activeCategory, onSelect }) {
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[600]"
+          />
+
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-[32px] z-[610] max-h-[85vh] overflow-y-auto outline-none shadow-2xl pb-8"
+          >
+            <div className="sticky top-0 bg-white dark:bg-slate-900 px-6 pt-6 pb-4 flex items-center justify-between border-b border-gray-100 dark:border-slate-800 z-10">
+              <h3 className="text-lg font-black text-gray-900 dark:text-white">Choose Category</h3>
+              <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors border-none bg-transparent cursor-pointer">
+                <X className="h-6 w-6 text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="p-6 grid grid-cols-3 sm:grid-cols-4 gap-4">
+              {categories.map((cat) => {
+                const isActive = (activeCategory?._id || activeCategory?.id) === (cat._id || cat.id);
+                return (
+                  <button
+                    key={cat._id || cat.id}
+                    onClick={() => {
+                      onSelect(cat);
+                      onClose();
+                    }}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer bg-transparent outline-none",
+                      isActive
+                        ? "border-[#0c831f] bg-[#E8F5E9] dark:bg-emerald-950/20"
+                        : "border-gray-100 hover:border-gray-200 bg-gray-50/50 hover:bg-gray-50 dark:bg-slate-800/40 dark:border-slate-800"
+                    )}
+                  >
+                    <div className="h-14 w-14 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm">
+                      {typeof cat.icon === "function" || (typeof cat.icon === "object" && cat.icon.$$typeof) ? (
+                        <cat.icon sx={{ fontSize: 28, color: isActive ? "#0c831f" : "#64748b" }} />
+                      ) : (
+                        <img src={cat.icon || cat.image} alt={cat.name} className="h-10 w-10 object-contain" />
+                      )}
+                    </div>
+                    <span className={cn("text-xs font-bold text-center", isActive ? "text-[#0c831f]" : "text-gray-700 dark:text-gray-300")}>
+                      {cat.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        </>
       )}
-    </motion.div>
+    </AnimatePresence>
   );
 }
 
 const MainLocationHeader = ({
   categories: externalCategories = [],
+  quickCategories = [],
   activeCategory,
   onCategorySelect,
   embedded = false,
@@ -273,6 +300,7 @@ const MainLocationHeader = ({
 }) => {
   const { scrollY } = useScroll();
   const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const [isHeaderSelectOpen, setIsHeaderSelectOpen] = useState(false);
   const { currentLocation, refreshLocation, isFetchingLocation } =
     useLocation();
   const { isOpen: isProductDetailOpen } = useProductDetail();
@@ -320,6 +348,18 @@ const MainLocationHeader = ({
   const categories = (externalCategories.length > 0 ? externalCategories : internalCategories)
     .filter(cat => !serviceTabs.some(tab => tab.name.toLowerCase() === cat.name?.toLowerCase()));
 
+  const activeHeaderId = activeCategory?._id || activeCategory?.id || "all";
+  const subCategories = React.useMemo(() => {
+    if (activeHeaderId === "all") {
+      return quickCategories.slice(0, 8);
+    }
+    return quickCategories.filter(cat => String(cat.parentId) === String(activeHeaderId)).slice(0, 8);
+  }, [activeHeaderId, quickCategories]);
+
+  const handleSubcategoryClick = (cat) => {
+    navigate(getQuickCategoryPath(cat.id || cat._id));
+  };
+
   // Search Logic
   const handleSearchClick = () => {
     navigate(searchPath);
@@ -342,11 +382,11 @@ const MainLocationHeader = ({
 
   const staticText = "Search ";
   const typingPhrases = [
-    '"bread"',
-    '"milk"',
-    '"chocolate"',
-    '"eggs"',
-    '"chips"',
+    '"milk, atta, chips..."',
+    '"bread, butter..."',
+    '"fruits, vegetables..."',
+    '"eggs, dairy..."',
+    '"chocolates, snacks..."',
   ];
 
   useEffect(() => {
@@ -438,7 +478,7 @@ const MainLocationHeader = ({
   const bgOpacity = embedded ? 1 : rawBgOpacity;
   const contentHeight = embedded ? "64px" : rawContentHeight;
   const contentOpacity = embedded ? 1 : rawContentOpacity;
-  const navHeight = embedded ? "60px" : rawNavHeight;
+  const navHeight = embedded ? "auto" : rawNavHeight;
   const navOpacity = embedded ? 1 : rawNavOpacity;
   const navMargin = embedded ? 0 : rawNavMargin;
   const categorySpacing = embedded ? -2 : rawCategorySpacing;
@@ -452,11 +492,11 @@ const MainLocationHeader = ({
     (embedded && embeddedHeaderColor) || activeCategory?.headerColor || null;
   const headerGradient = baseHeaderColor
     ? embedded
-      ? `linear-gradient(180deg, ${baseHeaderColor} 0%, ${lightenHex(baseHeaderColor, 0.2)} 100%)`
+      ? "#ffffff"
       : buildHeaderGradient(baseHeaderColor)
     : "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)";
   const searchBarBg = buildSearchBarBackgroundColor(baseHeaderColor || "#1e293b");
-  const categoryAccent = "#ffffff";
+  const categoryAccent = embedded ? "#000000" : "#ffffff";
 
   useEffect(() => {
     const c = buildMiniCartColor(baseHeaderColor || "#1e293b");
@@ -484,12 +524,13 @@ const MainLocationHeader = ({
             borderBottomLeftRadius: headerRoundness,
             borderBottomRightRadius: headerRoundness,
             opacity: bgOpacity,
-            backgroundImage: headerGradient,
+            backgroundColor: embedded ? "#ffffff" : undefined,
+            backgroundImage: embedded ? "none" : headerGradient,
           }}
           className={cn(
             "px-4 transition-all duration-300",
             embedded
-              ? "border-b border-black/5 shadow-[0_10px_24px_rgba(15,23,42,0.10)] backdrop-blur-xl"
+              ? "backdrop-blur-xl border-b-0 shadow-none"
               : "sticky top-0 shadow-[0_4px_20px_rgba(0,0,0,0.15)]",
           )}>
           {/* Subtle Glow Overlay */}
@@ -663,21 +704,21 @@ const MainLocationHeader = ({
           {showCategories && categories.length > 0 && (
             <div className="relative z-10 space-y-1 pt-0">
               {/* Compact Search Bar integrated into Categories Section */}
-              <div className="px-4 md:px-0 md:max-w-2xl md:mx-auto py-2">
+              <div className="px-4 md:px-0 md:max-w-2xl md:mx-auto py-1">
                 <motion.div
                   onClick={handleSearchClick}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
                   className="flex-1 rounded-[12px] md:rounded-full px-4 h-[44px] shadow-md flex items-center bg-white border border-gray-100 cursor-pointer">
-                  <SearchIcon sx={{ color: "#cc2532", fontSize: 22 }} />
+                  <SearchIcon sx={{ color: "#1f2937", fontSize: 22 }} />
                   <input
                     type="text"
                     placeholder={searchPlaceholder || "Search Products..."}
                     readOnly
-                    className="flex-1 min-w-0 truncate bg-transparent border-none outline-none pl-3 text-slate-800 font-bold placeholder:text-slate-300 text-[15px] cursor-pointer"
+                    className="flex-1 min-w-0 truncate bg-transparent border-none outline-none pl-3 text-slate-800 font-bold placeholder:text-gray-500 text-[15px] cursor-pointer"
                   />
-                  <div className="shrink-0 flex items-center gap-2 border-l border-red-100 pl-3">
-                    <MicIcon sx={{ color: "#cc2532", fontSize: 20 }} />
+                  <div className="shrink-0 flex items-center gap-2 pl-2">
+                    <MicIcon sx={{ color: "#1f2937", fontSize: 20 }} />
                   </div>
                 </motion.div>
               </div>
@@ -699,22 +740,47 @@ const MainLocationHeader = ({
                   display: displayNav,
                   overflowY: "hidden",
                 }}
-                className={cn(
-                  "relative flex items-end md:justify-center gap-1 overflow-x-auto no-scrollbar -mx-2 px-2 md:mx-0 md:px-0 z-10 snap-x min-h-[64px] md:min-h-[72px] pb-1",
-                  embedded ? "pt-1" : "pt-2",
-                )}>
-                {categories.slice(0, 10).map((cat) => {
-                  const isActive = activeCategory?.id === cat.id;
-                  return (
-                    <CategoryNavColumn
-                      key={cat.id}
-                      cat={cat}
-                      isActive={isActive}
-                      categoryAccent={categoryAccent}
-                      onCategorySelect={onCategorySelect}
-                    />
-                  );
-                })}
+                 className={cn(
+                   "relative flex items-center justify-start gap-4 overflow-x-auto no-scrollbar pl-3 pr-4 md:px-6 md:justify-center z-10 snap-x min-h-[90px] md:min-h-[100px] pb-2",
+                   embedded ? "pt-2" : "pt-3",
+                 )}>
+                {/* 1. Leftmost Header Category Selector */}
+                {activeCategory && (
+                  <CircularCategoryItem
+                    key={activeCategory._id || activeCategory.id}
+                    cat={activeCategory}
+                    isActive={true}
+                    isDropdown={true}
+                    onClick={() => setIsHeaderSelectOpen(true)}
+                  />
+                )}
+
+                {/* 2. Subsequent Categories belonging to the selected Header */}
+                {subCategories.map((cat) => (
+                  <CircularCategoryItem
+                    key={cat._id || cat.id}
+                    cat={cat}
+                    isActive={false}
+                    onClick={() => handleSubcategoryClick(cat)}
+                  />
+                ))}
+
+                {/* 3. "More" category trigger at the end */}
+                <CircularCategoryItem
+                  key="more-items"
+                  cat={{
+                    name: "More",
+                    icon: () => (
+                      <svg className="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                        <circle cx="5" cy="12" r="2"/>
+                        <circle cx="12" cy="12" r="2"/>
+                        <circle cx="19" cy="12" r="2"/>
+                      </svg>
+                    )
+                  }}
+                  isActive={false}
+                  onClick={() => navigate("/quick/categories")}
+                />
               </motion.div>
             </div>
           )}
@@ -727,6 +793,14 @@ const MainLocationHeader = ({
       <LocationDrawer
         isOpen={isLocationOpen}
         onClose={() => setIsLocationOpen(false)}
+      />
+
+      <HeaderCategoryDrawer
+        isOpen={isHeaderSelectOpen}
+        onClose={() => setIsHeaderSelectOpen(false)}
+        categories={categories}
+        activeCategory={activeCategory}
+        onSelect={onCategorySelect}
       />
     </>
   );

@@ -583,7 +583,10 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
     const ids = heroConfig.categoryIds || [];
     if (ids.length > 0) {
       const resolved = ids.map((id) => categoryMap[id]).filter(Boolean).map((c) => ({
-        id: c._id, name: c.name, image: getQuickCategoryImage(c),
+        id: c._id,
+        name: c.name,
+        image: getQuickCategoryImage(c),
+        parentId: c.parentId || c.headerId || c.parent?._id || c.header?._id || c.parent || c.header
       }));
       if (resolved.length > 0) return resolved;
     }
@@ -664,13 +667,14 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
     <div
       className={cn(
         "bg-[#F5F7F8] dark:bg-background",
-        embedded ? "min-h-0 bg-white dark:bg-card pt-0" : "min-h-screen pt-[176px] md:pt-[210px]",
+        embedded ? "min-h-0 bg-[#F5F7F8] dark:bg-card pt-0" : "min-h-screen pt-[176px] md:pt-[210px]",
       )}>
       {/* Top Dynamic Gradient Section */}
       <div
         className={cn("contents", isProductDetailOpen && "hidden md:contents")}>
         <MainLocationHeader
           categories={categories}
+          quickCategories={effectiveQuickCategories}
           activeCategory={activeCategory}
           onCategorySelect={setActiveCategory}
           embedded={embedded}
@@ -686,178 +690,94 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
         <div className={cn("pt-0", embedded && "pt-0")}>
           {/* Hero Banners (mobile): admin-configured or static fallback */}
           <>
-            <div className={cn("block md:hidden", embedded ? "-mt-[1px]" : "mt-0")}>
+            <div className={cn("block md:hidden bg-white pb-3", embedded ? "-mt-[1px]" : "mt-0")}>
               <div>
                 <div
-                  className="relative w-full overflow-hidden"
-                  style={embedded ? { backgroundColor: activeCategory?.headerColor || ALL_CATEGORY.headerColor } : undefined}>
+                  className="relative w-full overflow-hidden bg-white">
                   {isBannersLoading ? (
                     <div className="w-full h-[190px] bg-slate-200/60 dark:bg-slate-800/60 animate-pulse" />
                   ) : hasHeroBanners ? (
-                    <ExperienceBannerCarousel
-                      section={{ title: "" }}
-                      items={heroConfig.banners.items}
-                      fullWidth
-                      edgeToEdge
-                    />
-                  ) : shouldShowHeroFallback ? (
-                    <div
-                      className={cn(
-                        "flex",
-                        !isInstantBannerJump &&
-                        "transition-transform duration-500 ease-out",
-                      )}
-                      style={{
-                        transform: `translateX(-${mobileBannerIndex * 100}%)`,
-                      }}
-                      onTransitionEnd={handleBannerTransitionEnd}>
-                      <motion.div
-                        onClick={() => navigate(getQuickCategoriesPath())}
-                        whileTap={{ scale: 0.96 }}
-                        className="min-w-full">
-                        <div className="w-full h-[190px] bg-[#E6F5EC] dark:bg-emerald-900/20 p-6 relative overflow-hidden flex items-center border-y border-[#0c831f]/10 dark:border-emerald-500/20 shadow-[0_4px_15px_rgba(0,0,0,0.05)]">
-                          <div className="relative z-10 w-3/5 flex flex-col items-start gap-2">
-                            <div className="flex flex-col gap-0.5">
-                              <h4 className="text-2xl font-[1000] text-[#1A1A1A] dark:text-white tracking-tighter leading-none">
-                                Get <span className="text-[#0c831f] dark:text-emerald-400">Products</span>
-                              </h4>
-                              <div className="flex items-center gap-1.5 mt-1">
-                                <span className="text-sm font-black text-gray-700 dark:text-gray-300">
-                                  at
-                                </span>
-                                <div className="bg-[#0c831f] text-white px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
-                                  <VerifiedIcon sx={{ fontSize: 16 }} />
-                                  <span className="text-xl font-[1000]">₹0</span>
-                                </div>
-                                <span className="text-sm font-[1000] text-gray-700 dark:text-gray-300">
-                                  Fee
-                                </span>
-                              </div>
-                            </div>
-                            <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 max-w-[150px] leading-tight">
-                              Get groceries delivered in minutes
-                            </p>
-                            <button className="bg-[#FF1E56] text-white px-6 py-2.5 rounded-2xl font-black text-xs tracking-wide shadow-lg shadow-rose-200 dark:shadow-none mt-2">
-                              Order now
-                            </button>
-                          </div>
-                          <div className="absolute right-[-10px] bottom-0 top-0 w-2/5 flex items-center justify-center">
-                            <img
-                              src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400&fm=webp"
-                              alt="Promo"
-                              className="w-full h-full object-contain rotate-3 scale-110"
-                            />
-                          </div>
-                          <div className="absolute top-0 right-0 w-24 h-24 bg-[#0c831f]/5 rounded-full blur-2xl -mt-12 -mr-12" />
-                        </div>
-                      </motion.div>
-                      <motion.div
-                        onClick={() => navigate("/categories")}
-                        whileTap={{ scale: 0.96 }}
-                        className="min-w-full">
-                        <div className="w-full h-[190px] bg-white dark:bg-card relative overflow-hidden flex border-y border-gray-100 dark:border-white/5 shadow-[0_4px_15px_rgba(0,0,0,0.05)] group">
-                          <img
-                            src={CardBanner}
-                            alt="Promotion"
-                            className="w-full h-full object-fill"
-                          />
-                          <div className="absolute inset-0 bg-linear-to-t from-black/5 to-transparent pointer-events-none" />
-                        </div>
-                      </motion.div>
-                      <motion.div
-                        onClick={() => navigate(getQuickCategoriesPath())}
-                        whileTap={{ scale: 0.96 }}
-                        className="min-w-full">
-                        <div className="w-full h-[190px] bg-[#E6F5EC] dark:bg-emerald-900/20 p-6 relative overflow-hidden flex items-center border-y border-[#0c831f]/10 dark:border-emerald-500/20 shadow-[0_4px_15px_rgba(0,0,0,0.05)]">
-                          <div className="relative z-10 w-3/5 flex flex-col items-start gap-2">
-                            <div className="flex flex-col gap-0.5">
-                              <h4 className="text-2xl font-[1000] text-[#1A1A1A] dark:text-white tracking-tighter leading-none">
-                                Get <span className="text-[#0c831f] dark:text-emerald-400">Products</span>
-                              </h4>
-                              <div className="flex items-center gap-1.5 mt-1">
-                                <span className="text-sm font-black text-gray-700 dark:text-gray-300">
-                                  at
-                                </span>
-                                <div className="bg-[#0c831f] text-white px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
-                                  <VerifiedIcon sx={{ fontSize: 16 }} />
-                                  <span className="text-xl font-[1000]">₹0</span>
-                                </div>
-                                <span className="text-sm font-[1000] text-gray-700 dark:text-gray-300">
-                                  Fee
-                                </span>
-                              </div>
-                            </div>
-                            <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 max-w-[150px] leading-tight">
-                              Get groceries delivered in minutes
-                            </p>
-                            <button className="bg-[#FF1E56] text-white px-6 py-2.5 rounded-2xl font-black text-xs tracking-wide shadow-lg shadow-rose-200 dark:shadow-none mt-2">
-                              Order now
-                            </button>
-                          </div>
-                          <div className="absolute right-[-10px] bottom-0 top-0 w-2/5 flex items-center justify-center">
-                            <img
-                              src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400&fm=webp"
-                              alt="Promo"
-                              className="w-full h-full object-contain rotate-3 scale-110"
-                            />
-                          </div>
-                          <div className="absolute top-0 right-0 w-24 h-24 bg-[#0c831f]/5 rounded-full blur-2xl -mt-12 -mr-12" />
-                        </div>
-                      </motion.div>
+                    <div className="px-4 pt-2">
+                      <ExperienceBannerCarousel
+                        section={{ title: "" }}
+                        items={heroConfig.banners.items}
+                        fullWidth
+                      />
                     </div>
+                  ) : shouldShowHeroFallback ? (
+                    <motion.div
+                      onClick={() => navigate(getQuickCategoriesPath())}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-full cursor-pointer">
+                      <div className="mx-4 rounded-2xl h-[165px] bg-[#E8F5E9] relative overflow-hidden flex items-center shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+                        {/* Decorative dots pattern */}
+                        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(#0c831f 1px, transparent 1px)", backgroundSize: "16px 16px" }} />
+                        
+                        {/* Left content */}
+                        <div className="relative z-10 w-3/5 flex flex-col items-start gap-1.5 pl-5 py-4">
+                          <div className="flex items-center gap-1.5 bg-[#0c831f] text-white px-2.5 py-1 rounded-full shadow-sm">
+                            <FlashOnIcon sx={{ fontSize: 13 }} />
+                            <span className="text-[9px] font-black uppercase tracking-wider">10-15 Mins Delivery</span>
+                          </div>
+                          <h4 className="text-[22px] font-[900] text-[#0c831f] tracking-tight leading-tight mt-1">
+                            FREE DELIVERY
+                          </h4>
+                          <p className="text-[13px] font-bold text-[#1A1A1A]/70 leading-snug">
+                            on orders above <span className="font-black text-[#1A1A1A]">₹299</span>
+                          </p>
+                          <button className="bg-[#0c831f] text-white px-5 py-2 rounded-lg font-black text-[11px] uppercase tracking-wider shadow-md mt-1 active:scale-95 transition-transform">
+                            Shop Now
+                          </button>
+                        </div>
+                        
+                        {/* Right image - delivery boy */}
+                        <div className="absolute right-2 bottom-0 top-0 w-2/5 flex items-end justify-center">
+                          <img
+                            src="https://cdn-icons-png.flaticon.com/512/2830/2830312.png"
+                            alt="Fast Delivery"
+                            className="w-[130px] h-[130px] object-contain drop-shadow-lg"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
                   ) : null}
                 </div>
               </div>
             </div>
           </>
 
-          {/* Promo Marquee Strip */}
-          <div className={cn("w-full md:-mt-[2px] mb-4", embedded ? "-mt-[1px]" : "-mt-[2px]")}>
-            <div
-              className={cn(
-                "relative overflow-hidden",
-                embedded
-                  ? "border-y-0 shadow-none"
-                  : "border-y border-[#e6ddc4] dark:border-[#3a352a] bg-[#f7f0df] dark:bg-[#2a261f] shadow-[0_10px_30px_rgba(15,23,42,0.08)]",
-              )}
-              style={embedded ? { backgroundColor: activeCategory?.headerColor || ALL_CATEGORY.headerColor } : undefined}>
+          {/* Promo Marquee Strip - hidden in embedded mode */}
+          {!embedded && (
+            <div className={cn("w-full md:-mt-[2px] mb-4", "-mt-[2px]")}>
               <div
-                className={cn(
-                  "absolute inset-y-0 left-0 w-10 pointer-events-none",
-                  embedded ? "bg-none" : "bg-gradient-to-r from-[#f7f0df] dark:from-[#2a261f] via-[#f7f0df]/90 dark:via-[#2a261f]/90 to-transparent",
-                )}
-                style={embedded ? { backgroundImage: `linear-gradient(to right, ${activeCategory?.headerColor || ALL_CATEGORY.headerColor}, ${activeCategory?.headerColor || ALL_CATEGORY.headerColor}E6, transparent)` } : undefined}
-              />
-              <div
-                className={cn(
-                  "absolute inset-y-0 right-0 w-10 pointer-events-none",
-                  embedded ? "bg-none" : "bg-gradient-to-l from-[#f7f0df] dark:from-[#2a261f] via-[#f7f0df]/90 dark:via-[#2a261f]/90 to-transparent",
-                )}
-                style={embedded ? { backgroundImage: `linear-gradient(to left, ${activeCategory?.headerColor || ALL_CATEGORY.headerColor}, ${activeCategory?.headerColor || ALL_CATEGORY.headerColor}E6, transparent)` } : undefined}
-              />
-              <div
-                className={cn(
-                  "classic-marquee-track flex w-max items-center gap-4 px-3 md:px-6 py-4 text-sm md:text-base font-semibold -translate-y-[4px]",
-                  embedded ? "text-white/90" : "text-[#4b463f] dark:text-[#d3ccc2]",
-                )}>
-                {[...MARQUEE_MESSAGES, ...MARQUEE_MESSAGES].map((message, idx) => (
-                  <React.Fragment key={`${message}-${idx}`}>
-                    <span className="whitespace-nowrap">{message}</span>
-                    <span className="text-[#8a7f66] dark:text-[#a3977c]">•</span>
-                  </React.Fragment>
-                ))}
-                <span className="whitespace-nowrap">❤️</span>
-                <span className="whitespace-nowrap">🎁</span>
+                className="relative overflow-hidden border-y border-[#e6ddc4] dark:border-[#3a352a] bg-[#f7f0df] dark:bg-[#2a261f] shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
+                <div
+                  className="absolute inset-y-0 left-0 w-10 pointer-events-none bg-gradient-to-r from-[#f7f0df] dark:from-[#2a261f] via-[#f7f0df]/90 dark:via-[#2a261f]/90 to-transparent"
+                />
+                <div
+                  className="absolute inset-y-0 right-0 w-10 pointer-events-none bg-gradient-to-l from-[#f7f0df] dark:from-[#2a261f] via-[#f7f0df]/90 dark:via-[#2a261f]/90 to-transparent"
+                />
+                <div
+                  className="classic-marquee-track flex w-max items-center gap-4 px-3 md:px-6 py-4 text-sm md:text-base font-semibold -translate-y-[4px] text-[#4b463f] dark:text-[#d3ccc2]">
+                  {[...MARQUEE_MESSAGES, ...MARQUEE_MESSAGES].map((message, idx) => (
+                    <React.Fragment key={`${message}-${idx}`}>
+                      <span className="whitespace-nowrap">{message}</span>
+                      <span className="text-[#8a7f66] dark:text-[#a3977c]">•</span>
+                    </React.Fragment>
+                  ))}
+                  <span className="whitespace-nowrap">❤️</span>
+                  <span className="whitespace-nowrap">🎁</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Quick Navigation Category Slider (admin-configured or global fallback) */}
           {effectiveQuickCategories.length > 0 && (
             <div
               className={cn(
                 "w-full mb-5 overflow-hidden relative group z-20 md:mt-3",
-                embedded ? "mt-2" : "mt-4 md:mt-6",
+                embedded ? "hidden" : "mt-4 md:mt-6",
               )}>
               <div
                 className={cn(
