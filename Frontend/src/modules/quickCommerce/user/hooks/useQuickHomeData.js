@@ -149,6 +149,28 @@ export const useQuickHomeData = ({ currentLocation }) => {
 
   const fetchDataSeqRef = useRef(0);
 
+  // Persist activeCategory selection in sessionStorage and global cache
+  useEffect(() => {
+    if (!activeCategory || !isBootstrapped) return;
+    
+    // 1. Update sessionStorage
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(
+        QUICK_HEADER_RETURN_STORAGE_KEY,
+        JSON.stringify({
+          headerId: activeCategory._id || activeCategory.id || "all",
+          color: activeCategory.headerColor || null,
+          name: activeCategory.name || "All",
+        })
+      );
+    }
+
+    // 2. Update global cache
+    if (globalQuickHomeCache.data) {
+      globalQuickHomeCache.data.activeCategory = activeCategory;
+    }
+  }, [activeCategory, isBootstrapped]);
+
   const getQuickCategoryImage = useCallback((category = {}) => {
     const candidate = category?.image || category?.icon || category?.thumbnail || category?.imageUrl || category?.iconUrl || category?.media?.image || category?.media?.url || "";
     return resolveQuickImageUrl(candidate) || "https://cdn-icons-png.flaticon.com/128/2321/2321831.png";

@@ -31,87 +31,91 @@ const CategoryProductCard = ({ product }) => {
     const showDiscount = originalPrice && originalPrice > displayPrice;
 
     return (
-        <div className="flex flex-col bg-white dark:bg-neutral-900 rounded-2xl p-2 border border-slate-100 dark:border-neutral-800 shadow-sm relative group">
-            {/* Image & Action Container */}
-            <div className="relative w-full aspect-square bg-[#F8F9FA] dark:bg-neutral-800 rounded-xl p-2 flex flex-col justify-between overflow-hidden">
-                {/* Wishlist Button */}
-                <button
-                    onClick={() => toggleWishlist(product)}
-                    className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm cursor-pointer active:scale-90 transition-transform"
-                >
-                    <Heart
-                        size={14}
-                        className={cn(
-                            isWishlisted ? "fill-red-500 text-red-500" : "text-slate-400"
-                        )}
-                    />
-                </button>
+        <div className="flex flex-col bg-transparent relative group select-none">
+            {/* Split-Background Card Container (Beige upper, White lower, rounded-[12px]) */}
+            <div className="relative flex flex-col rounded-[12px] border border-slate-200/30 dark:border-neutral-800/40 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 group-hover:shadow-[0_6px_16px_rgba(0,0,0,0.04)]">
+                {/* Upper Portion: Image Container (Beige/Grey background, rounded top) */}
+                <div className="relative w-full aspect-square bg-[#F3F4F6] dark:bg-neutral-850 rounded-t-[12px] flex items-center justify-center p-4 overflow-hidden">
+                    {/* Wishlist Button */}
+                    <button
+                        onClick={() => toggleWishlist(product)}
+                        className="absolute top-3 right-3 z-10 w-7 h-7 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm cursor-pointer active:scale-90 transition-transform"
+                    >
+                        <Heart
+                            size={14}
+                            className={cn(
+                                isWishlisted ? "fill-red-500 text-red-500" : "text-slate-400"
+                            )}
+                        />
+                    </button>
 
-                {/* Product Image */}
-                <div className="flex-1 flex items-center justify-center min-h-0 w-full">
-                    <img
-                        src={product.image}
-                        alt={product.name}
-                        className="max-h-[85%] max-w-[85%] object-contain mix-blend-multiply dark:mix-blend-normal"
-                    />
-                </div>
-
-                {/* Weight & ADD Button row overlay */}
-                <div className="flex items-center justify-between gap-1 mt-auto pt-1 w-full relative z-10">
-                    <div className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm border border-slate-100 dark:border-neutral-800 rounded-lg px-1.5 py-0.5 text-[9px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap shadow-sm">
-                        {product.weight || "1 unit"}
+                    {/* Product Image */}
+                    <div className="flex items-center justify-center w-full h-full">
+                        <img
+                            src={product.image}
+                            alt={product.name}
+                            className="max-h-[92%] max-w-[92%] object-contain mix-blend-multiply dark:mix-blend-normal transform group-hover:scale-105 transition-transform duration-300"
+                        />
                     </div>
-
-                    {quantity === 0 ? (
-                        <button
-                            onClick={() => addToCart(product)}
-                            className="bg-white dark:bg-neutral-900 border border-[#0c831f] text-[#0c831f] font-black text-[10px] md:text-[11px] px-3 py-1 rounded-[8px] shadow-sm hover:bg-[#0c831f]/5 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
-                        >
-                            ADD
-                        </button>
-                    ) : (
-                        <div className="flex items-center bg-[#0c831f] text-white rounded-[8px] shadow-sm overflow-hidden h-[24px]">
-                            <button
-                                onClick={() => updateQuantity(product.id, -1)}
-                                className="px-2 h-full flex items-center justify-center hover:bg-[#096317] active:scale-90 transition-transform"
-                            >
-                                <Minus size={10} strokeWidth={3} />
-                            </button>
-                            <span className="text-[10px] md:text-[11px] font-black min-w-[12px] text-center">
-                                {quantity}
-                            </span>
-                            <button
-                                onClick={() => updateQuantity(product.id, 1)}
-                                className="px-2 h-full flex items-center justify-center hover:bg-[#096317] active:scale-90 transition-transform"
-                            >
-                                <Plus size={10} strokeWidth={3} />
-                            </button>
-                        </div>
-                    )}
                 </div>
+
+                {/* Lower Portion: Thinner White Weight Bar (rounded bottom) */}
+                <div className="bg-white dark:bg-neutral-900 w-full h-7 flex items-center pl-3.5 pr-20 border-t border-slate-100 dark:border-neutral-800 rounded-b-[12px]">
+                    <span className="text-[10px] md:text-[11px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        {product.weight || "1 unit"}
+                    </span>
+                </div>
+
+                {/* ADD Button or Quantity Counter absolutely positioned slightly outside bottom-right border */}
+                {quantity === 0 ? (
+                    <button
+                        onClick={() => addToCart(product)}
+                        className="absolute bottom-[-3px] right-[-3px] z-20 bg-white dark:bg-neutral-900 border border-[#0c831f] text-[#0c831f] font-extrabold text-[12px] h-[38px] px-4 rounded-[8px] shadow-sm hover:bg-[#0c831f]/5 active:scale-95 transition-all cursor-pointer flex items-center justify-center min-w-[64px]"
+                    >
+                        ADD
+                    </button>
+                ) : (
+                    <div className="absolute bottom-[-3px] right-[-3px] z-20 flex items-center bg-[#0c831f] text-white rounded-[8px] shadow-sm overflow-hidden h-[38px]">
+                        <button
+                            onClick={() => updateQuantity(product.id, -1)}
+                            className="px-2.5 h-full flex items-center justify-center hover:bg-[#096317] active:scale-90 transition-transform"
+                        >
+                            <Minus size={9} strokeWidth={3} />
+                        </button>
+                        <span className="text-[11px] font-black min-w-[14px] text-center">
+                            {quantity}
+                        </span>
+                        <button
+                            onClick={() => updateQuantity(product.id, 1)}
+                            className="px-2.5 h-full flex items-center justify-center hover:bg-[#096317] active:scale-90 transition-transform"
+                        >
+                            <Plus size={9} strokeWidth={3} />
+                        </button>
+                    </div>
+                )}
             </div>
 
-            {/* Product Metadata */}
-            <div className="flex flex-col pt-2 pb-1 text-left px-0.5">
-                {/* Price Line */}
+            {/* Product Metadata rendered directly on the yellow page background */}
+            <div className="flex flex-col pt-1.5 pb-1 text-left px-1.5">
+                {/* Price Line first */}
                 <div className="flex items-baseline gap-1.5">
                     <span className="text-[13px] md:text-[14px] font-extrabold text-slate-900 dark:text-white leading-none">
                         ₹{displayPrice}
                     </span>
                     {showDiscount && (
-                        <span className="text-[10px] md:text-[11px] text-slate-400 line-through font-medium">
+                        <span className="text-[10px] md:text-[11px] text-slate-400 line-through font-semibold">
                             ₹{originalPrice}
                         </span>
                     )}
                 </div>
 
-                {/* Name */}
-                <h3 className="text-[11px] md:text-[12px] font-bold text-slate-800 dark:text-slate-200 line-clamp-2 mt-1 leading-tight min-h-[28px]">
+                {/* Name second */}
+                <h3 className="text-[11px] md:text-[12px] font-bold text-slate-800 dark:text-slate-200 line-clamp-2 mt-0.5 leading-tight">
                     {product.name}
                 </h3>
 
                 {/* Delivery Time info */}
-                <div className="flex items-center gap-1 mt-1 text-[9px] text-slate-400 font-bold">
+                <div className="flex items-center gap-1 mt-0.5 text-[9px] text-slate-400 font-bold">
                     <svg className="w-2.5 h-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <circle cx="12" cy="12" r="10" strokeWidth="2.5" />
                         <path d="M12 6v6l4 2" strokeWidth="2.5" strokeLinecap="round" />
@@ -475,10 +479,10 @@ const CategoryProductsPage = () => {
                     </aside>
 
                     {/* Content */}
-                    <main className="flex-1 min-w-0 px-3 pt-1 pb-12 bg-white dark:bg-background transition-colors flex flex-col min-h-[50vh]">
+                    <main className="flex-1 min-w-0 px-3 pt-1 pb-12 bg-[#F8F6E2] dark:bg-neutral-950 transition-colors flex flex-col min-h-[50vh]">
                         {/* Horizontal Filters Pill Bar */}
-                        <div className="sticky top-[72px] md:top-[72px] z-40 bg-white dark:bg-background mb-3">
-                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2.5 border-b border-slate-100 dark:border-neutral-800">
+                        <div className="sticky top-[72px] md:top-[72px] z-40 bg-white dark:bg-neutral-900 mb-3 px-3 -mx-3">
+                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2.5 border-b border-slate-200/60 dark:border-neutral-800">
                                 {/* Filter 1: Filters */}
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'filters' ? null : 'filters')}
@@ -667,7 +671,18 @@ const CategoryProductsPage = () => {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4 flex-1">
                             {isLoading ? (
                                 Array.from({ length: 12 }).map((_, i) => (
-                                    <div key={i} className="animate-pulse bg-gray-100 dark:bg-white/5 rounded-2xl aspect-[3/4] w-full border border-gray-200/50"></div>
+                                    <div key={i} className="animate-pulse bg-transparent flex flex-col h-[220px]">
+                                        <div className="flex flex-col rounded-[12px] overflow-hidden border border-slate-200/20 shadow-[0_1px_4px_rgba(0,0,0,0.02)] w-full">
+                                            <div className="w-full aspect-square bg-[#F3F4F6] dark:bg-neutral-800" />
+                                            <div className="w-full bg-white dark:bg-neutral-900 flex items-center justify-between px-3.5 py-2.5 border-t border-slate-100/50">
+                                                <div className="h-4 w-10 bg-slate-100 dark:bg-neutral-800 rounded" />
+                                                <div className="h-5 w-12 bg-slate-100 dark:bg-neutral-800 rounded" />
+                                            </div>
+                                        </div>
+                                        <div className="h-3 w-1/3 bg-slate-200/60 dark:bg-neutral-800 rounded mt-2.5 mb-1.5" />
+                                        <div className="h-4 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1.5" />
+                                        <div className="h-2 w-1/2 bg-slate-100/50 dark:bg-neutral-800 rounded" />
+                                    </div>
                                 ))
                             ) : (
                                 filteredProducts.map((product) => (
@@ -726,26 +741,40 @@ const CategoryProductsPage = () => {
                                     </motion.div>
                                 </div>
 
-                                {/* Next Section Skeleton Loader representing incoming content on White/Normal Page Background */}
-                                <div className="w-full pt-6 pb-12 flex flex-col items-center bg-white dark:bg-background opacity-70">
+                                {/* Next Section Skeleton Loader representing incoming content on Normal Page Background */}
+                                <div className="w-full pt-6 pb-12 flex flex-col items-center bg-[#F8F6E2] dark:bg-neutral-950 opacity-70">
                                     {/* Subcategory Pills Skeleton */}
                                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full px-4 mb-4">
-                                        <div className="w-12 h-6 bg-slate-100 dark:bg-neutral-850 rounded-full border border-slate-200/50 dark:border-neutral-700/50 flex-shrink-0 animate-pulse" />
-                                        <div className="w-20 h-6 bg-slate-100 dark:bg-neutral-850 rounded-full border border-slate-200/50 dark:border-neutral-700/50 flex-shrink-0 animate-pulse" />
-                                        <div className="w-16 h-6 bg-slate-100 dark:bg-neutral-850 rounded-full border border-slate-200/50 dark:border-neutral-700/50 flex-shrink-0 animate-pulse" />
-                                        <div className="w-24 h-6 bg-slate-100 dark:bg-neutral-850 rounded-full border border-slate-200/50 dark:border-neutral-700/50 flex-shrink-0 animate-pulse" />
+                                        <div className="w-12 h-6 bg-white dark:bg-neutral-900 rounded-full border border-slate-200/30 dark:border-neutral-800 flex-shrink-0 animate-pulse" />
+                                        <div className="w-20 h-6 bg-white dark:bg-neutral-900 rounded-full border border-slate-200/30 dark:border-neutral-800 flex-shrink-0 animate-pulse" />
+                                        <div className="w-16 h-6 bg-white dark:bg-neutral-900 rounded-full border border-slate-200/30 dark:border-neutral-800 flex-shrink-0 animate-pulse" />
+                                        <div className="w-24 h-6 bg-white dark:bg-neutral-900 rounded-full border border-slate-200/30 dark:border-neutral-800 flex-shrink-0 animate-pulse" />
                                     </div>
 
                                     {/* Grid Skeletons */}
                                     <div className="grid grid-cols-2 gap-3 w-full px-4">
-                                        <div className="flex flex-col bg-white dark:bg-neutral-900 rounded-2xl p-2 border border-slate-100 dark:border-neutral-800 shadow-sm h-[180px] animate-pulse">
-                                            <div className="w-full h-24 bg-slate-50 dark:bg-neutral-800 rounded-xl mb-2" />
-                                            <div className="h-2.5 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1" />
+                                        <div className="flex flex-col bg-transparent h-[210px] animate-pulse">
+                                            <div className="flex flex-col rounded-[12px] overflow-hidden border border-slate-200/20 shadow-[0_1px_4px_rgba(0,0,0,0.02)] w-full">
+                                                <div className="w-full aspect-square bg-[#F3F4F6] dark:bg-neutral-800" />
+                                                <div className="w-full bg-white dark:bg-neutral-900 flex items-center justify-between px-3.5 py-2.5 border-t border-slate-100/50">
+                                                    <div className="h-4 w-10 bg-slate-100 dark:bg-neutral-800 rounded" />
+                                                    <div className="h-5 w-12 bg-slate-100 dark:bg-neutral-800 rounded" />
+                                                </div>
+                                            </div>
+                                            <div className="h-3 w-1/3 bg-slate-200/60 dark:bg-neutral-700 rounded mt-2.5 mb-1.5" />
+                                            <div className="h-4 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1.5" />
                                             <div className="h-2 w-1/2 bg-slate-100/50 dark:bg-neutral-800 rounded" />
                                         </div>
-                                        <div className="flex flex-col bg-white dark:bg-neutral-900 rounded-2xl p-2 border border-slate-100 dark:border-neutral-800 shadow-sm h-[180px] animate-pulse">
-                                            <div className="w-full h-24 bg-slate-50 dark:bg-neutral-800 rounded-xl mb-2" />
-                                            <div className="h-2.5 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1" />
+                                        <div className="flex flex-col bg-transparent h-[210px] animate-pulse">
+                                            <div className="flex flex-col rounded-[12px] overflow-hidden border border-slate-200/20 shadow-[0_1px_4px_rgba(0,0,0,0.02)] w-full">
+                                                <div className="w-full aspect-square bg-[#F3F4F6] dark:bg-neutral-800" />
+                                                <div className="w-full bg-white dark:bg-neutral-900 flex items-center justify-between px-3.5 py-2.5 border-t border-slate-100/50">
+                                                    <div className="h-4 w-10 bg-slate-100 dark:bg-neutral-800 rounded" />
+                                                    <div className="h-5 w-12 bg-slate-100 dark:bg-neutral-800 rounded" />
+                                                </div>
+                                            </div>
+                                            <div className="h-3 w-1/3 bg-slate-200/60 dark:bg-neutral-700 rounded mt-2.5 mb-1.5" />
+                                            <div className="h-4 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1.5" />
                                             <div className="h-2 w-1/2 bg-slate-100/50 dark:bg-neutral-800 rounded" />
                                         </div>
                                     </div>

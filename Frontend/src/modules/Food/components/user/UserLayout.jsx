@@ -175,11 +175,10 @@ export default function UserLayout({ children }) {
 
   const isUnder250 = normalizedPath === "/under-250" || normalizedPath === "/user/under-250"
   
-  // Hide all bottom navs on the profile pages
-  const isProfilePage = normalizedPath === "/profile" || normalizedPath === "/user/profile";
-  const showFoodBottomNav = showBottomNav && !isSharedQuickProfile && !isSharedDudhwalaProfile && !isProfilePage;
-  const showQuickBottomNav = isSharedQuickProfile && !isProfilePage;
-  const showDudhwalaBottomNav = isSharedDudhwalaProfile && !isProfilePage;
+  // Show the respective bottom navs on the profile page depending on the source
+  const showFoodBottomNav = showBottomNav && !isSharedQuickProfile && !isSharedDudhwalaProfile;
+  const showQuickBottomNav = isSharedQuickProfile;
+  const showDudhwalaBottomNav = isSharedDudhwalaProfile;
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] dark:bg-[#0a0a0a] transition-colors duration-200">

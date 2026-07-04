@@ -16,7 +16,19 @@ import DraggableModuleSwitcher from "../../../../common/components/DraggableModu
 const BottomNav = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { cartCount } = useCart();
+    const cartContext = useCart();
+    let cartCount = cartContext ? cartContext.cartCount : 0;
+    if (!cartContext) {
+        try {
+            const stored = localStorage.getItem("quick_commerce_cart");
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    cartCount = parsed.reduce((sum, item) => sum + (item.quantity || 0), 0);
+                }
+            }
+        } catch (e) {}
+    }
 
     const isSharedQuickProfileRoute =
         location.pathname === '/profile' &&
@@ -24,7 +36,7 @@ const BottomNav = () => {
          new URLSearchParams(location.search).get('from') === 'food');
 
     const isActivePath = (targetPath) => {
-        if ((targetPath === getQuickProfilePath() || targetPath === '/profile?from=food') && isSharedQuickProfileRoute) {
+        if ((targetPath === getQuickProfilePath() || targetPath === '/profile?from=quick') && isSharedQuickProfileRoute) {
             return true;
         }
         if (targetPath === getQuickHomePath(location.pathname)) {
@@ -38,7 +50,7 @@ const BottomNav = () => {
         { type: 'link', label: 'Category', icon: LayoutGrid, path: getQuickCategoriesPath() },
         { type: 'link', label: 'Orders', icon: Package, path: getQuickOrdersPath() },
         { type: 'link', label: 'Cart', icon: ShoppingCart, path: getQuickCartPath(), hasBadge: true },
-        { type: 'link', label: 'Profile', icon: User, path: '/profile?from=food' },
+        { type: 'link', label: 'Profile', icon: User, path: '/profile?from=quick' },
     ];
 
     return (
