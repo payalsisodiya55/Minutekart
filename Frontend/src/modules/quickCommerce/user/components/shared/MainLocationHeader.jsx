@@ -151,21 +151,24 @@ function CircularCategoryItem({
   cat,
   isActive = false,
   isDropdown = false,
+  isMore = false,
   onClick,
 }) {
   return (
     <motion.button
       whileTap={{ scale: 0.94 }}
       onClick={onClick}
-      className="flex flex-col items-center gap-2 snap-center bg-transparent border-0 select-none outline-none cursor-pointer group shrink-0"
-      style={{ minWidth: "64px", maxWidth: "72px" }}
+      className="flex flex-col items-center gap-1.5 snap-center bg-transparent border-0 select-none outline-none cursor-pointer group shrink-0"
+      style={{ minWidth: "56px", maxWidth: "64px" }}
     >
       <div
         className={cn(
-          "h-[60px] w-[60px] rounded-full flex items-center justify-center transition-all",
+          "h-[52px] w-[52px] md:h-[60px] md:w-[60px] rounded-full flex items-center justify-center transition-all",
           isActive 
             ? "bg-[#E8F5E9] ring-2 ring-[#0c831f]/30" 
-            : "bg-[#f4f5f4]"
+            : isMore
+              ? "bg-[#E8F5E9]"
+              : "bg-[#f4f5f4]"
         )}
       >
         {typeof cat.icon === "function" ||
@@ -180,17 +183,17 @@ function CircularCategoryItem({
           <img
             src={cat.icon || cat.image}
             alt={cat.name}
-            className="h-10 w-10 object-contain"
+            className="h-8 w-8 md:h-10 md:w-10 object-contain"
           />
         )}
       </div>
       <div className="flex items-center justify-center w-full">
         <span
           className={cn(
-            "text-[10px] uppercase tracking-wide text-center leading-tight font-bold text-gray-600 line-clamp-1",
+            "text-[9px] uppercase tracking-wide text-center leading-tight font-bold text-gray-600 line-clamp-1",
             isActive && "text-[#0c831f] font-black"
           )}
-          style={{ maxWidth: isDropdown ? "52px" : "64px" }}
+          style={{ maxWidth: isDropdown ? "46px" : "58px" }}
         >
           {cat.name}
         </span>
@@ -704,12 +707,12 @@ const MainLocationHeader = ({
           {showCategories && categories.length > 0 && (
             <div className="relative z-10 space-y-1 pt-0">
               {/* Compact Search Bar integrated into Categories Section */}
-              <div className="px-4 md:px-0 md:max-w-2xl md:mx-auto py-1">
+              <div className="px-2 md:px-0 md:max-w-2xl md:mx-auto py-1">
                 <motion.div
                   onClick={handleSearchClick}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex-1 rounded-[12px] md:rounded-full px-4 h-[44px] shadow-md flex items-center bg-white border border-gray-100 cursor-pointer">
+                  className="flex-1 rounded-[12px] md:rounded-full px-3 h-[44px] shadow-md flex items-center bg-white border border-gray-100 cursor-pointer">
                   <SearchIcon sx={{ color: "#1f2937", fontSize: 22 }} />
                   <input
                     type="text"
@@ -741,7 +744,7 @@ const MainLocationHeader = ({
                   overflowY: "hidden",
                 }}
                  className={cn(
-                   "relative flex items-center justify-start gap-4 overflow-x-auto no-scrollbar pl-3 pr-4 md:px-6 md:justify-center z-10 snap-x min-h-[90px] md:min-h-[100px] pb-2",
+                   "relative flex items-center justify-start gap-3 overflow-x-auto no-scrollbar pl-1 pr-3 md:px-6 md:justify-center z-10 snap-x min-h-[90px] md:min-h-[100px] pb-2",
                    embedded ? "pt-2" : "pt-3",
                  )}>
                 {/* 1. Leftmost Header Category Selector */}
@@ -769,16 +772,17 @@ const MainLocationHeader = ({
                 <CircularCategoryItem
                   key="more-items"
                   cat={{
-                    name: "More",
+                    name: "More Items",
                     icon: () => (
-                      <svg className="h-6 w-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                        <circle cx="5" cy="12" r="2"/>
-                        <circle cx="12" cy="12" r="2"/>
-                        <circle cx="19" cy="12" r="2"/>
+                      <svg className="h-6 w-6 text-[#0c831f]" fill="currentColor" viewBox="0 0 24 24">
+                        <circle cx="5" cy="12" r="2.5"/>
+                        <circle cx="12" cy="12" r="2.5"/>
+                        <circle cx="19" cy="12" r="2.5"/>
                       </svg>
                     )
                   }}
                   isActive={false}
+                  isMore={true}
                   onClick={() => navigate("/quick/categories")}
                 />
               </motion.div>

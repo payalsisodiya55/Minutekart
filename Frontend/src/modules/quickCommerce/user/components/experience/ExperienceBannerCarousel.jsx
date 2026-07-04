@@ -179,7 +179,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
             : {
               width: "100%",
               gap: `${effectiveSlideGap}px`,
-              transform: `translateX(calc(-${activeIndex} * (85% + ${effectiveSlideGap}px) + 7.5% + ${dragOffset}px))`,
+              transform: `translateX(calc(-${activeIndex} * (100% + ${effectiveSlideGap}px) + ${dragOffset}px))`,
             }
         }
       >
@@ -191,10 +191,10 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
               key={idx}
               className={cn(
                 "relative shrink-0 flex items-center justify-center box-border",
-                fullWidth ? "h-[190px] rounded-none px-0 bg-slate-100 overflow-hidden" : "h-[190px] bg-transparent"
+                fullWidth ? "aspect-[2.1/1] md:h-[190px] rounded-none px-0 bg-slate-100 overflow-hidden" : "aspect-[2.1/1] md:h-[190px] bg-transparent"
               )}
               style={{
-                width: fullWidth ? `${stepPercent}%` : "85%",
+                width: fullWidth ? `${stepPercent}%` : "100%",
               }}
             >
               {fullWidth ? (
@@ -245,7 +245,7 @@ const ExperienceBannerCarousel = ({ section, items, fullWidth = false, slideGap 
               ) : (
                 <div
                   className={cn(
-                    "relative h-full w-full max-w-[560px] overflow-hidden rounded-2xl bg-transparent",
+                    "relative w-full h-full overflow-hidden rounded-[14px] bg-slate-100/50 shadow-sm",
                     hasLink && "cursor-pointer active:scale-[0.99] transition-all"
                   )}
                   onClick={() => handleBannerClick(banner)}
