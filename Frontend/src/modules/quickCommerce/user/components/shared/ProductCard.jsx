@@ -15,29 +15,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getQuickProductPath } from "../../utils/routes";
 import { useSettings } from "@core/context/SettingsContext";
 
-const ScallopedBadge = ({ text, className }) => (
-  <div className={cn("relative w-9 h-9 flex items-center justify-center", className)}>
-    <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-[0_1px_3px_rgba(168,85,247,0.4)]">
-      <path
-        fill="#A364FF"
-        d="M50 0 C 54 0, 56 4, 61 5 C 66 6, 70 2, 75 5 C 80 8, 81 14, 84 18 C 88 22, 94 23, 96 28 C 98 33, 94 38, 94 43 C 94 48, 98 52, 98 57 C 98 62, 94 66, 92 71 C 90 76, 92 82, 88 86 C 84 90, 78 89, 73 92 C 68 95, 66 100, 61 100 C 56 100, 53 96, 48 96 C 43 96, 40 100, 35 99 C 30 98, 28 92, 23 90 C 18 88, 12 89, 9 84 C 6 79, 10 74, 9 69 C 8 64, 2 61, 2 56 C 2 51, 6 47, 7 42 C 8 37, 4 31, 6 26 C 8 21, 14 20, 18 16 C 22 12, 24 6, 29 4 C 34 2, 38 6, 43 5 C 48 4, 49 0, 53 0"
-      />
-    </svg>
-    <div className="relative z-10 text-white font-black flex flex-col items-center justify-center leading-none text-center">
-      {text.includes('%') ? (
-        <>
-          <span className="text-[9px] leading-tight">{text.split(' ')[0]}</span>
-          <span className="text-[6px] opacity-90 tracking-tighter uppercase">{text.split(' ')[1] || 'OFF'}</span>
-        </>
-      ) : (
-        <span className="text-[8px] uppercase tracking-tighter">{text}</span>
-      )}
+const OfferBadge = ({ text, className, isBestOffer }) => {
+  if (isBestOffer && text && text.includes('%')) {
+    const parts = text.split(' ');
+    return (
+      <div className={cn("inline-flex flex-col items-center justify-center bg-[#A32CC4] text-white font-extrabold rounded-[8px] shadow-sm uppercase tracking-wide leading-none p-1.5 min-w-[36px]", className)}>
+        <span className="text-[11px] leading-none mb-0.5">{parts[0]}</span>
+        <span className="text-[7px] leading-none opacity-90">{parts[1] || 'OFF'}</span>
+      </div>
+    );
+  }
+  return (
+    <div className={cn("inline-flex items-center justify-center bg-[#A32CC4] text-white font-extrabold text-[9px] md:text-[10px] px-2 py-1 rounded-md shadow-sm uppercase tracking-wide leading-none", className)}>
+      {text}
     </div>
-  </div>
-);
+  );
+};
 
 const ProductCard = React.memo(
-  ({ product, badge, className, compact = false, neutralBg = false, curvedInfo = false }) => {
+  ({ product, badge, className, compact = false, neutralBg = false, curvedInfo = false, isBestOffer = false }) => {
     const navigate = useNavigate();
     const { toggleWishlist: toggleWishlistGlobal, isInWishlist } =
       useWishlist();
@@ -351,15 +347,16 @@ const ProductCard = React.memo(
         <div
           className={cn(
             "flex flex-col h-full w-full rounded-xl overflow-hidden transition-all duration-500 product-card-container premium-wave-shimmer",
-            "bg-[#FFF5F5] dark:bg-neutral-900 border border-red-100/50 dark:border-neutral-800 shadow-sm",
+            "bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 shadow-sm",
             "hover:shadow-md",
           )}>
           {/* Top Image Section */}
           <div className="relative overflow-hidden w-full h-[115px] md:h-[135px] p-1 md:p-2 bg-white dark:bg-neutral-800">
             {/* Badge (Professional Tag) */}
             {(badge || product.discount || discountPercent > 0) && (
-              <div className="absolute top-0.5 left-0.5 z-10">
-                <ScallopedBadge
+              <div className={cn("absolute z-10", isBestOffer ? "top-1.5 left-1.5 md:top-2 md:left-2" : "top-1.5 left-1.5")}>
+                <OfferBadge
+                  isBestOffer={isBestOffer}
                   text={badge || product.discount || (discountPercent > 0 ? `${discountPercent}% OFF` : null)}
                 />
               </div>
@@ -460,7 +457,7 @@ const ProductCard = React.memo(
 
           {/* Content Section */}
           <div className={cn(
-            "flex flex-col flex-1 px-1.5 py-1 space-y-0.5 bg-[#FFF5F5] dark:bg-neutral-900 border-t border-red-100/30 dark:border-neutral-800 relative product-content-area transition-all duration-300",
+            "flex flex-col flex-1 px-1.5 py-1 space-y-0.5 bg-white dark:bg-neutral-900 border-t border-slate-100 dark:border-neutral-800 relative product-content-area transition-all duration-300",
           )}>
             <div className="space-y-0">
               <div className="flex items-center gap-1 text-[7.5px] md:text-[8px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
@@ -506,12 +503,23 @@ const ProductCard = React.memo(
               ) : (
                 <button
                   onClick={handleAddToCart}
-                  className="flex flex-col items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] rounded-xl shadow-sm transition-all duration-300 active:scale-95 w-[72px] md:w-[80px] h-8 md:h-9 px-1 hover:bg-[#0c831f]/5 font-bold">
-                  <span className="text-[11px] md:text-[12px] font-black uppercase leading-none">ADD</span>
-                  {product.variants && product.variants.length > 1 && (
-                    <span className="text-[7px] md:text-[8px] font-bold text-[#0c831f]/90 leading-none mt-0.5 whitespace-nowrap">
-                      {product.variants.length} options
-                    </span>
+                  className={cn(
+                    "flex flex-col items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] shadow-sm transition-all duration-300 active:scale-95 hover:bg-[#0c831f]/5 font-bold",
+                    isBestOffer 
+                      ? "rounded-[8px] w-8 h-8 md:w-9 md:h-9" 
+                      : "rounded-xl w-[72px] md:w-[80px] h-8 md:h-9 px-1"
+                  )}>
+                  {isBestOffer ? (
+                    <Plus size={16} strokeWidth={3.5} />
+                  ) : (
+                    <>
+                      <span className="text-[11px] md:text-[12px] font-black uppercase leading-none">ADD</span>
+                      {product.variants && product.variants.length > 1 && (
+                        <span className="text-[7px] md:text-[8px] font-bold text-[#0c831f]/90 leading-none mt-0.5 whitespace-nowrap">
+                          {product.variants.length} options
+                        </span>
+                      )}
+                    </>
                   )}
                 </button>
               )}

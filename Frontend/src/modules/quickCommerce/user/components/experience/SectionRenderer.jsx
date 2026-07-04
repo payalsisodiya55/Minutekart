@@ -231,7 +231,7 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
                       key={product._id || product.id}
                       className="w-[165px] shrink-0"
                     >
-                      <ProductCard product={product} compact={true} neutralBg={true} />
+                      <ProductCard product={product} compact={true} neutralBg={true} hideBadge={true} showTimeOnImage={true} />
                     </div>
                   ))}
                 </div>
@@ -276,7 +276,7 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
               >
                 {items.map((product) => (
                   <div key={product._id || product.id}>
-                    <ProductCard product={product} compact={columns > 2} neutralBg={true} />
+                    <ProductCard product={product} compact={columns > 2} neutralBg={true} hideBadge={true} showTimeOnImage={true} />
                   </div>
                 ))}
               </div>

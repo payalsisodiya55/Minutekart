@@ -880,52 +880,42 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
             </div>
           )}
 
-          {/* Lowest Price ever Section  (kept as static for now) */}
+          {/* Best Offers Section */}
           <div
             className={cn(
               "mb-4 md:mb-6",
-              embedded ? "mt-4 md:mt-5" : "mt-6 md:mt-10",
+              embedded ? "mt-0" : "mt-6 md:mt-10",
             )}>
-            <div className="relative overflow-hidden bg-[#e7f3ff] dark:bg-[#1a2c41] pt-6 md:pt-8 pb-0 rounded-none md:rounded-[32px] mx-0 md:mx-8 lg:mx-[50px] shadow-sm">
+            <div className="relative overflow-hidden bg-white dark:bg-neutral-900 pt-5 md:pt-6 pb-0 rounded-none">
               <div className="relative z-10 px-4 md:px-8">
-                <div className="flex justify-between items-center mb-3 md:mb-5 px-1">
-                  <div className="flex flex-col">
-                    <h3 className="text-lg md:text-3xl font-[1000] text-[#004b91] dark:text-[#60a5fa] tracking-tighter uppercase leading-none">
-                      Lowest Price <span className="text-[#004b91] dark:text-[#60a5fa]">ever</span>
-                    </h3>
-                    <div className="flex items-center gap-1.5 md:gap-2 mt-1 md:mt-2">
-                      <div className="h-1 w-1 md:h-1.5 md:w-1.5 bg-[#004b91] dark:bg-[#60a5fa] rounded-full animate-pulse" />
-                      <span className="text-[9px] md:text-[10px] font-black text-[#004b91] dark:text-[#93c5fd] uppercase tracking-wider opacity-80">
-                        Unbeatable Savings • Updated hourly
-                      </span>
-                    </div>
-                  </div>
+                <div className="flex justify-between items-center mb-4 md:mb-5">
+                  <h3 className="text-lg md:text-xl font-[900] text-[#1F1F1F] dark:text-white tracking-tight leading-none">
+                    Best Offers
+                  </h3>
                   <motion.div
                     onClick={() => navigate(getQuickCategoriesPath())}
-                    whileHover={{ x: 5, scale: 1.05 }}
+                    whileHover={{ x: 3 }}
                     whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-1 md:gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-[#004b91] dark:text-[#93c5fd] font-bold text-[9px] md:text-xs cursor-pointer shadow-sm border border-[#004b91]/5 transition-all shrink-0 whitespace-nowrap">
-                    See all{" "}
-                    <ArrowRightIcon
-                      sx={{ fontSize: 10, ml: 0.5 }}
-                    />
+                    className="flex items-center gap-1 text-[#0c831f] dark:text-emerald-400 font-bold text-[12px] md:text-sm cursor-pointer">
+                    View All
+                    <ArrowRightIcon sx={{ fontSize: 14 }} />
                   </motion.div>
                 </div>
 
-                <div className="relative z-10 flex overflow-x-auto gap-3 md:gap-4 pb-5 md:pb-6 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory scroll-smooth">
+                <div className="relative z-10 flex overflow-x-auto gap-3 md:gap-4 pb-5 md:pb-6 no-scrollbar snap-x snap-mandatory scroll-smooth pt-2">
                   {isProductsLoading ? (
                     Array(5).fill(0).map((_, i) => (
-                      <div key={i} className="w-[125px] md:w-[155px] lg:w-[175px] h-[220px] shrink-0 bg-white dark:bg-slate-800/60 rounded-[20px] animate-pulse border border-blue-50/50" />
+                      <div key={i} className="w-[140px] md:w-[155px] lg:w-[175px] h-[220px] shrink-0 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
                     ))
                   ) : filteredProducts.slice(0, 12).map((product) => (
                     <div
                       key={product.id || product._id}
-                      className="w-[125px] md:w-[155px] lg:w-[175px] shrink-0 snap-start">
+                      className="w-[140px] md:w-[155px] lg:w-[175px] shrink-0 snap-start">
                       <ProductCard
                         product={product}
-                        className="bg-white rounded-[20px] shadow-[0_8px_20px_-8px_rgba(0,0,0,0.1)] border-blue-50/50 transition-all"
+                        className="bg-white rounded-xl border border-slate-100 shadow-sm transition-all"
                         compact={true}
-                        curvedInfo={true}
+                        isBestOffer={true}
                       />
                     </div>
                   ))}
@@ -1063,108 +1053,35 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.25 }}
                       transition={{ duration: 0.4 }}
-                      className={cn(
-                        "mb-4 rounded-none overflow-hidden shadow-[0_10px_25px_rgba(15,23,42,0.1)] border-y border-slate-100/70 dark:border-neutral-800 border-x-0 md:border-x",
-                        section.title?.toLowerCase().includes('masala') ? "bg-[#FFF9E7] dark:bg-[#2a261a]" : "bg-white dark:bg-neutral-900"
-                      )}>
-                      <div
-                        className="relative flex items-center justify-between px-5 md:px-8 py-5 md:py-6 text-black dark:text-white"
-                        style={{
-                          backgroundColor: bgColor,
-                          backgroundImage: getBackgroundGradientByValue(
-                            section.backgroundColor,
-                          ),
-                        }}>
-                        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                          <div className="absolute -top-10 -left-10 w-40 h-40 md:w-56 md:h-56 bg-white/20 rounded-full blur-3xl" />
-                          <div className="absolute -bottom-10 right-0 w-44 h-44 bg-white/10 rounded-full blur-3xl" />
-                        </div>
-                        <div className="flex-1 pr-4">
-                          <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em] text-black/60 dark:text-white/60 mb-1">
-                            Trending right now
-                          </p>
-                          <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-tight drop-shadow-sm">
-                            {section.title}
-                          </h3>
-                          {((section.categoryIds || [])
-                            .map((c) =>
-                              typeof c === "object" && c?.name ? c.name : null,
-                            )
-                            .filter(Boolean)
-                            .join(", ") ||
-                            section.categoryId?.name) && (
-                              <p className="text-xs md:text-sm font-semibold text-black/75 dark:text-white/75 mt-1">
-                                {(section.categoryIds || [])
-                                  .map((c) =>
-                                    typeof c === "object" && c?.name ? c.name : null,
-                                  )
-                                  .filter(Boolean)
-                                  .join(", ") || section.categoryId?.name}
-                              </p>
-                            )}
-                        </div>
-                        <motion.div
-                          whileHover={{ y: -4, rotate: -4, scale: 1.06 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 260,
-                            damping: 18,
-                          }}
-                          className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex-shrink-0 shadow-[0_16px_30px_rgba(0,0,0,0.25)] border border-black/10 overflow-hidden relative bg-black/10">
-                          {/* Product-driven visual if available */}
-                          {sectionProducts[0]?.image ? (
-                            <>
-                              <img
-                                src={sectionProducts[0].image}
-                                srcSet={getCloudinarySrcSet(sectionProducts[0].image)}
-                                sizes="100px"
-                                alt={section.title}
-                                className="absolute inset-0 w-full h-full object-cover scale-110"
-                                loading="lazy"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-black/20 to-transparent" />
-                              <div className="absolute -bottom-6 -right-6 w-16 h-16 rounded-full bg-amber-400/60 blur-xl mix-blend-screen" />
-                            </>
-                          ) : (
-                            <div className="absolute inset-0 bg-gradient-to-br from-red-400 via-red-500 to-rose-500" />
-                          )}
-
-                          {/* Top-left pill with items count */}
-                          {sectionProducts.length > 0 && (
-                            <div className="absolute top-1 left-1 px-2 py-0.5 rounded-full bg-black/70 text-[9px] font-bold text-white/90 tracking-wide flex items-center gap-1">
-                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                              {sectionProducts.length} items
-                            </div>
-                          )}
-
-                          <div className="relative z-10 flex items-center justify-center h-full">
-                            <Sparkles
-                              className="text-amber-200 drop-shadow-[0_0_12px_rgba(251,191,36,0.9)]"
-                              size={30}
-                            />
-                          </div>
-                        </motion.div>
+                      className="mb-4 overflow-hidden bg-white dark:bg-neutral-900">
+                      <div className="px-4 md:px-5 pt-4 md:pt-5 pb-1 flex items-center justify-between">
+                        <h3 className="text-lg md:text-xl font-[900] text-[#1F1F1F] dark:text-white tracking-tight leading-none">
+                          {section.title}
+                        </h3>
+                        <span className="text-[11px] md:text-xs font-semibold text-slate-400">
+                          {sectionProducts.length} items
+                        </span>
                       </div>
                       <div className="p-4 md:p-5">
-                        <div className="flex overflow-x-auto gap-3 md:gap-4 pb-2 no-scrollbar snap-x snap-mandatory">
-                          {sectionProducts.length === 0 ? (
-                            <div className="w-full py-6 text-center text-slate-400 text-sm font-bold">
-                              No products in this section yet.
-                            </div>
-                          ) : (
-                            sectionProducts.map((product) => (
+                        {sectionProducts.length === 0 ? (
+                          <div className="w-full py-6 text-center text-slate-400 text-sm font-bold">
+                            No products in this section yet.
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-3">
+                            {sectionProducts.map((product) => (
                               <div
                                 key={product.id}
-                                className="w-[130px] md:w-[160px] lg:w-[180px] flex-shrink-0 snap-start">
+                                className="w-full">
                                 <ProductCard
                                   product={product}
-                                  className="border border-slate-100 dark:border-white/5 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+                                  className="bg-white border border-slate-100 dark:border-white/5 shadow-sm rounded-xl"
                                   compact
                                 />
                               </div>
-                            ))
-                          )}
-                        </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   );
