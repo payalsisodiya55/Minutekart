@@ -697,7 +697,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                   {isBannersLoading ? (
                     <div className="w-full h-[190px] bg-slate-200/60 dark:bg-slate-800/60 animate-pulse" />
                   ) : hasHeroBanners ? (
-                    <div className="px-0 pt-2 pb-2">
+                    <div className="px-4 pt-2 pb-2">
                       <ExperienceBannerCarousel
                         section={{ title: "" }}
                         items={heroConfig.banners.items}
