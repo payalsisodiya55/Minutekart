@@ -20,10 +20,11 @@ const BottomNav = () => {
 
     const isSharedQuickProfileRoute =
         location.pathname === '/profile' &&
-        new URLSearchParams(location.search).get('from') === 'quick';
+        (new URLSearchParams(location.search).get('from') === 'quick' ||
+         new URLSearchParams(location.search).get('from') === 'food');
 
     const isActivePath = (targetPath) => {
-        if (targetPath === getQuickProfilePath() && isSharedQuickProfileRoute) {
+        if ((targetPath === getQuickProfilePath() || targetPath === '/profile?from=food') && isSharedQuickProfileRoute) {
             return true;
         }
         if (targetPath === getQuickHomePath(location.pathname)) {
@@ -37,7 +38,7 @@ const BottomNav = () => {
         { type: 'link', label: 'Category', icon: LayoutGrid, path: getQuickCategoriesPath() },
         { type: 'link', label: 'Orders', icon: Package, path: getQuickOrdersPath() },
         { type: 'link', label: 'Cart', icon: ShoppingCart, path: getQuickCartPath(), hasBadge: true },
-        { type: 'link', label: 'Profile', icon: User, path: getQuickProfilePath() },
+        { type: 'link', label: 'Profile', icon: User, path: '/profile?from=food' },
     ];
 
     return (

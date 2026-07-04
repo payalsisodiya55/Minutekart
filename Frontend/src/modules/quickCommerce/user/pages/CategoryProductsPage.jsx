@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Heart, Search, Minus, Plus } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, Heart, Minus, Plus, ChevronsDown, SlidersHorizontal, ArrowUpDown, ChevronDown, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { useToast } from '@shared/components/ui/Toast';
 import { cn } from '@/lib/utils';
 
-import ProductCard from '../components/shared/ProductCard';
 import ProductDetailSheet from '../components/shared/ProductDetailSheet';
 import { useProductDetail } from '../context/ProductDetailContext';
 import { customerApi } from '../services/customerApi';
@@ -18,6 +16,112 @@ import { useLocation as useAppLocation } from '../context/LocationContext';
 const QUICK_THEME_STORAGE_KEY = "food.quick.headerColor";
 const QUICK_HEADER_RETURN_STORAGE_KEY = "food.quick.headerReturn";
 const FALLBACK_HEADER_COLOR = "#0c831f";
+
+// Custom premium product card matching the 2nd reference image
+const CategoryProductCard = ({ product }) => {
+    const { cart, addToCart, updateQuantity } = useCart();
+    const { toggleWishlist, isInWishlist } = useWishlist();
+    
+    const cartItem = cart.find(item => item.id === product.id || item.productId === product.id);
+    const quantity = cartItem ? cartItem.quantity : 0;
+    const isWishlisted = isInWishlist(product.id || product._id);
+
+    const displayPrice = product.price || product.salePrice;
+    const originalPrice = product.originalPrice || product.mrp;
+    const showDiscount = originalPrice && originalPrice > displayPrice;
+
+    return (
+        <div className="flex flex-col bg-white dark:bg-neutral-900 rounded-2xl p-2 border border-slate-100 dark:border-neutral-800 shadow-sm relative group">
+            {/* Image & Action Container */}
+            <div className="relative w-full aspect-square bg-[#F8F9FA] dark:bg-neutral-800 rounded-xl p-2 flex flex-col justify-between overflow-hidden">
+                {/* Wishlist Button */}
+                <button
+                    onClick={() => toggleWishlist(product)}
+                    className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm cursor-pointer active:scale-90 transition-transform"
+                >
+                    <Heart
+                        size={14}
+                        className={cn(
+                            isWishlisted ? "fill-red-500 text-red-500" : "text-slate-400"
+                        )}
+                    />
+                </button>
+
+                {/* Product Image */}
+                <div className="flex-1 flex items-center justify-center min-h-0 w-full">
+                    <img
+                        src={product.image}
+                        alt={product.name}
+                        className="max-h-[85%] max-w-[85%] object-contain mix-blend-multiply dark:mix-blend-normal"
+                    />
+                </div>
+
+                {/* Weight & ADD Button row overlay */}
+                <div className="flex items-center justify-between gap-1 mt-auto pt-1 w-full relative z-10">
+                    <div className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm border border-slate-100 dark:border-neutral-800 rounded-lg px-1.5 py-0.5 text-[9px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap shadow-sm">
+                        {product.weight || "1 unit"}
+                    </div>
+
+                    {quantity === 0 ? (
+                        <button
+                            onClick={() => addToCart(product)}
+                            className="bg-white dark:bg-neutral-900 border border-[#0c831f] text-[#0c831f] font-black text-[10px] md:text-[11px] px-3 py-1 rounded-[8px] shadow-sm hover:bg-[#0c831f]/5 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                        >
+                            ADD
+                        </button>
+                    ) : (
+                        <div className="flex items-center bg-[#0c831f] text-white rounded-[8px] shadow-sm overflow-hidden h-[24px]">
+                            <button
+                                onClick={() => updateQuantity(product.id, -1)}
+                                className="px-2 h-full flex items-center justify-center hover:bg-[#096317] active:scale-90 transition-transform"
+                            >
+                                <Minus size={10} strokeWidth={3} />
+                            </button>
+                            <span className="text-[10px] md:text-[11px] font-black min-w-[12px] text-center">
+                                {quantity}
+                            </span>
+                            <button
+                                onClick={() => updateQuantity(product.id, 1)}
+                                className="px-2 h-full flex items-center justify-center hover:bg-[#096317] active:scale-90 transition-transform"
+                            >
+                                <Plus size={10} strokeWidth={3} />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Product Metadata */}
+            <div className="flex flex-col pt-2 pb-1 text-left px-0.5">
+                {/* Price Line */}
+                <div className="flex items-baseline gap-1.5">
+                    <span className="text-[13px] md:text-[14px] font-extrabold text-slate-900 dark:text-white leading-none">
+                        ₹{displayPrice}
+                    </span>
+                    {showDiscount && (
+                        <span className="text-[10px] md:text-[11px] text-slate-400 line-through font-medium">
+                            ₹{originalPrice}
+                        </span>
+                    )}
+                </div>
+
+                {/* Name */}
+                <h3 className="text-[11px] md:text-[12px] font-bold text-slate-800 dark:text-slate-200 line-clamp-2 mt-1 leading-tight min-h-[28px]">
+                    {product.name}
+                </h3>
+
+                {/* Delivery Time info */}
+                <div className="flex items-center gap-1 mt-1 text-[9px] text-slate-400 font-bold">
+                    <svg className="w-2.5 h-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" strokeWidth="2.5" />
+                        <path d="M12 6v6l4 2" strokeWidth="2.5" strokeLinecap="round" />
+                    </svg>
+                    <span>{product.deliveryTime || "11 mins"}</span>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const CategoryProductsPage = () => {
     const { categoryId: catId } = useParams();
@@ -32,6 +136,35 @@ const CategoryProductsPage = () => {
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [headerTheme, setHeaderTheme] = useState(FALLBACK_HEADER_COLOR);
+    const [mainCategories, setMainCategories] = useState([]);
+    const [pullProgress, setPullProgress] = useState(0);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [isScrollable, setIsScrollable] = useState(false);
+    const [activeDropdown, setActiveDropdown] = useState(null);
+    const [selectedSort, setSelectedSort] = useState('default');
+    const [selectedType, setSelectedType] = useState('all');
+    const [selectedPriceRange, setSelectedPriceRange] = useState('all');
+    const triggerRef = React.useRef(null);
+    const hasScrolledSinceMount = React.useRef(false);
+
+    useEffect(() => {
+        hasScrolledSinceMount.current = false;
+    }, [selectedSubCategory, catId]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+                const scrollable = document.documentElement.scrollHeight > window.innerHeight + 40;
+                setIsScrollable(scrollable);
+                if (!scrollable) {
+                    setPullProgress(1);
+                } else {
+                    setPullProgress(0);
+                }
+            }
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [products, isLoading, selectedSubCategory]);
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -49,9 +182,7 @@ const CategoryProductsPage = () => {
                 if (parsed?.color && /^#[0-9a-fA-F]{6}$/.test(parsed.color)) {
                     setHeaderTheme(parsed.color);
                 }
-            } catch (error) {
-                // Ignore malformed stored header context.
-            }
+            } catch (error) {}
         }
     }, []);
 
@@ -102,6 +233,7 @@ const CategoryProductsPage = () => {
             if (catRes?.data?.success) {
                 const results = catRes.data.results || catRes.data.result || [];
                 const allCats = Array.isArray(results) ? results : [];
+                setMainCategories(allCats);
 
                 const cMap = {};
                 const sMap = {};
@@ -179,12 +311,39 @@ const CategoryProductsPage = () => {
 
     const safeProducts = Array.isArray(products) ? products : [];
 
-    const filteredProducts = safeProducts.filter(p => {
-        if (selectedSubCategory === 'all') return true;
-        const subId = String(p.subcategoryId?._id || p.subcategoryId || '');
-        const catIdStr = String(p.categoryId?._id || p.categoryId || '');
-        return subId === selectedSubCategory || catIdStr === selectedSubCategory;
-    });
+    const filteredProducts = React.useMemo(() => {
+        let list = safeProducts.filter(p => {
+            if (selectedSubCategory === 'all') return true;
+            const subId = String(p.subcategoryId?._id || p.subcategoryId || '');
+            const catIdStr = String(p.categoryId?._id || p.categoryId || '');
+            return subId === selectedSubCategory || catIdStr === selectedSubCategory;
+        });
+
+        // Apply Type Filter
+        if (selectedType === 'veg') {
+            list = list.filter(p => p.isVeg || (p.name && /veg/i.test(p.name)) || (p.description && /veg/i.test(p.description)));
+        } else if (selectedType === 'nonveg') {
+            list = list.filter(p => !p.isVeg && !(p.name && /veg/i.test(p.name)));
+        }
+
+        // Apply Price Filter
+        if (selectedPriceRange === 'under-150') {
+            list = list.filter(p => (p.price || 0) < 150);
+        } else if (selectedPriceRange === '150-300') {
+            list = list.filter(p => (p.price || 0) >= 150 && (p.price || 0) <= 300);
+        } else if (selectedPriceRange === 'above-300') {
+            list = list.filter(p => (p.price || 0) > 300);
+        }
+
+        // Apply Sort
+        if (selectedSort === 'price-low-high') {
+            list = [...list].sort((a, b) => (a.price || 0) - (b.price || 0));
+        } else if (selectedSort === 'price-high-low') {
+            list = [...list].sort((a, b) => (b.price || 0) - (a.price || 0));
+        }
+
+        return list;
+    }, [safeProducts, selectedSubCategory, selectedSort, selectedType, selectedPriceRange]);
 
     const productsById = React.useMemo(() => {
         const map = {};
@@ -194,12 +353,74 @@ const CategoryProductsPage = () => {
         return map;
     }, [safeProducts]);
 
+    // Handle Category/Subcategory Switch Transition when scrolling to bottom
+    const currentSubCatIndex = subCategories.findIndex(s => s.id === selectedSubCategory);
+    const nextSubCat = currentSubCatIndex !== -1 && currentSubCatIndex < subCategories.length - 1 ? subCategories[currentSubCatIndex + 1] : null;
+
+    const currentCatIndex = mainCategories.findIndex(c => c._id === catId || c.slug === catId);
+    const nextMainCat = !nextSubCat && currentCatIndex !== -1 && currentCatIndex < mainCategories.length - 1 ? mainCategories[currentCatIndex + 1] : null;
+
+    // Track scroll pull-progress of the next-category trigger element to scale the circular image dynamically
+    useEffect(() => {
+        const handleScroll = () => {
+            if (!triggerRef.current || isTransitioning) return;
+
+            if (window.scrollY > 15) {
+                hasScrolledSinceMount.current = true;
+            }
+
+            const rect = triggerRef.current.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            
+            const visibleHeight = Math.max(0, windowHeight - rect.top);
+            const bannerHeight = rect.height || 120;
+            const progress = Math.min(1, visibleHeight / bannerHeight);
+            setPullProgress(progress);
+
+            // Auto-transition when the banner is scrolled up past the threshold (320px from the bottom)
+            const hasScrolledUpEnough = rect.top < windowHeight - 320;
+            if (hasScrolledUpEnough && isScrollable && hasScrolledSinceMount.current) {
+                setIsTransitioning(true);
+                
+                // Wait 1.5 seconds to show the premium scale-up & bounce transition animation
+                setTimeout(() => {
+                    if (nextSubCat) {
+                        setSelectedSubCategory(nextSubCat.id);
+                        window.scrollTo({ top: 0, behavior: 'auto' });
+                    } else if (nextMainCat) {
+                        navigate(`/quick/categories/${nextMainCat._id}`, { state: { activeSubcategoryId: 'all' } });
+                        window.scrollTo({ top: 0, behavior: 'auto' });
+                    }
+                    setIsTransitioning(false);
+                }, 1500);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll();
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [selectedSubCategory, catId, subCategories, mainCategories, isTransitioning, isScrollable, nextSubCat, nextMainCat, navigate]);
+
+    const handleNextTransition = () => {
+        if (isTransitioning) return;
+        setIsTransitioning(true);
+        if (nextSubCat) {
+            setSelectedSubCategory(nextSubCat.id);
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        } else if (nextMainCat) {
+            navigate(`/quick/categories/${nextMainCat._id}`, { state: { activeSubcategoryId: 'all' } });
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        }
+        setTimeout(() => {
+            setIsTransitioning(false);
+        }, 1200);
+    };
+
     return (
         <div className="flex min-h-screen flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500">
             <div className="mx-auto flex w-full max-w-[1920px] flex-1 flex-col">
-                {/* Category Subheader */}
                 <header className={cn(
-                    "sticky top-0 z-30 px-4 py-4 flex items-center justify-between border-b border-white/20 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur-md",
+                    "sticky top-0 z-[100] px-4 py-4 flex items-center justify-between border-b border-white/20 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur-md",
                     isProductDetailOpen && "hidden md:flex"
                 )}
                     style={{
@@ -221,12 +442,11 @@ const CategoryProductsPage = () => {
                             </h1>
                         </div>
                     </div>
-
                 </header>
 
                 <div className="flex flex-1 relative items-start">
                     {/* Sidebar */}
-                    <aside className="w-20 md:w-28 border-r border-gray-50 dark:border-white/5 flex flex-col bg-white dark:bg-card overflow-y-auto hide-scrollbar sticky top-0 h-screen pb-32 transition-colors">
+                    <aside className="w-20 md:w-28 shrink-0 border-r border-gray-50 dark:border-white/5 flex flex-col bg-white dark:bg-card overflow-y-auto hide-scrollbar sticky top-0 h-screen pb-32 transition-colors">
                         {subCategories.map((cat) => (
                             <button
                                 key={cat.id}
@@ -240,7 +460,7 @@ const CategoryProductsPage = () => {
                             >
                                 <div className={cn(
                                     "w-12 h-12 rounded-2xl flex items-center justify-center p-2 transition-all duration-300",
-                                    selectedSubCategory === cat.id ? "scale-110" : "grayscale opacity-70"
+                                    selectedSubCategory === cat.id ? "scale-110 animate-pulse-subtle" : "grayscale opacity-70"
                                 )}>
                                     <img src={cat.icon} alt={cat.name} className="w-full h-full object-contain" />
                                 </div>
@@ -255,7 +475,182 @@ const CategoryProductsPage = () => {
                     </aside>
 
                     {/* Content */}
-                    <main className="flex-1 px-3 pt-1 pb-24 bg-white dark:bg-background transition-colors">
+                    <main className="flex-1 min-w-0 px-3 pt-1 pb-12 bg-white dark:bg-background transition-colors flex flex-col min-h-[50vh]">
+                        {/* Horizontal Filters Pill Bar */}
+                        <div className="sticky top-[60px] md:top-[68px] z-40 bg-white dark:bg-background mb-3">
+                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2.5 border-b border-slate-50 dark:border-neutral-800">
+                                {/* Filter 1: Filters */}
+                                <button 
+                                    onClick={() => setActiveDropdown(activeDropdown === 'filters' ? null : 'filters')}
+                                    className={cn(
+                                        "flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-[12px] font-medium shrink-0 shadow-sm transition-all active:scale-95",
+                                        activeDropdown === 'filters' || selectedType !== 'all' || selectedPriceRange !== 'all'
+                                            ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
+                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                                    )}
+                                >
+                                    <SlidersHorizontal size={13} className={cn(activeDropdown === 'filters' || selectedType !== 'all' || selectedPriceRange !== 'all' ? "text-[#0c831f]" : "text-slate-500")} />
+                                    <span>Filters</span>
+                                    <ChevronDown size={13} className="text-slate-400 ml-0.5" />
+                                </button>
+
+                                {/* Filter 2: Sort */}
+                                <button 
+                                    onClick={() => setActiveDropdown(activeDropdown === 'sort' ? null : 'sort')}
+                                    className={cn(
+                                        "flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-[12px] font-medium shrink-0 shadow-sm transition-all active:scale-95",
+                                        activeDropdown === 'sort' || selectedSort !== 'default'
+                                            ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
+                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                                    )}
+                                >
+                                    <ArrowUpDown size={13} className={cn(activeDropdown === 'sort' || selectedSort !== 'default' ? "text-[#0c831f]" : "text-slate-500")} />
+                                    <span>
+                                        {selectedSort === 'default' ? 'Sort' : selectedSort === 'price-low-high' ? 'Low to High' : 'High to Low'}
+                                    </span>
+                                    <ChevronDown size={13} className="text-slate-400 ml-0.5" />
+                                </button>
+
+                                {/* Filter 3: Type */}
+                                <button 
+                                    onClick={() => setActiveDropdown(activeDropdown === 'type' ? null : 'type')}
+                                    className={cn(
+                                        "flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-[12px] font-medium shrink-0 shadow-sm transition-all active:scale-95",
+                                        activeDropdown === 'type' || selectedType !== 'all'
+                                            ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
+                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                                    )}
+                                >
+                                    <span>
+                                        {selectedType === 'all' ? 'Type' : selectedType === 'veg' ? 'Veg Only' : 'Non-Veg'}
+                                    </span>
+                                    <ChevronDown size={13} className="text-slate-400 ml-0.5" />
+                                </button>
+
+                                {/* Filter 4: Price */}
+                                <button 
+                                    onClick={() => setActiveDropdown(activeDropdown === 'price' ? null : 'price')}
+                                    className={cn(
+                                        "flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-[12px] font-medium shrink-0 shadow-sm transition-all active:scale-95",
+                                        activeDropdown === 'price' || selectedPriceRange !== 'all'
+                                            ? "bg-[#0c831f]/10 border-[#0c831f] text-[#0c831f] dark:bg-emerald-950/20"
+                                            : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-neutral-700"
+                                    )}
+                                >
+                                    <span>
+                                        {selectedPriceRange === 'all' ? 'Price' : selectedPriceRange === 'under-150' ? 'Under ₹150' : selectedPriceRange === '150-300' ? '₹150-300' : 'Above ₹300'}
+                                    </span>
+                                    <ChevronDown size={13} className="text-slate-400 ml-0.5" />
+                                </button>
+                            </div>
+
+                            {/* Dropdowns */}
+                            {activeDropdown && (
+                                <>
+                                    {/* Backdrop */}
+                                    <div 
+                                        className="fixed inset-0 z-40" 
+                                        onClick={() => setActiveDropdown(null)}
+                                    />
+                                    
+                                    {/* Dropdown Box */}
+                                    <div className="absolute top-full left-0 z-50 mt-1 min-w-[200px] bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-150 flex flex-col gap-1">
+                                        {activeDropdown === 'filters' && (
+                                            <>
+                                                <div className="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">Active Filters</div>
+                                                <button 
+                                                    onClick={() => { setSelectedType('all'); setSelectedPriceRange('all'); setActiveDropdown(null); }}
+                                                    className="w-full text-left px-3 py-2 text-[13px] hover:bg-slate-50 dark:hover:bg-neutral-700/50 rounded-xl text-red-500 font-bold"
+                                                >
+                                                    Clear All Filters
+                                                </button>
+                                            </>
+                                        )}
+                                        
+                                        {activeDropdown === 'sort' && (
+                                            <>
+                                                <div className="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">Sort By</div>
+                                                <button 
+                                                    onClick={() => { setSelectedSort('default'); setActiveDropdown(null); }}
+                                                    className={cn("w-full text-left px-3 py-2 text-[13px] rounded-xl font-medium", selectedSort === 'default' ? "text-[#0c831f] bg-[#0c831f]/5 font-bold" : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-700/50")}
+                                                >
+                                                    Default Sort
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setSelectedSort('price-low-high'); setActiveDropdown(null); }}
+                                                    className={cn("w-full text-left px-3 py-2 text-[13px] rounded-xl font-medium", selectedSort === 'price-low-high' ? "text-[#0c831f] bg-[#0c831f]/5 font-bold" : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-700/50")}
+                                                >
+                                                    Price: Low to High
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setSelectedSort('price-high-low'); setActiveDropdown(null); }}
+                                                    className={cn("w-full text-left px-3 py-2 text-[13px] rounded-xl font-medium", selectedSort === 'price-high-low' ? "text-[#0c831f] bg-[#0c831f]/5 font-bold" : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-700/50")}
+                                                >
+                                                    Price: High to Low
+                                                </button>
+                                            </>
+                                        )}
+
+                                        {activeDropdown === 'type' && (
+                                            <>
+                                                <div className="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">Product Type</div>
+                                                <button 
+                                                    onClick={() => { setSelectedType('all'); setActiveDropdown(null); }}
+                                                    className={cn("w-full text-left px-3 py-2 text-[13px] rounded-xl font-medium", selectedType === 'all' ? "text-[#0c831f] bg-[#0c831f]/5 font-bold" : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-700/50")}
+                                                >
+                                                    All Types
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setSelectedType('veg'); setActiveDropdown(null); }}
+                                                    className={cn("w-full text-left px-3 py-2 text-[13px] rounded-xl font-medium flex items-center gap-1.5", selectedType === 'veg' ? "text-[#0c831f] bg-[#0c831f]/5 font-bold" : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-700/50")}
+                                                >
+                                                    <span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" />
+                                                    Veg Only
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setSelectedType('nonveg'); setActiveDropdown(null); }}
+                                                    className={cn("w-full text-left px-3 py-2 text-[13px] rounded-xl font-medium flex items-center gap-1.5", selectedType === 'nonveg' ? "text-[#0c831f] bg-[#0c831f]/5 font-bold" : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-700/50")}
+                                                >
+                                                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
+                                                    Non-Veg Only
+                                                </button>
+                                            </>
+                                        )}
+
+                                        {activeDropdown === 'price' && (
+                                            <>
+                                                <div className="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">Price Range</div>
+                                                <button 
+                                                    onClick={() => { setSelectedPriceRange('all'); setActiveDropdown(null); }}
+                                                    className={cn("w-full text-left px-3 py-2 text-[13px] rounded-xl font-medium", selectedPriceRange === 'all' ? "text-[#0c831f] bg-[#0c831f]/5 font-bold" : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-700/50")}
+                                                >
+                                                    All Prices
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setSelectedPriceRange('under-150'); setActiveDropdown(null); }}
+                                                    className={cn("w-full text-left px-3 py-2 text-[13px] rounded-xl font-medium", selectedPriceRange === 'under-150' ? "text-[#0c831f] bg-[#0c831f]/5 font-bold" : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-700/50")}
+                                                >
+                                                    Under ₹150
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setSelectedPriceRange('150-300'); setActiveDropdown(null); }}
+                                                    className={cn("w-full text-left px-3 py-2 text-[13px] rounded-xl font-medium", selectedPriceRange === '150-300' ? "text-[#0c831f] bg-[#0c831f]/5 font-bold" : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-700/50")}
+                                                >
+                                                    ₹150 - ₹300
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setSelectedPriceRange('above-300'); setActiveDropdown(null); }}
+                                                    className={cn("w-full text-left px-3 py-2 text-[13px] rounded-xl font-medium", selectedPriceRange === 'above-300' ? "text-[#0c831f] bg-[#0c831f]/5 font-bold" : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-neutral-700/50")}
+                                                >
+                                                    Above ₹300
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
                         {selectedSubCategory === 'all' && experienceSections.filter(s => !['bestseller', 'bestsellers', 'best seller', 'best sellers'].includes((s.title || '').trim().toLowerCase())).length > 0 && (
                             <div className="mb-4">
                                 <SectionRenderer
@@ -269,22 +664,60 @@ const CategoryProductsPage = () => {
                             </div>
                         )}
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-2 gap-y-4 md:gap-4 lg:gap-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4 flex-1">
                             {isLoading ? (
                                 Array.from({ length: 12 }).map((_, i) => (
                                     <div key={i} className="animate-pulse bg-gray-100 dark:bg-white/5 rounded-2xl aspect-[3/4] w-full border border-gray-200/50"></div>
                                 ))
                             ) : (
                                 filteredProducts.map((product) => (
-                                    <ProductCard key={product.id} product={product} compact={true} />
+                                    <CategoryProductCard key={product.id} product={product} />
                                 ))
                             )}
                             {filteredProducts.length === 0 && !isLoading && (
-                                <div className="col-span-2 py-20 text-center">
+                                <div className="col-span-2 py-20 text-center w-full">
                                     <p className="text-gray-400 font-bold italic">No products found in this category</p>
                                 </div>
                             )}
                         </div>
+
+                        {/* Pull up / Tap to switch subcategory / category transition block */}
+                        {(nextSubCat || nextMainCat) && (
+                            <div className="flex flex-col w-full pb-[350px]">
+                                <motion.div 
+                                    ref={triggerRef}
+                                    onClick={handleNextTransition}
+                                    style={{ 
+                                        opacity: pullProgress,
+                                        scale: 0.95 + pullProgress * 0.05,
+                                        pointerEvents: pullProgress > 0.15 ? 'auto' : 'none'
+                                    }}
+                                    className="w-full flex flex-col items-center justify-center py-8 mt-10 border-t border-slate-100 dark:border-neutral-800 bg-[#F4FCF3] dark:bg-emerald-950/20 rounded-2xl cursor-pointer hover:opacity-95 active:scale-[0.99] transition-all shadow-sm"
+                                >
+                                    <motion.div
+                                        animate={isTransitioning ? { y: [0, -15, 0], scale: 1.2 } : { y: [0, -6, 0] }}
+                                        transition={isTransitioning ? { repeat: Infinity, duration: 0.6, ease: "easeInOut" } : { repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                                        className="text-[#0c831f] mb-2"
+                                    >
+                                        <ChevronsDown size={26} className="rotate-180" />
+                                    </motion.div>
+                                    <h4 className="text-[15px] font-extrabold text-slate-800 dark:text-white mb-3">
+                                        {nextSubCat ? nextSubCat.name : nextMainCat ? (nextMainCat.name || nextMainCat.slug) : ''}
+                                    </h4>
+                                    <motion.div 
+                                        animate={isTransitioning ? { scale: 1.35, rotate: [0, -4, 4, 0] } : { scale: 0.85 + pullProgress * 0.4 }}
+                                        transition={isTransitioning ? { duration: 0.7, repeat: Infinity, repeatType: "reverse" } : { duration: 0.1 }}
+                                        className="w-14 h-14 rounded-full bg-white dark:bg-neutral-800 border border-slate-100 dark:border-neutral-700 flex items-center justify-center p-2.5 shadow-md transition-all duration-75"
+                                    >
+                                        <img 
+                                            src={nextSubCat ? nextSubCat.icon : nextMainCat ? (nextMainCat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png') : ''} 
+                                            alt="Next Category" 
+                                            className="w-full h-full object-contain" 
+                                        />
+                                    </motion.div>
+                                </motion.div>
+                            </div>
+                        )}
                     </main>
                 </div>
 
@@ -305,6 +738,20 @@ const CategoryProductsPage = () => {
                     .hide-scrollbar {
                         -ms-overflow-style: none;
                         scrollbar-width: none;
+                    }
+                    .no-scrollbar::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .no-scrollbar {
+                        -ms-overflow-style: none;
+                        scrollbar-width: none;
+                    }
+                    @keyframes pulse-subtle {
+                        0%, 100% { opacity: 1; transform: scale(1.1); }
+                        50% { opacity: .8; transform: scale(1.05); }
+                    }
+                    .animate-pulse-subtle {
+                        animation: pulse-subtle 2s infinite ease-in-out;
                     }
                 `}} />
         </div>

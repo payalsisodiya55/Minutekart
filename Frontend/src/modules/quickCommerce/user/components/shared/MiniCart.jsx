@@ -46,12 +46,13 @@ const MiniCart = ({
     const isSupportPage = isEmbedded ? false : normalizedQuickPath.startsWith('/support');
     const isPrivacyPage = isEmbedded ? false : normalizedQuickPath.startsWith('/privacy');
     const isAboutPage = isEmbedded ? false : normalizedQuickPath.startsWith('/about');
+    const isCategoriesPage = isEmbedded ? false : normalizedQuickPath.startsWith('/categories');
     const isBottomRight = position === "bottom-right";
     const isProductDetailPage = normalizedQuickPath.startsWith('/product/') && !normalizedQuickPath.includes('/similar');
 
     const miniCartContent = (
         <AnimatePresence>
-            {cartCount > 0 && !isCheckoutPage && !isOrderDetailsPage && !isProfilePage && !isWalletPage && !isTransactionsPage && !isWishlistPage && !isAddressesPage && !isSupportPage && !isPrivacyPage && !isAboutPage && (
+            {cartCount > 0 && !isCheckoutPage && !isOrderDetailsPage && !isProfilePage && !isWalletPage && !isTransactionsPage && !isWishlistPage && !isAddressesPage && !isSupportPage && !isPrivacyPage && !isAboutPage && !isCategoriesPage && (
                 <div
                     key="mini-cart-wrapper"
                     id="mini-cart-target"

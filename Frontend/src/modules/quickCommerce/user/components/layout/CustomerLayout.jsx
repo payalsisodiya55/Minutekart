@@ -27,7 +27,7 @@ const CustomerLayout = ({ children, showHeader: showHeaderProp, fullHeight = fal
 
     // Condition to hide the MobileFooterMessage ("India's last minute app") on specific pages
     const hideFooterMessageRoutes = ['/profile', '/profile/edit'];
-    const showFooterMessage = showBottomNav && !hideFooterMessageRoutes.includes(path) && !matchesRoutePrefix('/category');
+    const showFooterMessage = showBottomNav && !hideFooterMessageRoutes.includes(path) && !matchesRoutePrefix('/category') && !matchesRoutePrefix('/categories');
 
     const finalShowBottomNavMobile = showBottomNav && !isProductDetailOpen;
     const finalShowFooterMessageMobile = showFooterMessage && !isProductDetailOpen;
