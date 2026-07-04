@@ -373,16 +373,16 @@ const CategoryProductsPage = () => {
             const windowHeight = window.innerHeight;
             
             const visibleHeight = Math.max(0, windowHeight - rect.top);
-            const bannerHeight = rect.height || 120;
-            const progress = Math.min(1, visibleHeight / bannerHeight);
+            // Calculate progress over the first 200px of scrolling the container into view
+            const progress = Math.min(1, visibleHeight / 200);
             setPullProgress(progress);
 
-            // Auto-transition when the banner is scrolled up past the threshold (320px from the bottom)
-            const hasScrolledUpEnough = rect.top < windowHeight - 320;
+            // Auto-transition when the banner is scrolled up past the threshold (300px from the bottom)
+            const hasScrolledUpEnough = rect.top < windowHeight - 300;
             if (hasScrolledUpEnough && isScrollable && hasScrolledSinceMount.current) {
                 setIsTransitioning(true);
                 
-                // Wait 1.5 seconds to show the premium scale-up & bounce transition animation
+                // Wait 800ms to show the premium scale-up & rotate transition animation
                 setTimeout(() => {
                     if (nextSubCat) {
                         setSelectedSubCategory(nextSubCat.id);
@@ -392,7 +392,7 @@ const CategoryProductsPage = () => {
                         window.scrollTo({ top: 0, behavior: 'auto' });
                     }
                     setIsTransitioning(false);
-                }, 1500);
+                }, 800);
             }
         };
 
@@ -404,16 +404,16 @@ const CategoryProductsPage = () => {
     const handleNextTransition = () => {
         if (isTransitioning) return;
         setIsTransitioning(true);
-        if (nextSubCat) {
-            setSelectedSubCategory(nextSubCat.id);
-            window.scrollTo({ top: 0, behavior: 'auto' });
-        } else if (nextMainCat) {
-            navigate(`/quick/categories/${nextMainCat._id}`, { state: { activeSubcategoryId: 'all' } });
-            window.scrollTo({ top: 0, behavior: 'auto' });
-        }
         setTimeout(() => {
+            if (nextSubCat) {
+                setSelectedSubCategory(nextSubCat.id);
+                window.scrollTo({ top: 0, behavior: 'auto' });
+            } else if (nextMainCat) {
+                navigate(`/quick/categories/${nextMainCat._id}`, { state: { activeSubcategoryId: 'all' } });
+                window.scrollTo({ top: 0, behavior: 'auto' });
+            }
             setIsTransitioning(false);
-        }, 1200);
+        }, 800);
     };
 
     return (
@@ -683,39 +683,73 @@ const CategoryProductsPage = () => {
 
                         {/* Pull up / Tap to switch subcategory / category transition block */}
                         {(nextSubCat || nextMainCat) && (
-                            <div className="flex flex-col w-full pb-[350px]">
-                                <motion.div 
-                                    ref={triggerRef}
-                                    onClick={handleNextTransition}
-                                    style={{ 
-                                        opacity: pullProgress,
-                                        scale: 0.95 + pullProgress * 0.05,
-                                        pointerEvents: pullProgress > 0.15 ? 'auto' : 'none'
-                                    }}
-                                    className="w-full flex flex-col items-center justify-center py-8 mt-10 border-t border-slate-100 dark:border-neutral-800 bg-[#F4FCF3] dark:bg-emerald-950/20 rounded-2xl cursor-pointer hover:opacity-95 active:scale-[0.99] transition-all shadow-sm"
-                                >
+                            <div 
+                                ref={triggerRef}
+                                onClick={handleNextTransition}
+                                className="w-full flex flex-col items-center select-none"
+                                style={{ 
+                                    opacity: pullProgress,
+                                    pointerEvents: pullProgress > 0.15 ? 'auto' : 'none'
+                                }}
+                            >
+                                {/* Green Transition Card Banner */}
+                                <div className="w-full flex flex-col items-center justify-center pt-8 pb-6 mt-10 border-t border-emerald-100/50 dark:border-emerald-900/20 bg-[#F4FCF3] dark:bg-emerald-950/10 rounded-t-3xl">
                                     <motion.div
-                                        animate={isTransitioning ? { y: [0, -15, 0], scale: 1.2 } : { y: [0, -6, 0] }}
+                                        animate={isTransitioning ? { y: [0, -12, 0], scale: 1.1 } : { y: [0, -5, 0] }}
                                         transition={isTransitioning ? { repeat: Infinity, duration: 0.6, ease: "easeInOut" } : { repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                                        className="text-[#0c831f] mb-2"
+                                        className="text-[#0c831f] mb-1 flex flex-col items-center"
                                     >
-                                        <ChevronsDown size={26} className="rotate-180" />
+                                        <ChevronsDown size={22} className="rotate-180" />
                                     </motion.div>
-                                    <h4 className="text-[15px] font-extrabold text-slate-800 dark:text-white mb-3">
+
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0c831f]/70 mb-1">
+                                        Next Subcategory
+                                    </span>
+
+                                    <h4 className="text-[16px] font-extrabold text-slate-800 dark:text-white mb-4">
                                         {nextSubCat ? nextSubCat.name : nextMainCat ? (nextMainCat.name || nextMainCat.slug) : ''}
                                     </h4>
+
                                     <motion.div 
-                                        animate={isTransitioning ? { scale: 1.35, rotate: [0, -4, 4, 0] } : { scale: 0.85 + pullProgress * 0.4 }}
-                                        transition={isTransitioning ? { duration: 0.7, repeat: Infinity, repeatType: "reverse" } : { duration: 0.1 }}
-                                        className="w-14 h-14 rounded-full bg-white dark:bg-neutral-800 border border-slate-100 dark:border-neutral-700 flex items-center justify-center p-2.5 shadow-md transition-all duration-75"
+                                        animate={isTransitioning ? { scale: 1.25, rotate: 360 } : { scale: 0.85 + pullProgress * 0.35 }}
+                                        transition={isTransitioning ? { duration: 1, repeat: Infinity, ease: "linear" } : { duration: 0.1 }}
+                                        className="w-16 h-16 rounded-full bg-white dark:bg-neutral-800 border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center p-3 shadow-md relative"
                                     >
+                                        {isTransitioning && (
+                                            <div className="absolute inset-0 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+                                        )}
                                         <img 
                                             src={nextSubCat ? nextSubCat.icon : nextMainCat ? (nextMainCat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png') : ''} 
                                             alt="Next Category" 
                                             className="w-full h-full object-contain" 
                                         />
                                     </motion.div>
-                                </motion.div>
+                                </div>
+
+                                {/* Next Section Skeleton Loader representing incoming content on White/Normal Page Background */}
+                                <div className="w-full pt-6 pb-12 flex flex-col items-center bg-white dark:bg-background opacity-70">
+                                    {/* Subcategory Pills Skeleton */}
+                                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full px-4 mb-4">
+                                        <div className="w-12 h-6 bg-slate-100 dark:bg-neutral-850 rounded-full border border-slate-200/50 dark:border-neutral-700/50 flex-shrink-0 animate-pulse" />
+                                        <div className="w-20 h-6 bg-slate-100 dark:bg-neutral-850 rounded-full border border-slate-200/50 dark:border-neutral-700/50 flex-shrink-0 animate-pulse" />
+                                        <div className="w-16 h-6 bg-slate-100 dark:bg-neutral-850 rounded-full border border-slate-200/50 dark:border-neutral-700/50 flex-shrink-0 animate-pulse" />
+                                        <div className="w-24 h-6 bg-slate-100 dark:bg-neutral-850 rounded-full border border-slate-200/50 dark:border-neutral-700/50 flex-shrink-0 animate-pulse" />
+                                    </div>
+
+                                    {/* Grid Skeletons */}
+                                    <div className="grid grid-cols-2 gap-3 w-full px-4">
+                                        <div className="flex flex-col bg-white dark:bg-neutral-900 rounded-2xl p-2 border border-slate-100 dark:border-neutral-800 shadow-sm h-[180px] animate-pulse">
+                                            <div className="w-full h-24 bg-slate-50 dark:bg-neutral-800 rounded-xl mb-2" />
+                                            <div className="h-2.5 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1" />
+                                            <div className="h-2 w-1/2 bg-slate-100/50 dark:bg-neutral-800 rounded" />
+                                        </div>
+                                        <div className="flex flex-col bg-white dark:bg-neutral-900 rounded-2xl p-2 border border-slate-100 dark:border-neutral-800 shadow-sm h-[180px] animate-pulse">
+                                            <div className="w-full h-24 bg-slate-50 dark:bg-neutral-800 rounded-xl mb-2" />
+                                            <div className="h-2.5 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1" />
+                                            <div className="h-2 w-1/2 bg-slate-100/50 dark:bg-neutral-800 rounded" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </main>
