@@ -65,7 +65,7 @@ const HeaderCategories = () => {
     description: "",
     status: "active",
     type: "header",
-    parentId: null,
+    parentId: "",
     iconId: "",
     adminCommission: 0,
     handlingFees: 0,
@@ -199,7 +199,7 @@ const HeaderCategories = () => {
       fetchCategories(page);
     } catch (error) {
       console.error(error);
-      toast.error(editingItem ? "Failed to update" : "Failed to create");
+      toast.error(error.response?.data?.message || (editingItem ? "Failed to update" : "Failed to create"));
     } finally {
       setIsSaving(false);
     }
@@ -227,7 +227,7 @@ const HeaderCategories = () => {
       description: "",
       status: "active",
       type: "header",
-      parentId: null,
+      parentId: "",
       iconId: "",
       adminCommission: 0,
       handlingFees: 0,
@@ -246,13 +246,13 @@ const HeaderCategories = () => {
       description: item.description || "",
       status: item.status,
       type: "header",
-      parentId: null,
+      parentId: "",
       iconId: item.iconId || "",
       adminCommission: item.adminCommission || 0,
       handlingFees: item.handlingFees || 0,
       headerColor: item.headerColor || "#FF1E1E",
     });
-    setPreviewUrl(item.image?.url || null);
+    setPreviewUrl(item.image?.url || item.image || null);
     setIsAddModalOpen(true);
   };
 

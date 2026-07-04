@@ -216,7 +216,9 @@ export const useQuickHomeData = ({ currentLocation }) => {
             const meta = CATEGORY_METADATA[catName] || CATEGORY_METADATA[catName.charAt(0).toUpperCase() + catName.slice(1).toLowerCase()] || CATEGORY_METADATA[catName.toUpperCase()] || {
               icon: Sparkles, theme: DEFAULT_CATEGORY_THEME, banner: { title: catName.toUpperCase(), subtitle: "TOP PICKS", floatingElements: "sparkles" }
             };
-            const IconComp = (cat.iconId && ICON_COMPONENTS[cat.iconId]) || meta.icon || Sparkles;
+            const customImg = cat.image?.url || cat.image;
+            const resolvedImg = customImg ? resolveQuickImageUrl(customImg) : null;
+            const IconComp = resolvedImg || (cat.iconId && ICON_COMPONENTS[cat.iconId]) || meta.icon || Sparkles;
             return { ...cat, id: cat._id, iconId: cat.iconId, icon: IconComp, theme: meta.theme, headerColor: cat.headerColor || null, banner: { ...meta.banner, textColor: "text-white" } };
           });
 

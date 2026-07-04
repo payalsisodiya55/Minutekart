@@ -24,6 +24,7 @@ import LogoImage from "@/assets/Logo.png";
 import shoppingCartAnimation from "@/assets/lottie/shopping-cart.json";
 import { Sparkles } from "lucide-react";
 import { customerApi } from "../../services/customerApi";
+import { resolveQuickImageUrl } from "../../utils/image";
 import ThemeToggle from "../layout/ThemeToggle";
 
 // MUI Icons
@@ -215,7 +216,7 @@ function CategoryNavColumn({
           <img
             src={cat.icon}
             alt={cat.name}
-            className="h-4 w-4 object-contain md:h-5 md:w-5"
+            className="h-6 w-6 object-contain md:h-8 md:w-8"
             style={{ opacity: isActive ? 1 : 0.92 }}
           />
         )}
@@ -301,11 +302,15 @@ const MainLocationHeader = ({
           const dbCats = res.data.results || res.data.result || [];
           const headers = dbCats
             .filter((cat) => cat.type === "header")
-            .map((cat) => ({
-              ...cat,
-              id: cat._id,
-              icon: (cat.iconId && ICON_COMPONENTS[cat.iconId]) || Sparkles,
-            }));
+            .map((cat) => {
+              const customImg = cat.image?.url || cat.image;
+              const resolvedImg = customImg ? resolveQuickImageUrl(customImg) : null;
+              return {
+                ...cat,
+                id: cat._id,
+                icon: resolvedImg || (cat.iconId && ICON_COMPONENTS[cat.iconId]) || Sparkles,
+              };
+            });
           setInternalCategories(headers);
         }
       });
