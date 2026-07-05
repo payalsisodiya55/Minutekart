@@ -97,7 +97,7 @@ const CategoryProductCard = ({ product }) => {
                                 </div>
 
                                 {/* Dot Indicators */}
-                                <div className="absolute bottom-1.5 left-2 flex items-center gap-1.5 z-10 pointer-events-none">
+                                <div className="absolute -bottom-2 left-2 flex items-center gap-1.5 z-10 pointer-events-none">
                                     {allImages.map((_, dotIdx) => (
                                         <div
                                             key={dotIdx}
