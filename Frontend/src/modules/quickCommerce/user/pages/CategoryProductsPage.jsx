@@ -12,6 +12,8 @@ import { customerApi } from '../services/customerApi';
 import MiniCart from '../components/shared/MiniCart';
 import SectionRenderer from "../components/experience/SectionRenderer";
 import { useLocation as useAppLocation } from '../context/LocationContext';
+import { useCartAnimation } from '../context/CartAnimationContext';
+import { resolveQuickImageUrl } from '../utils/image';
 
 const QUICK_THEME_STORAGE_KEY = "food.quick.headerColor";
 const QUICK_HEADER_RETURN_STORAGE_KEY = "food.quick.headerReturn";
@@ -21,7 +23,9 @@ const FALLBACK_HEADER_COLOR = "#0c831f";
 const CategoryProductCard = ({ product }) => {
     const { cart, addToCart, updateQuantity } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
+    const { animateAddToCart, animateRemoveFromCart } = useCartAnimation();
     const [currentImgIdx, setCurrentImgIdx] = useState(0);
+    const imageRef = React.useRef(null);
 
     const allImages = React.useMemo(() => {
         const main = product.image || product.mainImage;
@@ -65,7 +69,7 @@ const CategoryProductCard = ({ product }) => {
                     </button>
 
                     {/* Product Image Carousel */}
-                    <div className="w-full h-full flex items-center justify-center transition-transform duration-500 group-hover:scale-105 relative">
+                    <div ref={imageRef} className="w-full h-full flex items-center justify-center transition-transform duration-500 group-hover:scale-105 relative">
                         {allImages.length > 1 ? (
                             <div className="w-full h-full relative">
                                 <div 
@@ -131,7 +135,13 @@ const CategoryProductCard = ({ product }) => {
                 {/* ADD Button or Quantity Counter absolutely positioned slightly outside bottom-right border */}
                 {quantity === 0 ? (
                     <button
-                        onClick={() => addToCart(product)}
+                        onClick={() => {
+                            addToCart(product);
+                            if (imageRef.current) {
+                                const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
+                                animateAddToCart(imageRef.current.getBoundingClientRect(), resolvedSrc);
+                            }
+                        }}
                         className="absolute bottom-[-3px] right-[-3px] z-20 bg-white dark:bg-neutral-900 border border-[#0c831f] text-[#0c831f] font-extrabold text-[12px] h-[38px] px-4 rounded-[8px] shadow-sm hover:bg-[#0c831f]/5 active:scale-95 transition-all cursor-pointer flex items-center justify-center min-w-[64px]"
                     >
                         ADD
@@ -139,7 +149,13 @@ const CategoryProductCard = ({ product }) => {
                 ) : (
                     <div className="absolute bottom-[-3px] right-[-3px] z-20 flex items-center bg-[#0c831f] text-white rounded-[8px] shadow-sm overflow-hidden h-[38px]">
                         <button
-                            onClick={() => updateQuantity(product.id, -1)}
+                            onClick={() => {
+                                if (imageRef.current) {
+                                    const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
+                                    animateRemoveFromCart(imageRef.current.getBoundingClientRect(), resolvedSrc);
+                                }
+                                updateQuantity(product.id, -1);
+                            }}
                             className="px-2.5 h-full flex items-center justify-center hover:bg-[#096317] active:scale-90 transition-transform"
                         >
                             <Minus size={9} strokeWidth={3} />
@@ -148,7 +164,13 @@ const CategoryProductCard = ({ product }) => {
                             {quantity}
                         </span>
                         <button
-                            onClick={() => updateQuantity(product.id, 1)}
+                            onClick={() => {
+                                if (imageRef.current) {
+                                    const resolvedSrc = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
+                                    animateAddToCart(imageRef.current.getBoundingClientRect(), resolvedSrc);
+                                }
+                                updateQuantity(product.id, 1);
+                            }}
                             className="px-2.5 h-full flex items-center justify-center hover:bg-[#096317] active:scale-90 transition-transform"
                         >
                             <Plus size={9} strokeWidth={3} />
