@@ -42,12 +42,26 @@ const CategoryManagement = () => {
         description: '',
         status: 'active',
         type: 'header',
-        parentId: ''
+        parentId: '',
+        bannerTitle: '',
+        bannerSubtitle: '',
     });
 
     const [imageFile, setImageFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const fileInputRef = useRef(null);
+
+    const [bannerImageFile, setBannerImageFile] = useState(null);
+    const [bannerPreviewUrl, setBannerPreviewUrl] = useState(null);
+    const bannerFileInputRef = useRef(null);
+
+    const handleBannerImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setBannerImageFile(file);
+            setBannerPreviewUrl(URL.createObjectURL(file));
+        }
+    };
     const [filterStatus, setFilterStatus] = useState('all');
     const [activeView, setActiveView] = useState('tree'); // 'tree' or 'subcategories'
 
@@ -187,6 +201,9 @@ const CategoryManagement = () => {
             if (imageFile) {
                 data.append('image', imageFile);
             }
+            if (bannerImageFile) {
+                data.append('bannerImage', bannerImageFile);
+            }
 
             if (editingItem) {
                 const id = editingItem._id || editingItem.id;
@@ -200,6 +217,8 @@ const CategoryManagement = () => {
             setEditingItem(null);
             setImageFile(null);
             setPreviewUrl(null);
+            setBannerImageFile(null);
+            setBannerPreviewUrl(null);
             fetchCategories();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to save category');
@@ -231,11 +250,15 @@ const CategoryManagement = () => {
                 description: item.description || '',
                 status: item.status || 'active',
                 type: item.type,
-                parentId: item.parentId || ''
+                parentId: item.parentId || '',
+                bannerTitle: item.bannerTitle || '',
+                bannerSubtitle: item.bannerSubtitle || ''
             });
             setEditingItem(item);
             setPreviewUrl(item.image || null);
             setImageFile(null);
+            setBannerImageFile(null);
+            setBannerPreviewUrl(item.bannerImage?.url || item.bannerImage || null);
         } else {
             setFormData({
                 name: '',
@@ -243,11 +266,15 @@ const CategoryManagement = () => {
                 description: '',
                 status: 'active',
                 type: type,
-                parentId: parentId || ''
+                parentId: parentId || '',
+                bannerTitle: '',
+                bannerSubtitle: ''
             });
             setEditingItem(null);
             setPreviewUrl(null);
             setImageFile(null);
+            setBannerImageFile(null);
+            setBannerPreviewUrl(null);
         }
         setIsAddModalOpen(true);
     };
@@ -669,7 +696,7 @@ const CategoryManagement = () => {
                                     <X className="h-5 w-5" />
                                 </button>
 
-                                <div className="space-y-6">
+                                <div className="space-y-6 max-h-[65vh] overflow-y-auto pr-2">
                                     <header>
                                         <Badge variant="outline" className="text-[9px] font-black uppercase bg-slate-50 mb-1.5 tracking-widest text-slate-400">{formData.type} level</Badge>
                                         <h3 className="text-xl font-bold text-slate-900">{editingItem ? 'Edit Organization Unit' : 'Create New Unit'}</h3>
@@ -737,6 +764,56 @@ const CategoryManagement = () => {
                                             placeholder="Briefly describe this group..."
                                         />
                                     </div>
+
+                                     {/* Marketing Banner Settings */}
+                                     <div className="border-t border-slate-100 pt-4 space-y-4">
+                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Marketing Banner Settings</p>
+                                         
+                                         <div className="space-y-1">
+                                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Banner Image</label>
+                                             <div
+                                                 onClick={() => bannerFileInputRef.current?.click()}
+                                                 className="w-full h-24 rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center cursor-pointer hover:border-primary/50 overflow-hidden transition-colors"
+                                             >
+                                                 {bannerPreviewUrl ? (
+                                                     <img src={bannerPreviewUrl} alt="Banner Preview" className="w-full h-full object-cover rounded-xl" />
+                                                 ) : (
+                                                     <div className="text-center py-2">
+                                                         <Upload className="h-6 w-6 text-slate-300 mx-auto" />
+                                                         <span className="text-[10px] font-black text-slate-400 mt-2 uppercase tracking-widest block">Upload Landscape Banner</span>
+                                                     </div>
+                                                 )}
+                                             </div>
+                                             <input
+                                                 type="file"
+                                                 ref={bannerFileInputRef}
+                                                 className="hidden"
+                                                 accept="image/*"
+                                                 onChange={handleBannerImageChange}
+                                             />
+                                         </div>
+
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                             <div className="space-y-1">
+                                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Banner Title</label>
+                                                 <input
+                                                     value={formData.bannerTitle}
+                                                     onChange={(e) => setFormData({ ...formData, bannerTitle: e.target.value })}
+                                                     className="w-full px-4 py-2.5 bg-slate-100/50 border-none rounded-xl text-xs font-bold outline-none placeholder:text-slate-300"
+                                                     placeholder="e.g. Fresh seasonal fruits"
+                                                 />
+                                             </div>
+                                             <div className="space-y-1">
+                                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Banner Subtitle</label>
+                                                 <input
+                                                     value={formData.bannerSubtitle}
+                                                     onChange={(e) => setFormData({ ...formData, bannerSubtitle: e.target.value })}
+                                                     className="w-full px-4 py-2.5 bg-slate-100/50 border-none rounded-xl text-xs font-bold outline-none placeholder:text-slate-300"
+                                                     placeholder="e.g. Nutritional goodness"
+                                                 />
+                                             </div>
+                                         </div>
+                                     </div>
 
                                     <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                         <div>

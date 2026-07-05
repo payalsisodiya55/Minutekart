@@ -194,13 +194,19 @@ router.get("/admin/categories", ...adminOnly, getAdminCategories);
 router.post(
   "/admin/categories",
   ...adminOnly,
-  upload.single("image"),
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "bannerImage", maxCount: 1 },
+  ]),
   createCategory,
 );
 router.put(
   "/admin/categories/:categoryId",
   ...adminOnly,
-  upload.single("image"),
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "bannerImage", maxCount: 1 },
+  ]),
   updateCategory,
 );
 router.delete("/admin/categories/:categoryId", ...adminOnly, removeCategory);

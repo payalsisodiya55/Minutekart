@@ -38,11 +38,25 @@ const SubCategories = () => {
     status: "active",
     type: "subcategory",
     parentId: "",
+    bannerTitle: "",
+    bannerSubtitle: "",
   });
 
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
+
+  const [bannerImageFile, setBannerImageFile] = useState(null);
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState(null);
+  const bannerFileInputRef = useRef(null);
+
+  const handleBannerImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBannerImageFile(file);
+      setBannerPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -117,6 +131,9 @@ const SubCategories = () => {
       if (imageFile) {
         data.append("image", imageFile);
       }
+      if (bannerImageFile) {
+        data.append("bannerImage", bannerImageFile);
+      }
 
       if (editingItem) {
         await adminApi.updateCategory(editingItem._id || editingItem.id, data);
@@ -127,6 +144,10 @@ const SubCategories = () => {
       }
       setIsAddModalOpen(false);
       setEditingItem(null);
+      setImageFile(null);
+      setPreviewUrl(null);
+      setBannerImageFile(null);
+      setBannerPreviewUrl(null);
       fetchCategories();
     } catch (error) {
       console.error(error);
@@ -159,9 +180,13 @@ const SubCategories = () => {
       status: "active",
       type: "subcategory",
       parentId: "",
+      bannerTitle: "",
+      bannerSubtitle: "",
     });
     setImageFile(null);
     setPreviewUrl(null);
+    setBannerImageFile(null);
+    setBannerPreviewUrl(null);
     setIsAddModalOpen(true);
   };
 
@@ -174,8 +199,12 @@ const SubCategories = () => {
       status: item.status,
       type: "subcategory",
       parentId: item.parentId?._id || item.parentId || "",
+      bannerTitle: item.bannerTitle || "",
+      bannerSubtitle: item.bannerSubtitle || "",
     });
     setPreviewUrl(item.image?.url || item.image || null);
+    setBannerImageFile(null);
+    setBannerPreviewUrl(item.bannerImage?.url || item.bannerImage || null);
     setIsAddModalOpen(true);
   };
 
@@ -407,7 +436,7 @@ const SubCategories = () => {
                 </button>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                 {/* Image Upload */}
                 <div className="flex justify-center">
                   <div
@@ -499,7 +528,7 @@ const SubCategories = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
+                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
                     Status
                   </label>
@@ -512,6 +541,74 @@ const SubCategories = () => {
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
+                </div>
+
+                {/* Marketing Banner Section */}
+                <div className="border-t border-gray-100 pt-4 mt-2 space-y-4">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Marketing Banner Settings
+                  </h3>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Banner Image
+                    </label>
+                    <div
+                      onClick={() => bannerFileInputRef.current?.click()}
+                      className="w-full h-24 rounded-lg bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-indigo-500 overflow-hidden transition-colors">
+                      {bannerPreviewUrl ? (
+                        <img
+                          src={bannerPreviewUrl}
+                          alt="Banner Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-center py-2">
+                          <Upload className="w-6 h-6 text-gray-400 mx-auto" />
+                          <span className="text-xs text-gray-500 mt-1 block">
+                            Upload Landscape Banner Image
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      ref={bannerFileInputRef}
+                      className="hidden"
+                      onChange={handleBannerImageChange}
+                      accept="image/*"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Banner Title
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.bannerTitle}
+                      onChange={(e) =>
+                        setFormData({ ...formData, bannerTitle: e.target.value })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      placeholder="e.g., Fresh seasonal fruits"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Banner Subtitle
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.bannerSubtitle}
+                      onChange={(e) =>
+                        setFormData({ ...formData, bannerSubtitle: e.target.value })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      placeholder="e.g., Nutritional goodness in every bite"
+                    />
+                  </div>
                 </div>
               </div>
 
