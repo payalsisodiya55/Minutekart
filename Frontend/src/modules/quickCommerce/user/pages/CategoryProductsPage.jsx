@@ -429,8 +429,7 @@ const CategoryProductsPage = () => {
                         bannerTitle: s.bannerTitle || '',
                         bannerSubtitle: s.bannerSubtitle || '',
                     }));
-                    
-                    setSubCategories([{ id: 'all', name: 'All', icon: 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs]);
+                    setSubCategories([{ id: 'all', name: 'All', icon: currentCat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs]);
                     
                     if (isDirectSub && selectedSubCategory === 'all' && !location.state?.activeSubcategoryId) {
                         setSelectedSubCategory(currentCat._id);
@@ -594,27 +593,34 @@ const CategoryProductsPage = () => {
 
                 <div className="flex flex-1 relative items-start">
                     {/* Sidebar */}
-                    <aside className="w-20 md:w-28 shrink-0 border-r border-gray-50 dark:border-white/5 flex flex-col bg-white dark:bg-card overflow-y-auto hide-scrollbar sticky top-0 h-screen pb-32 transition-colors">
+                    <aside className="w-[76px] md:w-24 shrink-0 border-r border-slate-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-900 overflow-y-auto hide-scrollbar sticky top-0 h-screen pb-32 transition-colors">
                         {subCategories.map((cat) => (
                             <button
                                 key={cat.id}
                                 onClick={() => setSelectedSubCategory(cat.id)}
                                 className={cn(
-                                    "flex flex-col items-center py-4 px-1 gap-2 transition-all relative border-l-4",
+                                    "flex flex-col items-center py-3.5 px-1 gap-1.5 transition-all relative border-r-4",
                                     selectedSubCategory === cat.id
-                                        ? "bg-[#F7FCF5] dark:bg-emerald-950/20 border-[#0c831f]"
-                                        : "border-transparent hover:bg-gray-50 dark:hover:bg-white/5"
+                                        ? "bg-white dark:bg-neutral-900 border-[#0c831f]"
+                                        : "border-transparent bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800"
                                 )}
                             >
                                 <div className={cn(
-                                    "w-12 h-12 rounded-2xl flex items-center justify-center p-2 transition-all duration-300",
-                                    selectedSubCategory === cat.id ? "scale-110 animate-pulse-subtle" : "grayscale opacity-70"
+                                    "w-[54px] h-[54px] rounded-full flex items-center justify-center p-1 overflow-hidden transition-all duration-300",
+                                    selectedSubCategory === cat.id 
+                                        ? "bg-[#E8F5E9] dark:bg-emerald-950/40" 
+                                        : "bg-[#F3F4F6] dark:bg-neutral-800"
                                 )}>
-                                    <img src={cat.icon} alt={cat.name} className="w-full h-full object-contain" />
+                                    <img src={cat.icon} alt={cat.name} className={cn(
+                                        "w-full h-full object-contain object-center mix-blend-multiply dark:mix-blend-normal transition-transform duration-300",
+                                        selectedSubCategory === cat.id ? "scale-110" : "scale-100"
+                                    )} />
                                 </div>
                                 <span className={cn(
-                                    "text-[10px] text-center font-bold font-sans leading-tight px-1",
-                                    selectedSubCategory === cat.id ? "text-[#0c831f]" : "text-gray-500"
+                                    "text-[9.5px] md:text-[10px] text-center font-sans leading-[1.1] px-0.5",
+                                    selectedSubCategory === cat.id 
+                                        ? "font-bold text-slate-900 dark:text-white" 
+                                        : "font-medium text-slate-500 dark:text-slate-400"
                                 )}>
                                     {cat.name}
                                 </span>
