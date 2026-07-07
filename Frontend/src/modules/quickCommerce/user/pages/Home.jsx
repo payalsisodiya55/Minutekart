@@ -886,9 +886,9 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
           <div
             className={cn(
               "mb-4 md:mb-6",
-              embedded ? "mt-0" : "mt-6 md:mt-10",
+              embedded ? "mt-0" : "mt-1 md:mt-2",
             )}>
-            <div className="relative overflow-hidden bg-white dark:bg-neutral-900 pt-5 md:pt-6 pb-0 rounded-none">
+            <div className="relative overflow-hidden bg-white dark:bg-neutral-900 pt-2 md:pt-3 pb-0 rounded-none">
               <div className="relative z-10 px-4 md:px-8">
                 <div className="flex justify-between items-center mb-4 md:mb-5">
                   <h3 className="text-lg md:text-xl font-[900] text-[#1F1F1F] dark:text-white tracking-tight leading-none">
