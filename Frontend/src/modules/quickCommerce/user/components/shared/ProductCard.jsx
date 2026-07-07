@@ -344,197 +344,270 @@ const ProductCard = React.memo(
           className,
         )}
         onClick={handleProductClick}>
-        <div
-          className={cn(
-            "flex flex-col h-full w-full rounded-xl overflow-hidden transition-all duration-500 product-card-container premium-wave-shimmer",
-            "bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 shadow-sm",
-            "hover:shadow-md",
-          )}>
-          {/* Top Image Section */}
-          <div className="relative overflow-hidden w-full h-[115px] md:h-[135px] p-1 md:p-2 bg-white dark:bg-neutral-800">
-            {/* Badge (Professional Tag) */}
-            {!hideBadge && (badge || product.discount || discountPercent > 0) && (
-              <div className={cn("absolute z-10", isBestOffer ? "top-1.5 left-1.5 md:top-2 md:left-2" : "top-1.5 left-1.5")}>
-                <OfferBadge
-                  isBestOffer={isBestOffer}
-                  text={badge || product.discount || (discountPercent > 0 ? `${discountPercent}% OFF` : null)}
-                />
-              </div>
-            )}
-
-            {/* Time Badge on Image */}
-            {showTimeOnImage && (
-              <div className="absolute top-1 left-1 z-10 bg-[#E5F7ED] dark:bg-emerald-900/50 text-[#0c831f] dark:text-emerald-400 font-bold text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-sm flex items-center justify-center leading-tight">
+        {!isBestOffer ? (
+          <div
+            className={cn(
+              "flex flex-col h-full w-full rounded-[14px] transition-all duration-300 product-card-container",
+              "bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-2.5",
+              "hover:shadow-md",
+            )}>
+            {/* Time Badge at top left */}
+            <div className="flex items-start">
+              <div className="bg-[#E5F7ED] dark:bg-emerald-900/50 text-[#0c831f] dark:text-emerald-400 font-bold text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-[4px] inline-flex items-center justify-center leading-tight">
                 {product.deliveryTime || "10-15 mins"}
               </div>
-            )}
-
-            <button
-              onClick={toggleWishlist}
-              className="absolute top-1 right-1 z-10 w-6 h-6 md:w-8 md:h-8 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md rounded-full shadow-sm flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-neutral-800 transition-all active:scale-90 border border-slate-100/50 dark:border-neutral-700">
-              <motion.div
-                whileTap={{ scale: 0.8 }}
-                animate={isWishlisted ? { scale: [1, 1.3, 1] } : {}}>
-                <Heart
-                  size={window.innerWidth < 768 ? 12 : 16}
-                  className={cn(
-                    isWishlisted ? "text-red-500 fill-red-500" : "text-slate-300 dark:text-slate-500 group-hover:text-slate-400 dark:group-hover:text-slate-300",
-                  )}
-                />
-              </motion.div>
-            </button>
-
-            <AnimatePresence>
-              {showHeartPopup && (
-                <motion.div
-                  initial={{ scale: 0.5, opacity: 1, y: 0 }}
-                  animate={{ scale: 2.5, opacity: 0, y: -60 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                  className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none text-red-500/30">
-                  <Heart size={48} fill="currentColor" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="w-full h-full rounded-md overflow-hidden bg-white dark:bg-neutral-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-105 relative">
-              {allImages.length > 1 ? (
-                <div className="w-full h-full relative">
-                  {/* Scrollable image list container */}
-                  <div 
-                    className="w-full h-full overflow-x-auto flex snap-x snap-mandatory scrollbar-none"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                    onScroll={(e) => {
-                      const scrollLeft = e.currentTarget.scrollLeft;
-                      const width = e.currentTarget.clientWidth;
-                      if (width > 0) {
-                        const newIndex = Math.round(scrollLeft / width);
-                        if (newIndex !== currentImgIdx) {
-                          setCurrentImgIdx(newIndex);
-                        }
-                      }
-                    }}
-                  >
-                    {allImages.map((imgUrl, imgIdx) => (
-                      <div 
-                        key={imgIdx} 
-                        className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center p-0.5 md:p-1"
-                      >
-                        <img
-                          ref={imgIdx === 0 ? imageRef : null}
-                          src={resolveQuickImageUrl(imgUrl) || imgUrl}
-                          srcSet={getCloudinarySrcSet(imgUrl)}
-                          sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
-                          alt={`${product.name} - ${imgIdx + 1}`}
-                          className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
-                          loading="lazy"
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Dot Indicators */}
-                  <div className="absolute bottom-1.5 left-2 flex items-center gap-1.5 z-10 pointer-events-none">
-                    {allImages.map((_, dotIdx) => (
-                      <div
-                        key={dotIdx}
-                        className={cn(
-                          "rounded-full transition-all duration-300",
-                          dotIdx === currentImgIdx
-                            ? "w-2.5 h-2.5 bg-white dark:bg-neutral-800 border border-slate-400 dark:border-neutral-500 shadow-sm"
-                            : "w-1.5 h-1.5 bg-slate-300 dark:bg-neutral-600"
-                        )}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <img
-                  ref={imageRef}
-                  src={resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage}
-                  srcSet={getCloudinarySrcSet(product.image || product.mainImage)}
-                  sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
-                  alt={product.name}
-                  className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal p-0.5 md:p-1"
-                  loading="lazy"
-                />
-              )}
             </div>
-          </div>
 
-          {/* Content Section */}
-          <div className={cn(
-            "flex flex-col flex-1 px-1.5 py-1 space-y-0.5 bg-white dark:bg-neutral-900 border-t border-slate-100 dark:border-neutral-800 relative product-content-area transition-all duration-300",
-          )}>
-            <div className="space-y-0">
-              {!showTimeOnImage && (
-                <div className="flex items-center gap-1 text-[7.5px] md:text-[8px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
-                  <Clock size={7} className="text-emerald-600 dark:text-emerald-400" />
-                  <span>{product.deliveryTime || "10 MINS"}</span>
-                </div>
-              )}
-              <h3 className={cn("text-[11px] md:text-[12.5px] font-bold text-slate-900 dark:text-white line-clamp-1 leading-tight", showTimeOnImage && "pt-1")}>
-                {product.name}
+            {/* Image Section */}
+            <div className="relative w-full h-[90px] md:h-[110px] mt-1.5 mb-2 bg-transparent flex items-center justify-center">
+              <img
+                ref={imageRef}
+                src={resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage}
+                srcSet={getCloudinarySrcSet(product.image || product.mainImage)}
+                sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
+                alt={product.name}
+                className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
+                loading="lazy"
+              />
+            </div>
+
+            {/* Content Section */}
+            <div className="flex flex-col flex-1 mt-auto">
+              <h3 className="text-[12.5px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.3] line-clamp-2">
+                {product.name}{product.weight ? ` ${product.weight}` : ""}
               </h3>
-              <p className="text-[8px] md:text-[10px] text-slate-400 font-semibold italic">
-                {product.weight || "1 unit"}
-              </p>
-            </div>
-
-            <div className="mt-auto flex items-center justify-between gap-1 pt-0.5 border-t border-slate-200/20 dark:border-neutral-800">
-              <div className="flex flex-col justify-center">
-                <span className="text-[12.5px] md:text-[14px] font-black text-slate-900 dark:text-white leading-none">
-                  ₹{Number(displayPrice || 0).toLocaleString()}
-                </span>
-                {strikethroughPrice && (
-                  <span className="text-[8.5px] md:text-[9.5px] text-slate-400 dark:text-slate-500 line-through font-bold leading-none mt-0.5">
-                    ₹{Number(strikethroughPrice || 0).toLocaleString()}
+              
+              <div className="mt-2.5 flex items-center justify-between gap-1">
+                <div className="flex items-center flex-wrap gap-1 md:gap-1.5">
+                  <span className="text-[14px] md:text-[15px] font-extrabold text-slate-900 dark:text-white leading-none">
+                    ₹{Number(displayPrice || 0).toLocaleString()}
                   </span>
+                  {strikethroughPrice && (
+                    <span className="text-[10px] md:text-[11px] text-slate-400 dark:text-slate-500 line-through font-semibold leading-none">
+                      ₹{Number(strikethroughPrice || 0).toLocaleString()}
+                    </span>
+                  )}
+                </div>
+
+                {quantity > 0 ? (
+                  <div className="flex items-center bg-[#0c831f] text-white rounded-lg shadow-sm h-7 md:h-8 overflow-hidden w-[64px] md:w-[70px] justify-between">
+                    <button
+                      onClick={handleDecrement}
+                      className="w-6 md:w-7 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
+                      <Minus size={11} strokeWidth={3.5} />
+                    </button>
+                    <span className="text-[11px] md:text-[13px] font-black min-w-[14px] md:min-w-[18px] text-center px-0.5">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={handleIncrement}
+                      className="w-6 md:w-7 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
+                      <Plus size={11} strokeWidth={3.5} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    className="flex items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] rounded-lg shadow-sm transition-all duration-300 active:scale-95 hover:bg-[#0c831f]/5 font-bold w-[54px] md:w-[64px] h-7 md:h-8 px-1">
+                    <span className="text-[11.5px] md:text-[12px] font-black uppercase leading-none">ADD</span>
+                  </button>
                 )}
               </div>
-
-              {quantity > 0 ? (
-                <div className="flex items-center bg-[#0c831f] text-white rounded-xl shadow-sm h-8 md:h-9 overflow-hidden w-[72px] md:w-[80px] justify-between">
-                  <button
-                    onClick={handleDecrement}
-                    className="w-6 md:w-7.5 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
-                    <Minus size={10} strokeWidth={4} />
-                  </button>
-                  <span className="text-[11px] md:text-[13px] font-black min-w-[16px] md:min-w-[20px] text-center px-0.5">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={handleIncrement}
-                    className="w-6 md:w-7.5 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
-                    <Plus size={10} strokeWidth={4} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleAddToCart}
-                  className={cn(
-                    "flex flex-col items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] shadow-sm transition-all duration-300 active:scale-95 hover:bg-[#0c831f]/5 font-bold",
-                    isBestOffer 
-                      ? "rounded-[8px] w-8 h-8 md:w-9 md:h-9" 
-                      : "rounded-xl w-[72px] md:w-[80px] h-8 md:h-9 px-1"
-                  )}>
-                  {isBestOffer ? (
-                    <Plus size={16} strokeWidth={3.5} />
-                  ) : (
-                    <>
-                      <span className="text-[11px] md:text-[12px] font-black uppercase leading-none">ADD</span>
-                      {product.variants && product.variants.length > 1 && (
-                        <span className="text-[7px] md:text-[8px] font-bold text-[#0c831f]/90 leading-none mt-0.5 whitespace-nowrap">
-                          {product.variants.length} options
-                        </span>
-                      )}
-                    </>
-                  )}
-                </button>
-              )}
             </div>
           </div>
-        </div>
+        ) : (
+          <div
+            className={cn(
+              "flex flex-col h-full w-full rounded-xl overflow-hidden transition-all duration-500 product-card-container premium-wave-shimmer",
+              "bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 shadow-sm",
+              "hover:shadow-md",
+            )}>
+            {/* Top Image Section */}
+            <div className="relative overflow-hidden w-full h-[115px] md:h-[135px] p-1 md:p-2 bg-white dark:bg-neutral-800">
+              {/* Badge (Professional Tag) */}
+              {!hideBadge && (badge || product.discount || discountPercent > 0) && (
+                <div className={cn("absolute z-10", isBestOffer ? "top-1.5 left-1.5 md:top-2 md:left-2" : "top-1.5 left-1.5")}>
+                  <OfferBadge
+                    isBestOffer={isBestOffer}
+                    text={badge || product.discount || (discountPercent > 0 ? `${discountPercent}% OFF` : null)}
+                  />
+                </div>
+              )}
+
+              {/* Time Badge on Image */}
+              {showTimeOnImage && (
+                <div className="absolute top-1 left-1 z-10 bg-[#E5F7ED] dark:bg-emerald-900/50 text-[#0c831f] dark:text-emerald-400 font-bold text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-sm flex items-center justify-center leading-tight">
+                  {product.deliveryTime || "10-15 mins"}
+                </div>
+              )}
+
+              <button
+                onClick={toggleWishlist}
+                className="absolute top-1 right-1 z-10 w-6 h-6 md:w-8 md:h-8 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md rounded-full shadow-sm flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-neutral-800 transition-all active:scale-90 border border-slate-100/50 dark:border-neutral-700">
+                <motion.div
+                  whileTap={{ scale: 0.8 }}
+                  animate={isWishlisted ? { scale: [1, 1.3, 1] } : {}}>
+                  <Heart
+                    size={window.innerWidth < 768 ? 12 : 16}
+                    className={cn(
+                      isWishlisted ? "text-red-500 fill-red-500" : "text-slate-300 dark:text-slate-500 group-hover:text-slate-400 dark:group-hover:text-slate-300",
+                    )}
+                  />
+                </motion.div>
+              </button>
+
+              <AnimatePresence>
+                {showHeartPopup && (
+                  <motion.div
+                    initial={{ scale: 0.5, opacity: 1, y: 0 }}
+                    animate={{ scale: 2.5, opacity: 0, y: -60 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none text-red-500/30">
+                    <Heart size={48} fill="currentColor" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="w-full h-full rounded-md overflow-hidden bg-white dark:bg-neutral-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-105 relative">
+                {allImages.length > 1 ? (
+                  <div className="w-full h-full relative">
+                    {/* Scrollable image list container */}
+                    <div 
+                      className="w-full h-full overflow-x-auto flex snap-x snap-mandatory scrollbar-none"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                      onScroll={(e) => {
+                        const scrollLeft = e.currentTarget.scrollLeft;
+                        const width = e.currentTarget.clientWidth;
+                        if (width > 0) {
+                          const newIndex = Math.round(scrollLeft / width);
+                          if (newIndex !== currentImgIdx) {
+                            setCurrentImgIdx(newIndex);
+                          }
+                        }
+                      }}
+                    >
+                      {allImages.map((imgUrl, imgIdx) => (
+                        <div 
+                          key={imgIdx} 
+                          className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center p-0.5 md:p-1"
+                        >
+                          <img
+                            ref={imgIdx === 0 ? imageRef : null}
+                            src={resolveQuickImageUrl(imgUrl) || imgUrl}
+                            srcSet={getCloudinarySrcSet(imgUrl)}
+                            sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
+                            alt={`${product.name} - ${imgIdx + 1}`}
+                            className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Dot Indicators */}
+                    <div className="absolute bottom-1.5 left-2 flex items-center gap-1.5 z-10 pointer-events-none">
+                      {allImages.map((_, dotIdx) => (
+                        <div
+                          key={dotIdx}
+                          className={cn(
+                            "rounded-full transition-all duration-300",
+                            dotIdx === currentImgIdx
+                              ? "w-2.5 h-2.5 bg-white dark:bg-neutral-800 border border-slate-400 dark:border-neutral-500 shadow-sm"
+                              : "w-1.5 h-1.5 bg-slate-300 dark:bg-neutral-600"
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <img
+                    ref={imageRef}
+                    src={resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage}
+                    srcSet={getCloudinarySrcSet(product.image || product.mainImage)}
+                    sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
+                    alt={product.name}
+                    className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal p-0.5 md:p-1"
+                    loading="lazy"
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Content Section */}
+            <div className={cn(
+              "flex flex-col flex-1 px-1.5 py-1 space-y-0.5 bg-white dark:bg-neutral-900 border-t border-slate-100 dark:border-neutral-800 relative product-content-area transition-all duration-300",
+            )}>
+              <div className="space-y-0">
+                {!showTimeOnImage && (
+                  <div className="flex items-center gap-1 text-[7.5px] md:text-[8px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
+                    <Clock size={7} className="text-emerald-600 dark:text-emerald-400" />
+                    <span>{product.deliveryTime || "10 MINS"}</span>
+                  </div>
+                )}
+                <h3 className={cn("text-[11px] md:text-[12.5px] font-bold text-slate-900 dark:text-white line-clamp-1 leading-tight", showTimeOnImage && "pt-1")}>
+                  {product.name}
+                </h3>
+                <p className="text-[8px] md:text-[10px] text-slate-400 font-semibold italic">
+                  {product.weight || "1 unit"}
+                </p>
+              </div>
+
+              <div className="mt-auto flex items-center justify-between gap-1 pt-0.5 border-t border-slate-200/20 dark:border-neutral-800">
+                <div className="flex flex-col justify-center">
+                  <span className="text-[12.5px] md:text-[14px] font-black text-slate-900 dark:text-white leading-none">
+                    ₹{Number(displayPrice || 0).toLocaleString()}
+                  </span>
+                  {strikethroughPrice && (
+                    <span className="text-[8.5px] md:text-[9.5px] text-slate-400 dark:text-slate-500 line-through font-bold leading-none mt-0.5">
+                      ₹{Number(strikethroughPrice || 0).toLocaleString()}
+                    </span>
+                  )}
+                </div>
+
+                {quantity > 0 ? (
+                  <div className="flex items-center bg-[#0c831f] text-white rounded-xl shadow-sm h-8 md:h-9 overflow-hidden w-[72px] md:w-[80px] justify-between">
+                    <button
+                      onClick={handleDecrement}
+                      className="w-6 md:w-7.5 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
+                      <Minus size={10} strokeWidth={4} />
+                    </button>
+                    <span className="text-[11px] md:text-[13px] font-black min-w-[16px] md:min-w-[20px] text-center px-0.5">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={handleIncrement}
+                      className="w-6 md:w-7.5 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
+                      <Plus size={10} strokeWidth={4} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    className={cn(
+                      "flex flex-col items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] shadow-sm transition-all duration-300 active:scale-95 hover:bg-[#0c831f]/5 font-bold",
+                      isBestOffer 
+                        ? "rounded-[8px] w-8 h-8 md:w-9 md:h-9" 
+                        : "rounded-xl w-[72px] md:w-[80px] h-8 md:h-9 px-1"
+                    )}>
+                    {isBestOffer ? (
+                      <Plus size={16} strokeWidth={3.5} />
+                    ) : (
+                      <>
+                        <span className="text-[11px] md:text-[12px] font-black uppercase leading-none">ADD</span>
+                        {product.variants && product.variants.length > 1 && (
+                          <span className="text-[7px] md:text-[8px] font-bold text-[#0c831f]/90 leading-none mt-0.5 whitespace-nowrap">
+                            {product.variants.length} options
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Variants Modal */}
         {showVariantsModal && typeof window !== "undefined" && createPortal(
