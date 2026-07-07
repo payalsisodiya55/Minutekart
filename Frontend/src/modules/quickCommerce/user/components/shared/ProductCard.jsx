@@ -360,15 +360,67 @@ const ProductCard = React.memo(
 
             {/* Image Section */}
             <div className="relative w-full h-[90px] md:h-[110px] mt-1.5 mb-2 bg-transparent flex items-center justify-center">
-              <img
-                ref={imageRef}
-                src={resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage}
-                srcSet={getCloudinarySrcSet(product.image || product.mainImage)}
-                sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
-                alt={product.name}
-                className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
-                loading="lazy"
-              />
+              {allImages.length > 1 ? (
+                <div className="w-full h-full relative">
+                  {/* Scrollable image list container */}
+                  <div 
+                    className="w-full h-full overflow-x-auto flex snap-x snap-mandatory scrollbar-none"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    onScroll={(e) => {
+                      const scrollLeft = e.currentTarget.scrollLeft;
+                      const width = e.currentTarget.clientWidth;
+                      if (width > 0) {
+                        const newIndex = Math.round(scrollLeft / width);
+                        if (newIndex !== currentImgIdx) {
+                          setCurrentImgIdx(newIndex);
+                        }
+                      }
+                    }}
+                  >
+                    {allImages.map((imgUrl, imgIdx) => (
+                      <div 
+                        key={imgIdx} 
+                        className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center p-0.5 md:p-1"
+                      >
+                        <img
+                          ref={imgIdx === 0 ? imageRef : null}
+                          src={resolveQuickImageUrl(imgUrl) || imgUrl}
+                          srcSet={getCloudinarySrcSet(imgUrl)}
+                          sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
+                          alt={`${product.name} - ${imgIdx + 1}`}
+                          className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
+                          loading="lazy"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Dot Indicators */}
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 pointer-events-none">
+                    {allImages.map((_, dotIdx) => (
+                      <div
+                        key={dotIdx}
+                        className={cn(
+                          "rounded-full transition-all duration-300",
+                          dotIdx === currentImgIdx
+                            ? "w-2.5 h-2.5 bg-slate-400 dark:bg-neutral-400 shadow-sm"
+                            : "w-1.5 h-1.5 bg-slate-200 dark:bg-neutral-600"
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <img
+                  ref={imageRef}
+                  src={resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage}
+                  srcSet={getCloudinarySrcSet(product.image || product.mainImage)}
+                  sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
+                  alt={product.name}
+                  className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
+                  loading="lazy"
+                />
+              )}
             </div>
 
             {/* Content Section */}
