@@ -424,12 +424,12 @@ const ProductCard = React.memo(
             </div>
 
             {/* Content Section */}
-            <div className="flex flex-col flex-1 mt-auto">
-              <h3 className="text-[12.5px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.3] line-clamp-2">
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <h3 className="text-[12.5px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.3] truncate">
                 {product.name}{product.weight ? ` ${product.weight}` : ""}
               </h3>
               
-              <div className="mt-2.5 flex items-center justify-between gap-1">
+              <div className="mt-auto pt-2.5 flex items-center justify-between gap-1">
                 <div className="flex items-center flex-wrap gap-1 md:gap-1.5">
                   <span className="text-[14px] md:text-[15px] font-extrabold text-slate-900 dark:text-white leading-none">
                     ₹{Number(displayPrice || 0).toLocaleString()}
