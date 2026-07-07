@@ -176,6 +176,7 @@ export default function HomeHeader({
 }) {
   const navigate = useNavigate();
   const [isListening, setIsListening] = useState(false);
+  const [language, setLanguage] = useState("EN");
   const routerLocation = useRouterLocation();
   
   const { userProfile } = useProfile();
@@ -469,7 +470,7 @@ export default function HomeHeader({
       <div className={cn("flex items-center justify-between px-5 relative z-10", isFood ? "pt-5 mb-2" : "pt-3 mb-0")}>
         <button
           type="button"
-          className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 bg-transparent border-0 p-0 text-left outline-none"
+          className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0 bg-transparent border-0 p-0 text-left outline-none pr-2"
           onClick={handleLocationClick}
         >
           <>
@@ -487,12 +488,12 @@ export default function HomeHeader({
             })()}
             <div className="flex min-w-0 flex-col">
               <div className="flex items-center gap-[3px]">
-                <span className={cn("truncate text-[16px] font-extrabold tracking-[-0.3px]", activeTab === "quick" ? "text-slate-800" : "text-white")}>
+                <span className={cn("truncate text-[14.5px] font-extrabold tracking-[-0.3px]", activeTab === "quick" ? "text-slate-800" : "text-white")}>
                   {displayLabel}
                 </span>
                 <ChevronDown className={cn("h-[14px] w-[14px] shrink-0 opacity-85", activeTab === "quick" ? "text-slate-800" : "text-white")} strokeWidth={3} />
               </div>
-              <span className={cn("truncate font-medium max-w-[200px] sm:max-w-[260px]", activeTab === "quick" ? "text-[9px] text-slate-400" : "text-[11px] text-white/75")}>
+              <span className={cn("truncate font-medium max-w-[140px] sm:max-w-[180px]", activeTab === "quick" ? "text-[8.5px] text-slate-400" : "text-[10px] text-white/75")}>
                 {locationSubtitleText}
               </span>
             </div>
@@ -506,13 +507,21 @@ export default function HomeHeader({
                 <div className="flex items-center rounded-lg border border-gray-200 bg-white p-[2px] shadow-sm">
                   <button
                     type="button"
-                    className="flex h-[26px] w-[30px] items-center justify-center rounded-md bg-[#0c831f] text-[10px] font-black text-white"
+                    onClick={() => setLanguage("EN")}
+                    className={cn(
+                      "flex h-[26px] w-[30px] items-center justify-center rounded-md text-[10px] transition-colors",
+                      language === "EN" ? "bg-[#0c831f] font-black text-white" : "font-bold text-gray-500 hover:text-gray-700 bg-transparent"
+                    )}
                   >
                     EN
                   </button>
                   <button
                     type="button"
-                    className="flex h-[26px] w-[30px] items-center justify-center text-[10px] font-bold text-gray-500 hover:text-gray-700"
+                    onClick={() => setLanguage("HI")}
+                    className={cn(
+                      "flex h-[26px] w-[30px] items-center justify-center rounded-md text-[10px] transition-colors",
+                      language === "HI" ? "bg-[#0c831f] font-black text-white" : "font-bold text-gray-500 hover:text-gray-700 bg-transparent"
+                    )}
                   >
                     HI
                   </button>
