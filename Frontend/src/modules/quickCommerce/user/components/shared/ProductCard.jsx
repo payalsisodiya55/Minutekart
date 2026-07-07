@@ -425,43 +425,50 @@ const ProductCard = React.memo(
 
             {/* Content Section */}
             <div className="flex flex-col flex-1 overflow-hidden">
-              <h3 className="text-[12.5px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.3] truncate">
-                {product.name}{product.weight ? ` ${product.weight}` : ""}
-              </h3>
+              <div className="space-y-0.5 mt-1">
+                <h3 className="text-[12.5px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.3] truncate">
+                  {product.name}
+                </h3>
+                {product.weight && (
+                  <p className="text-[9px] md:text-[10px] text-slate-500 font-medium">
+                    {product.weight}
+                  </p>
+                )}
+              </div>
               
               <div className="mt-auto pt-2.5 flex items-center justify-between gap-1">
-                <div className="flex items-center flex-wrap gap-1 md:gap-1.5">
-                  <span className="text-[14px] md:text-[15px] font-extrabold text-slate-900 dark:text-white leading-none">
+                <div className="flex flex-col justify-center">
+                  <span className="text-[13px] md:text-[15px] font-extrabold text-slate-900 dark:text-white leading-none">
                     ₹{Number(displayPrice || 0).toLocaleString()}
                   </span>
                   {strikethroughPrice && (
-                    <span className="text-[10px] md:text-[11px] text-slate-400 dark:text-slate-500 line-through font-semibold leading-none">
+                    <span className="text-[10px] md:text-[11px] text-slate-400 dark:text-slate-500 line-through font-semibold leading-none mt-1">
                       ₹{Number(strikethroughPrice || 0).toLocaleString()}
                     </span>
                   )}
                 </div>
 
                 {quantity > 0 ? (
-                  <div className="flex items-center bg-[#0c831f] text-white rounded-lg shadow-sm h-7 md:h-8 overflow-hidden w-[64px] md:w-[70px] justify-between">
+                  <div className="flex items-center bg-[#0c831f] text-white rounded-[10px] shadow-sm h-8 md:h-9 overflow-hidden w-[72px] md:w-[80px] justify-between">
                     <button
                       onClick={handleDecrement}
-                      className="w-6 md:w-7 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
-                      <Minus size={11} strokeWidth={3.5} />
+                      className="w-7 md:w-8 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
+                      <Minus size={12} strokeWidth={3.5} />
                     </button>
-                    <span className="text-[11px] md:text-[13px] font-black min-w-[14px] md:min-w-[18px] text-center px-0.5">
+                    <span className="text-[12px] md:text-[14px] font-black min-w-[16px] md:min-w-[20px] text-center px-0.5">
                       {quantity}
                     </span>
                     <button
                       onClick={handleIncrement}
-                      className="w-6 md:w-7 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
-                      <Plus size={11} strokeWidth={3.5} />
+                      className="w-7 md:w-8 h-full hover:bg-black/10 transition-colors flex items-center justify-center font-black">
+                      <Plus size={12} strokeWidth={3.5} />
                     </button>
                   </div>
                 ) : (
                   <button
                     onClick={handleAddToCart}
-                    className="flex items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] rounded-lg shadow-sm transition-all duration-300 active:scale-95 hover:bg-[#0c831f]/5 font-bold w-[54px] md:w-[64px] h-7 md:h-8 px-1">
-                    <span className="text-[11.5px] md:text-[12px] font-black uppercase leading-none">ADD</span>
+                    className="flex items-center justify-center bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] rounded-[10px] shadow-sm transition-all duration-300 active:scale-95 hover:bg-[#0c831f]/5 font-bold w-[72px] md:w-[80px] h-8 md:h-9 px-1">
+                    <span className="text-[12px] md:text-[13px] font-black uppercase leading-none">ADD</span>
                   </button>
                 )}
               </div>
@@ -600,9 +607,11 @@ const ProductCard = React.memo(
                 <h3 className={cn("text-[11px] md:text-[12.5px] font-bold text-slate-900 dark:text-white line-clamp-1 leading-tight", showTimeOnImage && "pt-1")}>
                   {product.name}
                 </h3>
-                <p className="text-[8px] md:text-[10px] text-slate-400 font-semibold italic">
-                  {product.weight || "1 unit"}
-                </p>
+                {product.weight && (
+                  <p className="text-[8px] md:text-[10px] text-slate-400 font-semibold italic">
+                    {product.weight}
+                  </p>
+                )}
               </div>
 
               <div className="mt-auto flex items-center justify-between gap-1 pt-0.5 border-t border-slate-200/20 dark:border-neutral-800">
