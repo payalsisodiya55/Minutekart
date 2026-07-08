@@ -546,12 +546,15 @@ const CategoryProductsPage = () => {
             const progress = Math.min(1, visibleHeight / 200);
             setPullProgress(progress);
 
-            // Auto-transition when the banner is scrolled up past the threshold (300px from the bottom)
-            const hasScrolledUpEnough = rect.top < windowHeight - 300;
+            // Require the user to scroll to the very bottom of the page (thoda force)
+            // instead of triggering immediately when the banner is partially visible.
+            const isAtBottom = windowHeight + window.scrollY >= document.documentElement.scrollHeight - 30;
+            const hasScrolledUpEnough = isAtBottom;
+
             if (hasScrolledUpEnough && isScrollable && hasScrolledSinceMount.current) {
                 setIsTransitioning(true);
                 
-                // Wait 800ms to show the premium scale-up & rotate transition animation
+                // Wait 1200ms to show the premium scale-up & rotate transition animation (added more time)
                 setTimeout(() => {
                     if (nextSubCat) {
                         setSelectedSubCategory(nextSubCat.id);
@@ -561,7 +564,7 @@ const CategoryProductsPage = () => {
                         window.scrollTo({ top: 0, behavior: 'auto' });
                     }
                     setIsTransitioning(false);
-                }, 800);
+                }, 1200);
             }
         };
 
