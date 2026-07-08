@@ -1197,7 +1197,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
           {sectionsForRenderer.length > 0 && (
             <div
               className={cn(
-                "container mx-auto px-4 md:px-8 lg:px-[50px] bg-white dark:bg-slate-900 rounded-none pt-4 pb-10 mb-10 relative z-[1] shadow-sm overflow-hidden",
+                "container mx-auto px-4 md:px-8 lg:px-[50px] bg-white dark:bg-slate-900 rounded-none pt-4 pb-10 mt-[-12px] mb-10 relative z-[1] shadow-sm overflow-hidden",
               )}>
               {/* Animated Top Border Glow */}
               <motion.div
