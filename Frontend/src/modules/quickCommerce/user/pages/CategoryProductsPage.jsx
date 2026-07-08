@@ -616,7 +616,7 @@ const CategoryProductsPage = () => {
                     </div>
                 </header>
 
-                <div className="flex flex-1 relative items-start">
+                <div className="flex flex-1 relative">
                     {/* Sidebar */}
                     <aside className="w-[76px] md:w-24 shrink-0 border-r border-slate-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-900 overflow-y-auto hide-scrollbar sticky top-0 h-screen pb-32 transition-colors">
                         {subCategories.map((cat) => (
