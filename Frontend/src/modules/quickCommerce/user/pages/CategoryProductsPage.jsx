@@ -946,7 +946,10 @@ const CategoryProductsPage = () => {
                                 </div>
 
                                 {/* Next Section Skeleton Loader representing incoming content on Normal Page Background */}
-                                <div className="w-full pt-6 pb-12 flex flex-col items-center bg-[#F2F7E0] dark:bg-neutral-950 opacity-70">
+                                <div 
+                                    className="w-full pt-6 flex flex-col items-center bg-[#F2F7E0] dark:bg-neutral-950 opacity-70 relative overflow-hidden h-[90px]"
+                                    style={{ maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)' }}
+                                >
                                     {/* Subcategory Pills Skeleton */}
                                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full px-4 mb-4">
                                         <div className="w-12 h-6 bg-white dark:bg-neutral-900 rounded-full border border-slate-200/30 dark:border-neutral-800 flex-shrink-0 animate-pulse" />
