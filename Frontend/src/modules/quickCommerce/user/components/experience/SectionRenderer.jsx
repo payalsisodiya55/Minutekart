@@ -306,25 +306,25 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
                     onClick={() => {
                       navigate(`/quick/categories/${finalCatId}`, { state: { activeSubcategoryId: finalSubId || 'all' } });
                     }}
-                    className="w-full flex items-center justify-center bg-[#F4F6F8] dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-700/30 rounded-2xl py-3 px-4 mt-4 shadow-sm hover:bg-[#EDF0F3] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
+                    className="w-full flex items-center justify-center bg-[#F0F4F8] dark:bg-neutral-800/60 border border-slate-200/30 rounded-[14px] py-2.5 px-4 mt-3 hover:bg-[#E5ECF2] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
                   >
                     <div className="flex items-center gap-3">
                       {/* Overlapping Thumbnails */}
-                      <div className="flex items-center -space-x-3.5">
+                      <div className="flex items-center -space-x-3">
                         {previewProducts.map((p, pIdx) => (
                           <div 
                             key={p.id || pIdx}
-                            className="w-9 h-9 rounded-full border-[2.5px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-md flex items-center justify-center p-0.5 overflow-hidden"
+                            className="w-9 h-9 rounded-full border-[2.5px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex items-center justify-center p-0.5 overflow-hidden"
                             style={{ zIndex: 3 - pIdx }}
                           >
-                            <img src={p.image} alt="" className="w-full h-full object-contain" />
+                            <img src={p.image} alt="" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" />
                           </div>
                         ))}
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-[#3B4C69] dark:text-slate-300 font-[900] text-sm tracking-tight">
+                      <div className="flex items-center gap-1.5 text-[#3B4C69] dark:text-slate-300 font-bold text-[14px] tracking-tight">
                         <span>See all products</span>
-                        <ChevronRight size={16} className="text-[#3B4C69] dark:text-slate-300 group-hover:translate-x-0.5 transition-transform" />
+                        <ChevronRight size={14} className="text-[#3B4C69] dark:text-slate-300 stroke-[3] group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
                   </div>
@@ -374,31 +374,30 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
                   </div>
                 ))}
               </div>
-              {/* See all products card at the bottom of the section */}
               {finalCatId && (
                 <div 
                   onClick={() => {
                     navigate(`/quick/categories/${finalCatId}`, { state: { activeSubcategoryId: finalSubId || 'all' } });
                   }}
-                  className="w-full flex items-center justify-center bg-[#F4F6F8] dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-700/30 rounded-2xl py-3 px-4 mt-4 shadow-sm hover:bg-[#EDF0F3] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
+                  className="w-full flex items-center justify-center bg-[#F0F4F8] dark:bg-neutral-800/60 border border-slate-200/30 rounded-[14px] py-2.5 px-4 mt-3 hover:bg-[#E5ECF2] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center gap-3">
                     {/* Overlapping Thumbnails */}
-                    <div className="flex items-center -space-x-3.5">
+                    <div className="flex items-center -space-x-3">
                       {previewProducts.map((p, pIdx) => (
                         <div 
                           key={p.id || pIdx}
-                          className="w-9 h-9 rounded-full border-[2.5px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-md flex items-center justify-center p-0.5 overflow-hidden"
+                          className="w-9 h-9 rounded-full border-[2.5px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex items-center justify-center p-0.5 overflow-hidden"
                           style={{ zIndex: 3 - pIdx }}
                         >
-                          <img src={p.image} alt="" className="w-full h-full object-contain" />
+                          <img src={p.image} alt="" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" />
                         </div>
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-[#3B4C69] dark:text-slate-300 font-[900] text-sm tracking-tight">
+                    <div className="flex items-center gap-1.5 text-[#3B4C69] dark:text-slate-300 font-bold text-[14px] tracking-tight">
                       <span>See all products</span>
-                      <ChevronRight size={16} className="text-[#3B4C69] dark:text-slate-300 group-hover:translate-x-0.5 transition-transform" />
+                      <ChevronRight size={14} className="text-[#3B4C69] dark:text-slate-300 stroke-[3] group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </div>
                 </div>

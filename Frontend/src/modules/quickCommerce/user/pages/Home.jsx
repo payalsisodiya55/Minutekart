@@ -690,7 +690,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
         <div className={cn("pt-0", embedded && "pt-0")}>
           {/* Hero Banners (mobile): admin-configured or static fallback */}
           <>
-            <div className={cn("block md:hidden bg-white pb-3", embedded ? "-mt-[1px]" : "mt-0")}>
+            <div className={cn("block md:hidden bg-white pb-1.5", embedded ? "-mt-[1px]" : "mt-0")}>
               <div>
                 <div
                   className="relative w-full overflow-hidden bg-white">
@@ -727,9 +727,9 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                           <p className="text-[13px] font-bold text-[#1A1A1A]/70 leading-snug">
                             on orders above <span className="font-black text-[#1A1A1A]">₹299</span>
                           </p>
-                          <button className="bg-[#0c831f] text-white px-5 py-2 rounded-lg font-black text-[11px] uppercase tracking-wider shadow-md mt-1 active:scale-95 transition-transform">
-                            Shop Now
-                          </button>
+                          <p className="text-[11px] font-bold text-[#1A1A1A]/50 leading-snug">
+                            No coupon code required
+                          </p>
                         </div>
                         
                         {/* Right image - delivery boy */}
@@ -778,7 +778,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
           {effectiveQuickCategories.length > 0 && (
             <div
               className={cn(
-                "w-full mb-5 overflow-hidden relative group z-20 md:mt-3",
+                "w-full mb-3 overflow-hidden relative group z-20 md:mt-3",
                 embedded ? "hidden" : "mt-4 md:mt-6",
               )}>
               <div
@@ -885,12 +885,12 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
           {/* Best Offers Section */}
           <div
             className={cn(
-              "mb-4 md:mb-6",
+              "mb-2 md:mb-4",
               embedded ? "mt-0" : "mt-1 md:mt-2",
             )}>
-            <div className="relative overflow-hidden bg-white dark:bg-neutral-900 pt-2 md:pt-3 pb-0 rounded-none">
+            <div className="relative overflow-hidden bg-white dark:bg-neutral-900 pt-1 md:pt-1.5 pb-0 rounded-none">
               <div className="relative z-10 px-4 md:px-8">
-                <div className="flex justify-between items-center mb-4 md:mb-5">
+                <div className="flex justify-between items-center mb-2.5 md:mb-3">
                   <h3 className="text-lg md:text-xl font-[900] text-[#1F1F1F] dark:text-white tracking-tight leading-none">
                     Best Offers
                   </h3>
@@ -904,7 +904,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                   </motion.div>
                 </div>
 
-                <div className="relative z-10 flex overflow-x-auto gap-3 md:gap-4 pb-5 md:pb-6 no-scrollbar snap-x snap-mandatory scroll-smooth pt-2">
+                <div className="relative z-10 flex overflow-x-auto gap-3 md:gap-4 pb-3 md:pb-4 no-scrollbar snap-x snap-mandatory scroll-smooth pt-1">
                   {isProductsLoading ? (
                     Array(5).fill(0).map((_, i) => (
                       <div key={i} className="w-[140px] md:w-[155px] lg:w-[175px] h-[220px] shrink-0 bg-slate-100 dark:bg-slate-800/60 rounded-xl animate-pulse" />
@@ -934,7 +934,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
           </div>
              {/* Best Seller Sections (Blinkit-style subcategory cards) */}
           {bestSellerSections && bestSellerSections.length > 0 && (
-            <div className="w-full px-4 md:px-8 lg:px-[50px] mb-12">
+            <div className="w-full px-4 md:px-8 lg:px-[50px] mb-6">
               {bestSellerSections
                 .filter(section => {
                   const activeCatId = activeCategory?._id || activeCategory?.id;
@@ -945,8 +945,8 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                 .map((section) => {
                   if (!section.cards || section.cards.length === 0) return null;
                   return (
-                    <div key={section._id} className="mb-6">
-                      <div className="mb-4 px-1">
+                    <div key={section._id} className="mb-4">
+                      <div className="mb-2.5 px-1">
                         <h3 className="text-xl md:text-[26px] font-extrabold text-[#1F1F1F] dark:text-white tracking-tight">
                           Bestsellers
                         </h3>
@@ -1161,25 +1161,25 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
                                 onClick={() => {
                                   navigate(`/quick/categories/${finalCatId}`, { state: { activeSubcategoryId: finalSubId || 'all' } });
                                 }}
-                                className="w-full flex items-center justify-center bg-[#F4F6F8] dark:bg-neutral-800/50 border border-slate-100 dark:border-neutral-700/30 rounded-2xl py-3 px-4 mt-4 shadow-sm hover:bg-[#EDF0F3] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
+                                className="w-full flex items-center justify-center bg-[#F0F4F8] dark:bg-neutral-800/60 border border-slate-200/30 rounded-[14px] py-2.5 px-4 mt-3 hover:bg-[#E5ECF2] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
                               >
                                 <div className="flex items-center gap-3">
                                   {/* Overlapping Thumbnails */}
-                                  <div className="flex items-center -space-x-3.5">
+                                  <div className="flex items-center -space-x-3">
                                     {previewProducts.map((p, pIdx) => (
                                       <div 
                                         key={p.id || pIdx}
-                                        className="w-9 h-9 rounded-full border-[2.5px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-md flex items-center justify-center p-0.5 overflow-hidden"
+                                        className="w-9 h-9 rounded-full border-[2.5px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex items-center justify-center p-0.5 overflow-hidden"
                                         style={{ zIndex: 3 - pIdx }}
                                       >
-                                        <img src={p.image} alt="" className="w-full h-full object-contain" />
+                                        <img src={p.image} alt="" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" />
                                       </div>
                                     ))}
                                   </div>
 
-                                  <div className="flex items-center gap-1.5 text-[#3B4C69] dark:text-slate-300 font-[900] text-sm tracking-tight">
+                                  <div className="flex items-center gap-1.5 text-[#3B4C69] dark:text-slate-300 font-bold text-[14px] tracking-tight">
                                     <span>See all products</span>
-                                    <ChevronRight size={16} className="text-[#3B4C69] dark:text-slate-300 group-hover:translate-x-0.5 transition-transform" />
+                                    <ChevronRight size={14} className="text-[#3B4C69] dark:text-slate-300 stroke-[3] group-hover:translate-x-0.5 transition-transform" />
                                   </div>
                                 </div>
                               </div>

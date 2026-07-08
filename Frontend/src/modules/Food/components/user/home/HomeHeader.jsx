@@ -504,123 +504,206 @@ export default function HomeHeader({
           {!hideExtras && (
             <>
               {activeTab === "quick" ? (
-                <div className="flex items-center rounded-lg border border-gray-200 bg-white p-[2px] shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => setLanguage("EN")}
-                    className={cn(
-                      "flex h-[26px] w-[30px] items-center justify-center rounded-md text-[10px] transition-colors",
-                      language === "EN" ? "bg-[#0c831f] font-black text-white" : "font-bold text-gray-500 hover:text-gray-700 bg-transparent"
-                    )}
-                  >
-                    EN
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLanguage("HI")}
-                    className={cn(
-                      "flex h-[26px] w-[30px] items-center justify-center rounded-md text-[10px] transition-colors",
-                      language === "HI" ? "bg-[#0c831f] font-black text-white" : "font-bold text-gray-500 hover:text-gray-700 bg-transparent"
-                    )}
-                  >
-                    HI
-                  </button>
-                </div>
-              ) : (
-                <Link
-                  to={walletPath}
-                  className="h-[38px] w-[38px] rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-                  aria-label="Open wallet"
-                >
-                  <img src={geminiWalletImage} alt="Wallet" className="h-[24px] w-[24px] object-contain" />
-                </Link>
-              )}
+                <>
+                  {/* Language Toggle */}
+                  <div className="flex items-center rounded-lg border border-gray-200 bg-white p-[2px] shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setLanguage("EN")}
+                      className={cn(
+                        "flex h-[26px] w-[30px] items-center justify-center rounded-md text-[10px] transition-colors",
+                        language === "EN" ? "bg-[#0c831f] font-black text-white" : "font-bold text-gray-500 hover:text-gray-700 bg-transparent"
+                      )}
+                    >
+                      EN
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLanguage("HI")}
+                      className={cn(
+                        "flex h-[26px] w-[30px] items-center justify-center rounded-md text-[12px] transition-colors",
+                        language === "HI" ? "bg-[#0c831f] font-black text-white" : "font-bold text-gray-500 hover:text-gray-700 bg-transparent"
+                      )}
+                    >
+                      हि
+                    </button>
+                  </div>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="relative h-[38px] w-[38px] rounded-full bg-white/95 border border-white/60 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-              >
-                <Bell className="h-[18px] w-[18px] text-[#282c3f]" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-yellow-400 border border-white" />
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-0 overflow-hidden border-none shadow-2xl rounded-2xl mt-2" align="end">
-              <div className="bg-white">
-                <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                  <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                    Notifications
-                    {unreadCount > 0 && (
-                      <Badge variant="secondary" className="bg-red-100 text-red-600 border-none text-[10px] h-4">
-                        {unreadCount} New
-                      </Badge>
-                    )}
-                  </h3>
-                  <Link to="/food/user/notifications" className="text-xs font-bold text-red-600">
-                    {mergedNotifications.length > 0 ? "View All" : ""}
+                  {/* Wallet Icon in place of Notification */}
+                  <Link
+                    to={walletPath}
+                    className="h-[38px] w-[38px] rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                    aria-label="Open wallet"
+                  >
+                    <img src={geminiWalletImage} alt="Wallet" className="h-[24px] w-[24px] object-contain" />
                   </Link>
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {mergedNotifications.length > 0 ? (
-                    mergedNotifications.slice(0, 5).map((item, index) => (
-                      <div key={item.id || `notif-${index}`} className="p-4 flex items-start gap-3 border-b border-gray-50 last:border-0">
-                        <div className="mt-1 p-2 rounded-full bg-red-100/50 text-red-600">
-                          <Bell className="h-4 w-4" />
+
+                  {/* Notification Icon in place of Profile */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="relative h-[38px] w-[38px] rounded-full bg-white/95 border border-white/60 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                      >
+                        <Bell className="h-[18px] w-[18px] text-[#282c3f]" />
+                        {unreadCount > 0 && (
+                          <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-yellow-400 border border-white" />
+                        )}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-0 overflow-hidden border-none shadow-2xl rounded-2xl mt-2" align="end">
+                      <div className="bg-white">
+                        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                            Notifications
+                            {unreadCount > 0 && (
+                              <Badge variant="secondary" className="bg-red-100 text-red-600 border-none text-[10px] h-4">
+                                {unreadCount} New
+                              </Badge>
+                            )}
+                          </h3>
+                          <Link to="/food/user/notifications" className="text-xs font-bold text-red-600">
+                            {mergedNotifications.length > 0 ? "View All" : ""}
+                          </Link>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2 mb-0.5">
-                            <span className="text-sm font-bold text-gray-900 truncate">{item.title}</span>
-                            <div className="flex items-center gap-1">
-                              <span className="text-[10px] text-gray-400 whitespace-nowrap">{item.time}</span>
-                              <button
-                                type="button"
-                                onClick={(event) => {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                  removeNotification(item.id, item.source);
-                                }}
-                                className="rounded-full p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                              >
-                                <X className="h-3.5 w-3.5" />
-                              </button>
+                        <div className="max-h-96 overflow-y-auto">
+                          {mergedNotifications.length > 0 ? (
+                            mergedNotifications.slice(0, 5).map((item, index) => (
+                              <div key={item.id || `notif-${index}`} className="p-4 flex items-start gap-3 border-b border-gray-50 last:border-0">
+                                <div className="mt-1 p-2 rounded-full bg-red-100/50 text-red-600">
+                                  <Bell className="h-4 w-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                                    <span className="text-sm font-bold text-gray-900 truncate">{item.title}</span>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-[10px] text-gray-400 whitespace-nowrap">{item.time}</span>
+                                      <button
+                                        type="button"
+                                        onClick={(event) => {
+                                          event.preventDefault();
+                                          event.stopPropagation();
+                                          removeNotification(item.id, item.source);
+                                        }}
+                                        className="rounded-full p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                      >
+                                        <X className="h-3.5 w-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{item.message}</p>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-8 text-center flex flex-col items-center gap-2">
+                              <BellOff className="h-10 w-10 text-gray-200" />
+                              <p className="text-xs text-gray-400 font-medium">All caught up!</p>
                             </div>
-                          </div>
-                          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{item.message}</p>
+                          )}
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="p-8 text-center flex flex-col items-center gap-2">
-                      <BellOff className="h-10 w-10 text-gray-200" />
-                      <p className="text-xs text-gray-400 font-medium">All caught up!</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <Link
-            to="/profile?from=food"
-            className="h-[38px] w-[38px] rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
-            aria-label="Open profile"
-          >
-            {profileImageUrl ? (
-              <img
-                src={profileImageUrl}
-                alt="Profile"
-                className="h-full w-full object-cover"
-              />
-            ) : avatarInitial ? (
-              <div className="h-full w-full flex items-center justify-center bg-red-100 text-red-600 text-[18px] font-medium leading-none">
-                {avatarInitial}
-              </div>
-            ) : (
-              <User className="h-[20px] w-[20px] text-[#282c3f]" strokeWidth={2} />
-            )}
-          </Link>
+                    </PopoverContent>
+                  </Popover>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to={walletPath}
+                    className="h-[38px] w-[38px] rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                    aria-label="Open wallet"
+                  >
+                    <img src={geminiWalletImage} alt="Wallet" className="h-[24px] w-[24px] object-contain" />
+                  </Link>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="relative h-[38px] w-[38px] rounded-full bg-white/95 border border-white/60 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                      >
+                        <Bell className="h-[18px] w-[18px] text-[#282c3f]" />
+                        {unreadCount > 0 && (
+                          <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-yellow-400 border border-white" />
+                        )}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-0 overflow-hidden border-none shadow-2xl rounded-2xl mt-2" align="end">
+                      <div className="bg-white">
+                        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                            Notifications
+                            {unreadCount > 0 && (
+                              <Badge variant="secondary" className="bg-red-100 text-red-600 border-none text-[10px] h-4">
+                                {unreadCount} New
+                              </Badge>
+                            )}
+                          </h3>
+                          <Link to="/food/user/notifications" className="text-xs font-bold text-red-600">
+                            {mergedNotifications.length > 0 ? "View All" : ""}
+                          </Link>
+                        </div>
+                        <div className="max-h-96 overflow-y-auto">
+                          {mergedNotifications.length > 0 ? (
+                            mergedNotifications.slice(0, 5).map((item, index) => (
+                              <div key={item.id || `notif-${index}`} className="p-4 flex items-start gap-3 border-b border-gray-50 last:border-0">
+                                <div className="mt-1 p-2 rounded-full bg-red-100/50 text-red-600">
+                                  <Bell className="h-4 w-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                                    <span className="text-sm font-bold text-gray-900 truncate">{item.title}</span>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-[10px] text-gray-400 whitespace-nowrap">{item.time}</span>
+                                      <button
+                                        type="button"
+                                        onClick={(event) => {
+                                          event.preventDefault();
+                                          event.stopPropagation();
+                                          removeNotification(item.id, item.source);
+                                        }}
+                                        className="rounded-full p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                      >
+                                        <X className="h-3.5 w-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{item.message}</p>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-8 text-center flex flex-col items-center gap-2">
+                              <BellOff className="h-10 w-10 text-gray-200" />
+                              <p className="text-xs text-gray-400 font-medium">All caught up!</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  <Link
+                    to="/profile?from=food"
+                    className="h-[38px] w-[38px] rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)] overflow-hidden"
+                    aria-label="Open profile"
+                  >
+                    {profileImageUrl ? (
+                      <img
+                        src={profileImageUrl}
+                        alt="Profile"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : avatarInitial ? (
+                      <div className="h-full w-full flex items-center justify-center bg-red-100 text-red-600 text-[18px] font-medium leading-none">
+                        {avatarInitial}
+                      </div>
+                    ) : (
+                      <User className="h-[20px] w-[20px] text-[#282c3f]" strokeWidth={2} />
+                    )}
+                  </Link>
+                </>
+              )}
             </>
           )}
         </div>

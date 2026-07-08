@@ -744,7 +744,7 @@ const MainLocationHeader = ({
                   overflowY: "hidden",
                 }}
                  className={cn(
-                   "relative flex items-center justify-start gap-3 overflow-x-auto no-scrollbar pl-4 pr-4 md:px-6 md:justify-center z-10 snap-x min-h-[90px] md:min-h-[100px] pb-2",
+                   "relative flex items-center justify-start gap-3 overflow-x-auto no-scrollbar pl-4 pr-4 md:px-6 md:justify-center z-10 snap-x min-h-[90px] md:min-h-[100px] pb-1",
                    embedded ? "pt-2" : "pt-3",
                  )}>
                 {/* 1. Leftmost Header Category Selector */}

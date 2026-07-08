@@ -621,12 +621,15 @@ const CategoryProductsPage = () => {
                                 key={cat.id}
                                 onClick={() => setSelectedSubCategory(cat.id)}
                                 className={cn(
-                                    "flex flex-col items-center py-3.5 px-1 gap-1.5 transition-all relative border-r-4",
+                                    "flex flex-col items-center py-3.5 px-1 gap-1.5 transition-all relative",
                                     selectedSubCategory === cat.id
-                                        ? "bg-white dark:bg-neutral-900 border-[#0c831f]"
-                                        : "border-transparent bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800"
+                                        ? "bg-white dark:bg-neutral-900"
+                                        : "bg-white dark:bg-neutral-900 hover:bg-slate-50 dark:hover:bg-neutral-800"
                                 )}
                             >
+                                {selectedSubCategory === cat.id && (
+                                    <div className="absolute right-0 top-[2px] bottom-[2px] w-[4px] bg-[#0c831f] rounded-l-full" />
+                                )}
                                 <div className={cn(
                                     "w-[54px] h-[54px] rounded-full flex items-center justify-center p-1 overflow-hidden transition-all duration-300",
                                     selectedSubCategory === cat.id 
