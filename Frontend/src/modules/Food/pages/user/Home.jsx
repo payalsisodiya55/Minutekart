@@ -115,6 +115,13 @@ import { useServiceability } from "@/modules/common/hooks/useServiceability";
 import ServiceUnavailable from "@/modules/common/components/ServiceUnavailable";
 import bakeryIcon from "@food/assets/explore more icons/bakery.png";
 import customLogo from "@food/assets/customl_ogo.png";
+import QuickLaunchSplash from "../../../quickCommerce/user/components/QuickLaunchSplash";
+
+const resolveHomeTab = (pathname = "") => {
+  if (pathname.endsWith("/quick") || pathname.includes("/quick/")) return "quick";
+  if (pathname.endsWith("/dudhwala") || pathname.includes("/dudhwala/")) return "milk";
+  return "food";
+};
 
 // Extracted Sub-components
 const BannerSection = lazy(() => import("@food/components/user/home/BannerSection"));
@@ -192,7 +199,9 @@ export default function Home() {
   const [showAllCategoriesModal, setShowAllCategoriesModal] = useState(false);
   const [availabilityTick, setAvailabilityTick] = useState(Date.now());
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState("food");
+  const [activeTab, setActiveTab] = useState(() =>
+    resolveHomeTab(typeof window === "undefined" ? routerLocation.pathname : window.location.pathname)
+  );
   const [quickThemeColor, setQuickThemeColor] = useState("#DC021B");
   const [showToast, setShowToast] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
@@ -452,14 +461,7 @@ export default function Home() {
 
   // Sync activeTab with URL
   useEffect(() => {
-    const path = routerLocation.pathname;
-    const isQuick = path.endsWith("/quick") || path.includes("/quick/");
-    const isMilk = path.endsWith("/dudhwala") || path.includes("/dudhwala/");
-
-    let targetTab = "food";
-    if (isQuick) targetTab = "quick";
-    else if (isMilk) targetTab = "milk";
-
+    const targetTab = resolveHomeTab(routerLocation.pathname);
     if (activeTab !== targetTab) setActiveTab(targetTab);
   }, [routerLocation.pathname, activeTab]);
 
@@ -961,7 +963,7 @@ export default function Home() {
                 <QuickWishlistProvider>
                   <QuickCartAnimationProvider>
                     <QuickProductDetailProvider>
-                      <Suspense fallback={<div className="h-screen w-full bg-white dark:bg-[#0a0a0a]" />}>
+                      <Suspense fallback={<QuickLaunchSplash />}>
                         <QuickCommerceHomePage
                           embedded
                           onThemeChange={({ color }) => color && setQuickThemeColor(color)}

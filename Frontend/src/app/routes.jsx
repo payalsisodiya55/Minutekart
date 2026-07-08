@@ -10,6 +10,7 @@ import ProtectedRoute from '@core/guards/ProtectedRoute'
 import RoleGuard from '@core/guards/RoleGuard'
 import { UserRole } from '@core/constants/roles'
 import SellerAuthPage from '../modules/seller/pages/Auth'
+import QuickLaunchSplash from '../modules/quickCommerce/user/components/QuickLaunchSplash'
 
 const NATIVE_LAST_ROUTE_KEY = 'native_last_route'
 
@@ -56,6 +57,10 @@ const RouteAwarePageLoader = () => {
 
   if (pathname.startsWith('/admin')) {
     return <ContentPageSkeleton hero={false} />
+  }
+
+  if (pathname === '/quick') {
+    return <QuickLaunchSplash />
   }
 
   return <AppShellSkeleton />
