@@ -46,7 +46,7 @@ import FlashOnIcon from "@mui/icons-material/FlashOn";
 import SavingsIcon from "@mui/icons-material/Savings";
 
 import { getIconSvg } from "@/shared/constants/categoryIcons";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { customerApi } from "../services/customerApi";
 import { toast } from "sonner";
 import ProductCard from "../components/shared/ProductCard";
@@ -60,6 +60,7 @@ import { useProductDetail } from "../context/ProductDetailContext";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@food/components/ui/skeleton";
 import CardBanner from "@/assets/CardBanner.jpg";
+import InstamartSplashImage from "@/assets/de267d90-912f-46de-92e0-61e09f1b7cd3.png";
 import SectionRenderer from "../components/experience/SectionRenderer";
 import ExperienceBannerCarousel from "../components/experience/ExperienceBannerCarousel";
 import { useLocation } from "../context/LocationContext";
@@ -480,6 +481,14 @@ function QuickHomeLoadingState({ embedded }) {
 
 const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) => {
   const { scrollY } = useScroll();
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
   const { isOpen: isProductDetailOpen } = useProductDetail();
   const { currentLocation } = useLocation();
   const navigate = useNavigate();
@@ -664,11 +673,31 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
   };
 
   return (
-    <div
-      className={cn(
-        "bg-white dark:bg-background",
-        embedded ? "min-h-0 bg-white dark:bg-card pt-0" : "min-h-screen pt-[176px] md:pt-[210px]",
-      )}>
+    <>
+      <AnimatePresence>
+        {showSplash && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[9999] bg-white dark:bg-neutral-900 flex items-center justify-center overflow-hidden"
+          >
+            <motion.img
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              src={InstamartSplashImage}
+              alt="Instamart Splash"
+              className="w-full h-full object-cover object-top"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div
+        className={cn(
+          "bg-white dark:bg-background",
+          embedded ? "min-h-0 bg-white dark:bg-card pt-0" : "min-h-screen pt-[176px] md:pt-[210px]",
+        )}>
       {/* Top Dynamic Gradient Section */}
       <div
         className={cn("contents", isProductDetailOpen && "hidden md:contents")}>
@@ -1245,6 +1274,7 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
         </div>
       )}
     </div>
+    </>
   );
 };
 
