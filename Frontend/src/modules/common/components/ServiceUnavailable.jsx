@@ -14,34 +14,35 @@ export default function ServiceUnavailable({ type = "zone", moduleName = "", onR
       };
     }
     
-    // type === "zone"
-    if (moduleName.toLowerCase().includes('food')) {
-      return {
-        title: "Coming Soon!",
-        desc: "Chotuu aapke yahan abhi nahi aaya, par jald hi garma-garam khana layega! 🛵🍲",
-        icon: <MapPinOff className="w-16 h-16 text-red-500" />
-      };
-    }
-    if (moduleName.toLowerCase().includes('quick') || moduleName.toLowerCase().includes('mart')) {
-      return {
-        title: "Coming Soon!",
-        desc: "Chotuu aapke yahan abhi nahi aaya, par 15 minute mein magic le aayega! ⚡🛒",
-        icon: <MapPinOff className="w-16 h-16 text-green-500" />
-      };
-    }
-    if (moduleName.toLowerCase().includes('milk') || moduleName.toLowerCase().includes('dudhwala')) {
-      return {
-        title: "Coming Soon!",
-        desc: "Chotuu aapke yahan abhi nahi aaya, par subah-subah fresh doodh pahunchayega! 🥛☀️",
-        icon: <MapPinOff className="w-16 h-16 text-blue-500" />
-      };
-    }
+    if (type === "zone") {
+      if (moduleName.toLowerCase().includes('food')) {
+        return {
+          title: "Coming Soon!",
+          desc: "We are not serving at this location yet. Please try changing your location to order! 🛵🍲",
+          icon: <MapPinOff className="w-16 h-16 text-red-500" />
+        };
+      }
+      if (moduleName.toLowerCase().includes('quick') || moduleName.toLowerCase().includes('mart')) {
+        return {
+          title: "Coming Soon!",
+          desc: "We are not serving at this location yet. Please try changing your location to order! ⚡🛒",
+          icon: <MapPinOff className="w-16 h-16 text-green-500" />
+        };
+      }
+      if (moduleName.toLowerCase().includes('milk') || moduleName.toLowerCase().includes('dudhwala')) {
+        return {
+          title: "Coming Soon!",
+          desc: "We are not serving at this location yet. Please try changing your location to order! 🥛☀️",
+          icon: <MapPinOff className="w-16 h-16 text-blue-500" />
+        };
+      }
 
-    return {
-      title: "Coming Soon!",
-      desc: "Oops! Chotuu aapke yahan abhi nahi aaya hai. Hum tezi se expand kar rahe hain, jald milenge! 🚀",
-      icon: <MapPinOff className="w-16 h-16 text-gray-400" />
-    };
+      return {
+        title: "Coming Soon!",
+        desc: "We are not serving at this location yet. Please try changing your location to order! 🚀",
+        icon: <MapPinOff className="w-16 h-16 text-gray-400" />
+      };
+    }
   };
 
   const content = getMessage();
