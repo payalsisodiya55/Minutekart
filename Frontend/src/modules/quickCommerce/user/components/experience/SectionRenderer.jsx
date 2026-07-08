@@ -306,7 +306,7 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
                     onClick={() => {
                       navigate(`/quick/categories/${finalCatId}`, { state: { activeSubcategoryId: finalSubId || 'all' } });
                     }}
-                    className="w-full flex items-center justify-center bg-[#F0F4F8] dark:bg-neutral-800/60 border border-slate-200/30 rounded-[14px] py-2.5 px-4 mt-3 hover:bg-[#E5ECF2] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
+                    className="w-full flex items-center justify-center bg-[#F0F4F8] dark:bg-neutral-800/60 border border-slate-200/30 rounded-[14px] py-1.5 px-4 mt-3 hover:bg-[#E5ECF2] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
                   >
                     <div className="flex items-center gap-3">
                       {/* Overlapping Thumbnails */}
@@ -379,7 +379,7 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
                   onClick={() => {
                     navigate(`/quick/categories/${finalCatId}`, { state: { activeSubcategoryId: finalSubId || 'all' } });
                   }}
-                  className="w-full flex items-center justify-center bg-[#F0F4F8] dark:bg-neutral-800/60 border border-slate-200/30 rounded-[14px] py-2.5 px-4 mt-3 hover:bg-[#E5ECF2] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
+                  className="w-full flex items-center justify-center bg-[#F0F4F8] dark:bg-neutral-800/60 border border-slate-200/30 rounded-[14px] py-1.5 px-4 mt-3 hover:bg-[#E5ECF2] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center gap-3">
                     {/* Overlapping Thumbnails */}
