@@ -287,85 +287,7 @@ const CategoryProductsPage = () => {
     const [heroConfig, setHeroConfig] = useState(null);
     const [categoryMap, setCategoryMap] = useState({});
     const [subcategoryMap, setSubcategoryMap] = useState({});
-    const getBannerConfig = () => {
-        const catName = category?.name || '';
-        const subCatObj = subCategories.find(s => s.id === selectedSubCategory);
-        const subCatName = subCatObj?.name || '';
 
-        // 1. Check if the subcategory itself has a custom banner configured (when selected is not 'all')
-        if (selectedSubCategory !== 'all' && subCatObj && (subCatObj.bannerImage || subCatObj.bannerTitle || subCatObj.bannerSubtitle)) {
-            return {
-                title: subCatObj.bannerTitle || subCatObj.name,
-                subtitle: subCatObj.bannerSubtitle || "Nutritional goodness in every bite",
-                gradient: "from-[#F1F9EE] to-[#E6F3E2] dark:from-neutral-900/60 dark:to-neutral-950/60",
-                image: subCatObj.bannerImage || "/fresh_seasonal_fruits.png"
-            };
-        }
-
-        // 2. Check if the parent category has a custom banner configured
-        if (category && (category.bannerImage || category.bannerTitle || category.bannerSubtitle)) {
-            return {
-                title: category.bannerTitle || category.name,
-                subtitle: category.bannerSubtitle || "Nutritional goodness in every bite",
-                gradient: "from-[#F1F9EE] to-[#E6F3E2] dark:from-neutral-900/60 dark:to-neutral-950/60",
-                image: category.bannerImage || "/fresh_seasonal_fruits.png"
-            };
-        }
-
-        // If it's Fruit & Vegetables or Groceries
-        if (
-            catName.toLowerCase().includes('fruit') || 
-            catName.toLowerCase().includes('vegetable') || 
-            catName.toLowerCase().includes('grocery') || 
-            subCatName.toLowerCase().includes('fruit') || 
-            subCatName.toLowerCase().includes('vegetable')
-        ) {
-            return {
-                title: "Fresh seasonal fruits",
-                subtitle: "Nutritional goodness in every bite",
-                gradient: "from-[#F1F9EE] to-[#E6F3E2] dark:from-neutral-900/60 dark:to-neutral-950/60",
-                image: "/fresh_seasonal_fruits.png"
-            };
-        }
-
-        // Dairy & Breads
-        if (catName.toLowerCase().includes('dairy') || catName.toLowerCase().includes('bread') || subCatName.toLowerCase().includes('dairy') || subCatName.toLowerCase().includes('bread')) {
-            return {
-                title: "Fresh Dairy & Breads",
-                subtitle: "Farm fresh milk, butter & soft breads daily",
-                gradient: "from-[#FFF9E6] to-[#FFF1CD] dark:from-neutral-900/60 dark:to-neutral-950/60",
-                image: "https://cdn-icons-png.flaticon.com/512/3054/3054929.png"
-            };
-        }
-
-        // Snacks / Munchies
-        if (catName.toLowerCase().includes('snack') || catName.toLowerCase().includes('munch') || subCatName.toLowerCase().includes('snack') || subCatName.toLowerCase().includes('munch')) {
-            return {
-                title: "Craving Snacks & Munchies?",
-                subtitle: "Crunchy chips, cookies & sweets at your door",
-                gradient: "from-[#FFE6E6] to-[#FFCDCD] dark:from-neutral-900/60 dark:to-neutral-950/60",
-                image: "https://cdn-icons-png.flaticon.com/512/2553/2553691.png"
-            };
-        }
-
-        // Cold Drinks / Beverages
-        if (catName.toLowerCase().includes('drink') || catName.toLowerCase().includes('beverage') || subCatName.toLowerCase().includes('drink') || subCatName.toLowerCase().includes('beverage')) {
-            return {
-                title: "Chilled Drinks & Juices",
-                subtitle: "Quench your thirst in minutes",
-                gradient: "from-[#E6F0FF] to-[#CDDFFF] dark:from-neutral-900/60 dark:to-neutral-950/60",
-                image: "https://cdn-icons-png.flaticon.com/512/3054/3054889.png"
-            };
-        }
-
-        // Fallback banner
-        return {
-            title: subCatName && subCatName !== 'All' ? subCatName : catName || "Daily Essentials",
-            subtitle: "Premium quality delivered to your doorstep in minutes",
-            gradient: "from-[#F3F4F6] to-[#E5E7EB] dark:from-neutral-900/60 dark:to-neutral-950/60",
-            image: "/fresh_seasonal_fruits.png"
-        };
-    };
 
     const fetchData = () => {
         setIsLoading(true);
@@ -457,9 +379,6 @@ const CategoryProductsPage = () => {
                         id: normalizeId(s._id || s.id),
                         name: s.name,
                         icon: s.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png',
-                        bannerImage: s.bannerImage || '',
-                        bannerTitle: s.bannerTitle || '',
-                        bannerSubtitle: s.bannerSubtitle || '',
                     }));
                     setSubCategories([{ id: 'all', name: 'All', icon: currentCat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs]);
                     
@@ -856,33 +775,9 @@ const CategoryProductsPage = () => {
                             </div>
                         )}
 
-                        {/* Dynamic Category Marketing Banner Card */}
-                        {!isLoading && (
-                            (() => {
-                                const banner = getBannerConfig();
-                                return (
-                                    <div className="relative flex items-center justify-between overflow-hidden py-1.5 pl-2 pr-0 mb-2 select-none min-h-[75px] md:min-h-[95px]">
-                                        <div className="flex flex-col text-left max-w-[65%]">
-                                            <h2 className="text-[16px] md:text-[18px] font-extrabold text-slate-900 dark:text-white leading-tight">
-                                                {banner.title}
-                                            </h2>
-                                            <p className="text-[10px] md:text-[11px] font-medium text-slate-600 dark:text-slate-400 mt-0.5 leading-tight">
-                                                {banner.subtitle}
-                                            </p>
-                                        </div>
-                                        <div className="relative w-[110px] md:w-[135px] h-[75px] md:h-[95px] flex items-center justify-end overflow-hidden flex-shrink-0 -mr-1 md:-mr-2">
-                                            <img 
-                                                src={banner.image} 
-                                                alt={banner.title} 
-                                                className="max-h-full max-w-full object-contain object-right transform hover:scale-105 transition-transform duration-300"
-                                            />
-                                        </div>
-                                    </div>
-                                );
-                            })()
-                        )}
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4 flex-1">
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4">
                             {isLoading ? (
                                 Array.from({ length: 12 }).map((_, i) => (
                                     <div key={i} className="animate-pulse bg-transparent flex flex-col h-[220px]">

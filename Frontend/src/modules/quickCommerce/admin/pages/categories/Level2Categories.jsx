@@ -66,17 +66,13 @@ const Level2Categories = () => {
     status: "active",
     type: "category",
     parentId: "",
-    bannerTitle: "",
-    bannerSubtitle: "",
   });
 
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
 
-  const [bannerImageFile, setBannerImageFile] = useState(null);
-  const [bannerPreviewUrl, setBannerPreviewUrl] = useState(null);
-  const bannerFileInputRef = useRef(null);
+
 
   useEffect(() => {
     fetchCategories();
@@ -136,9 +132,7 @@ const Level2Categories = () => {
       if (imageFile) {
         data.append("image", imageFile);
       }
-      if (bannerImageFile) {
-        data.append("bannerImage", bannerImageFile);
-      }
+
 
       if (editingItem) {
         await adminApi.updateCategory(editingItem._id || editingItem.id, data);
@@ -181,13 +175,9 @@ const Level2Categories = () => {
       status: "active",
       type: "category",
       parentId: "",
-      bannerTitle: "",
-      bannerSubtitle: "",
     });
     setImageFile(null);
     setPreviewUrl(null);
-    setBannerImageFile(null);
-    setBannerPreviewUrl(null);
     setIsAddModalOpen(true);
   };
 
@@ -200,12 +190,8 @@ const Level2Categories = () => {
       status: item.status,
       type: "category",
       parentId: item.parentId?._id || item.parentId || "",
-      bannerTitle: item.bannerTitle || "",
-      bannerSubtitle: item.bannerSubtitle || "",
     });
     setPreviewUrl(item.image?.url || item.image || null);
-    setBannerImageFile(null);
-    setBannerPreviewUrl(item.bannerImage?.url || item.bannerImage || null);
     setIsAddModalOpen(true);
   };
 
@@ -541,68 +527,6 @@ const Level2Categories = () => {
                   </select>
                 </div>
 
-                {/* Divider */}
-                <div className="border-t border-gray-100 pt-3">
-                  <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-3">Category Page Banner (Optional)</p>
-
-                  {/* Banner Image Upload */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Banner Image</label>
-                    <div
-                      onClick={() => bannerFileInputRef.current?.click()}
-                      className="w-full h-24 rounded-lg bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-indigo-500 overflow-hidden transition-colors">
-                      {bannerPreviewUrl ? (
-                        <img
-                          src={bannerPreviewUrl}
-                          alt="Banner Preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="text-center">
-                          <Image className="w-6 h-6 text-gray-400 mx-auto" />
-                          <span className="text-xs text-gray-500 mt-1 block">Click to upload banner image</span>
-                        </div>
-                      )}
-                    </div>
-                    <input
-                      type="file"
-                      ref={bannerFileInputRef}
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          setBannerImageFile(file);
-                          setBannerPreviewUrl(URL.createObjectURL(file));
-                        }
-                      }}
-                      accept="image/*"
-                    />
-                  </div>
-
-                  {/* Banner Title */}
-                  <div className="space-y-2 mt-3">
-                    <label className="text-sm font-medium text-gray-700">Banner Title</label>
-                    <input
-                      type="text"
-                      value={formData.bannerTitle}
-                      onChange={(e) => setFormData({ ...formData, bannerTitle: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                      placeholder="e.g., Fresh Dairy & Breads"
-                    />
-                  </div>
-
-                  {/* Banner Subtitle */}
-                  <div className="space-y-2 mt-3">
-                    <label className="text-sm font-medium text-gray-700">Banner Subtitle</label>
-                    <input
-                      type="text"
-                      value={formData.bannerSubtitle}
-                      onChange={(e) => setFormData({ ...formData, bannerSubtitle: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                      placeholder="e.g., Farm fresh milk, butter & soft breads daily"
-                    />
-                  </div>
-                </div>
               </div>
 
               <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">

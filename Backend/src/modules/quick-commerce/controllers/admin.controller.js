@@ -61,9 +61,6 @@ const toCategory = (category) => ({
   isActive: category.isActive,
   approvalStatus: category.approvalStatus || 'approved',
   approvedAt: category.approvedAt || null,
-  bannerImage: category.bannerImage || '',
-  bannerTitle: category.bannerTitle || '',
-  bannerSubtitle: category.bannerSubtitle || '',
 });
 
 const toProduct = (product) => ({
@@ -282,13 +279,6 @@ const getCategoryImage = async (req) => {
   return String(req.body?.image || '').trim();
 };
 
-const getCategoryBannerImage = async (req) => {
-  const file = req.files?.bannerImage?.[0];
-  if (file?.buffer) {
-    return uploadImageBuffer(file.buffer, 'quick-commerce/categories/banners');
-  }
-  return String(req.body?.bannerImage || '').trim();
-};
 
 const getProductImages = async (req) => {
   const mainFile = req.files?.mainImage?.[0];
@@ -458,11 +448,8 @@ export const createCategory = async (req, res) => {
     adminCommission,
     handlingFees,
     headerColor,
-    bannerTitle,
-    bannerSubtitle,
   } = req.body || {};
   const image = await getCategoryImage(req);
-  const bannerImage = await getCategoryBannerImage(req);
 
   if (!name) {
     return res.status(400).json({ success: false, message: 'name is required' });
@@ -495,9 +482,6 @@ export const createCategory = async (req, res) => {
     accentColor: accentColor || '#0c831f',
     sortOrder: Number(sortOrder || 0),
     isActive: (status || 'active') === 'active',
-    bannerImage: bannerImage || '',
-    bannerTitle: bannerTitle || '',
-    bannerSubtitle: bannerSubtitle || '',
   });
 
   clearContentCache();
@@ -511,7 +495,6 @@ export const updateCategory = async (req, res) => {
   }
 
   const image = await getCategoryImage(req);
-  const bannerImage = await getCategoryBannerImage(req);
   const {
     name,
     slug,
@@ -526,14 +509,11 @@ export const updateCategory = async (req, res) => {
     adminCommission,
     handlingFees,
     headerColor,
-    bannerTitle,
-    bannerSubtitle,
   } = req.body || {};
 
   if (name !== undefined) category.name = name;
   if (slug !== undefined) category.slug = slugify(slug || name || category.name);
   if (image) category.image = image;
-  if (bannerImage) category.bannerImage = bannerImage;
   if (description !== undefined) category.description = description;
   if (type !== undefined) category.type = type || 'header';
   if (status !== undefined) {
@@ -551,8 +531,6 @@ export const updateCategory = async (req, res) => {
   if (iconId !== undefined) category.iconId = iconId || '';
   if (adminCommission !== undefined) category.adminCommission = parseNumber(adminCommission, 0);
   if (handlingFees !== undefined) category.handlingFees = parseNumber(handlingFees, 0);
-  if (bannerTitle !== undefined) category.bannerTitle = bannerTitle || '';
-  if (bannerSubtitle !== undefined) category.bannerSubtitle = bannerSubtitle || '';
 
   await category.save();
   clearContentCache();
