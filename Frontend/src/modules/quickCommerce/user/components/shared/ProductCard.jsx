@@ -396,15 +396,15 @@ const ProductCard = React.memo(
                   </div>
 
                   {/* Dot Indicators */}
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 pointer-events-none">
+                  <div className="absolute bottom-1 left-2 flex items-center gap-1 z-10 pointer-events-none">
                     {allImages.map((_, dotIdx) => (
                       <div
                         key={dotIdx}
                         className={cn(
                           "rounded-full transition-all duration-300",
                           dotIdx === currentImgIdx
-                            ? "w-2.5 h-2.5 bg-slate-400 dark:bg-neutral-400 shadow-sm"
-                            : "w-1.5 h-1.5 bg-slate-200 dark:bg-neutral-600"
+                            ? "w-2.5 h-2.5 bg-white border border-[#8FA8B8] dark:border-neutral-500 shadow-sm"
+                            : "w-1.5 h-1.5 bg-[#8FA8B8] dark:bg-neutral-600"
                         )}
                       />
                     ))}
@@ -565,15 +565,15 @@ const ProductCard = React.memo(
                     </div>
 
                     {/* Dot Indicators */}
-                    <div className="absolute bottom-1.5 left-2 flex items-center gap-1.5 z-10 pointer-events-none">
+                    <div className="absolute bottom-1 left-2 flex items-center gap-1 z-10 pointer-events-none">
                       {allImages.map((_, dotIdx) => (
                         <div
                           key={dotIdx}
                           className={cn(
                             "rounded-full transition-all duration-300",
                             dotIdx === currentImgIdx
-                              ? "w-2.5 h-2.5 bg-white dark:bg-neutral-800 border border-slate-400 dark:border-neutral-500 shadow-sm"
-                              : "w-1.5 h-1.5 bg-slate-300 dark:bg-neutral-600"
+                              ? "w-2.5 h-2.5 bg-white border border-[#8FA8B8] dark:border-neutral-500 shadow-sm"
+                              : "w-1.5 h-1.5 bg-[#8FA8B8] dark:bg-neutral-600"
                           )}
                         />
                       ))}
