@@ -70,6 +70,7 @@ const HeaderCategories = () => {
     adminCommission: 0,
     handlingFees: 0,
     headerColor: "#FF1E1E",
+    sortOrder: 0,
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -232,6 +233,7 @@ const HeaderCategories = () => {
       adminCommission: 0,
       handlingFees: 0,
       headerColor: "#FF1E1E",
+      sortOrder: 0,
     });
     setImageFile(null);
     setPreviewUrl(null);
@@ -251,6 +253,7 @@ const HeaderCategories = () => {
       adminCommission: item.adminCommission || 0,
       handlingFees: item.handlingFees || 0,
       headerColor: item.headerColor || "#FF1E1E",
+      sortOrder: item.sortOrder || 0,
     });
     setPreviewUrl(item.image?.url || item.image || null);
     setIsAddModalOpen(true);
@@ -327,6 +330,9 @@ const HeaderCategories = () => {
                   Fees (₹)
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Sort
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -396,6 +402,9 @@ const HeaderCategories = () => {
                     </td>
                     <td className="py-3 px-4 text-gray-500 font-medium">
                       ₹{cat.handlingFees ?? 0}
+                    </td>
+                    <td className="py-3 px-4 text-gray-500 font-bold">
+                      #{cat.sortOrder ?? 0}
                     </td>
                     <td className="py-3 px-4">
                       <Badge
@@ -629,7 +638,7 @@ const HeaderCategories = () => {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">
                       Admin Commission (%)
@@ -655,6 +664,21 @@ const HeaderCategories = () => {
                       value={formData.handlingFees}
                       onChange={(e) =>
                         setFormData({ ...formData, handlingFees: e.target.value === "" ? "" : parseFloat(e.target.value) })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      placeholder="0"
+                      min="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Sort Order Position
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.sortOrder}
+                      onChange={(e) =>
+                        setFormData({ ...formData, sortOrder: e.target.value === "" ? 0 : parseInt(e.target.value) })
                       }
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                       placeholder="0"

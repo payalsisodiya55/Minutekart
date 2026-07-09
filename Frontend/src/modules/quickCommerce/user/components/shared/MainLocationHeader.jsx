@@ -212,82 +212,7 @@ function CircularCategoryItem({
   );
 }
 
-function HeaderCategoryDrawer({ isOpen, onClose, categories, activeCategory, onSelect }) {
-  // Lock body scroll when drawer is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[600]"
-          />
-
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-[32px] z-[610] max-h-[85vh] overflow-y-auto outline-none shadow-2xl pb-8"
-          >
-            <div className="sticky top-0 bg-white dark:bg-slate-900 px-6 pt-6 pb-4 flex items-center justify-between border-b border-gray-100 dark:border-slate-800 z-10">
-              <h3 className="text-lg font-black text-gray-900 dark:text-white">Choose Category</h3>
-              <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors border-none bg-transparent cursor-pointer">
-                <X className="h-6 w-6 text-gray-500" />
-              </button>
-            </div>
-            
-            <div className="p-6 grid grid-cols-3 sm:grid-cols-4 gap-4">
-              {categories.map((cat) => {
-                const isActive = (activeCategory?._id || activeCategory?.id) === (cat._id || cat.id);
-                return (
-                  <button
-                    key={cat._id || cat.id}
-                    onClick={() => {
-                      onSelect(cat);
-                      onClose();
-                    }}
-                    className={cn(
-                      "flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer bg-transparent outline-none",
-                      isActive
-                        ? "border-[#0c831f] bg-[#E8F5E9] dark:bg-emerald-950/20"
-                        : "border-gray-100 hover:border-gray-200 bg-gray-50/50 hover:bg-gray-50 dark:bg-slate-800/40 dark:border-slate-800"
-                    )}
-                  >
-                    <div className="h-14 w-14 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm">
-                      {typeof cat.icon === "function" || (typeof cat.icon === "object" && cat.icon.$$typeof) ? (
-                        <cat.icon sx={{ fontSize: 28, color: isActive ? "#0c831f" : "#64748b" }} />
-                      ) : (
-                        <img src={cat.icon || cat.image} alt={cat.name} className="h-10 w-10 object-contain" />
-                      )}
-                    </div>
-                    <span className={cn("text-xs font-bold text-center", isActive ? "text-[#0c831f]" : "text-gray-700 dark:text-gray-300")}>
-                      {cat.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
 
 const MainLocationHeader = ({
   categories: externalCategories = [],
@@ -303,7 +228,6 @@ const MainLocationHeader = ({
 }) => {
   const { scrollY } = useScroll();
   const [isLocationOpen, setIsLocationOpen] = useState(false);
-  const [isHeaderSelectOpen, setIsHeaderSelectOpen] = useState(false);
   const { currentLocation, refreshLocation, isFetchingLocation } =
     useLocation();
   const { isOpen: isProductDetailOpen } = useProductDetail();
@@ -351,17 +275,7 @@ const MainLocationHeader = ({
   const categories = (externalCategories.length > 0 ? externalCategories : internalCategories)
     .filter(cat => !serviceTabs.some(tab => tab.name.toLowerCase() === cat.name?.toLowerCase()));
 
-  const activeHeaderId = activeCategory?._id || activeCategory?.id || "all";
-  const subCategories = React.useMemo(() => {
-    if (activeHeaderId === "all") {
-      return quickCategories.slice(0, 8);
-    }
-    return quickCategories.filter(cat => String(cat.parentId) === String(activeHeaderId)).slice(0, 8);
-  }, [activeHeaderId, quickCategories]);
 
-  const handleSubcategoryClick = (cat) => {
-    navigate(getQuickCategoryPath(cat.id || cat._id));
-  };
 
   // Search Logic
   const handleSearchClick = () => {
@@ -747,44 +661,35 @@ const MainLocationHeader = ({
                    "relative flex items-center justify-start gap-3 overflow-x-auto no-scrollbar pl-4 pr-4 md:px-6 md:justify-center z-10 snap-x min-h-[90px] md:min-h-[100px] pb-1",
                    embedded ? "pt-2" : "pt-3",
                  )}>
-                {/* 1. Leftmost Header Category Selector */}
-                {activeCategory && (
+                {categories.slice(0, 5).map((cat) => {
+                  const isActive = (activeCategory?._id || activeCategory?.id) === (cat._id || cat.id);
+                  return (
+                    <CircularCategoryItem
+                      key={cat._id || cat.id}
+                      cat={cat}
+                      isActive={isActive}
+                      onClick={() => onCategorySelect(cat)}
+                    />
+                  );
+                })}
+                {categories.length > 5 && (
                   <CircularCategoryItem
-                    key={activeCategory._id || activeCategory.id}
-                    cat={activeCategory}
-                    isActive={true}
-                    isDropdown={true}
-                    onClick={() => setIsHeaderSelectOpen(true)}
+                    key="more-items"
+                    cat={{
+                      name: "More Items",
+                      icon: () => (
+                        <svg className="h-6 w-6 text-[#0c831f]" fill="currentColor" viewBox="0 0 24 24">
+                          <circle cx="5" cy="12" r="2.5"/>
+                          <circle cx="12" cy="12" r="2.5"/>
+                          <circle cx="19" cy="12" r="2.5"/>
+                        </svg>
+                      )
+                    }}
+                    isActive={false}
+                    isMore={true}
+                    onClick={() => navigate("/quick/categories")}
                   />
                 )}
-
-                {/* 2. Subsequent Categories belonging to the selected Header */}
-                {subCategories.map((cat) => (
-                  <CircularCategoryItem
-                    key={cat._id || cat.id}
-                    cat={cat}
-                    isActive={false}
-                    onClick={() => handleSubcategoryClick(cat)}
-                  />
-                ))}
-
-                {/* 3. "More" category trigger at the end */}
-                <CircularCategoryItem
-                  key="more-items"
-                  cat={{
-                    name: "More Items",
-                    icon: () => (
-                      <svg className="h-6 w-6 text-[#0c831f]" fill="currentColor" viewBox="0 0 24 24">
-                        <circle cx="5" cy="12" r="2.5"/>
-                        <circle cx="12" cy="12" r="2.5"/>
-                        <circle cx="19" cy="12" r="2.5"/>
-                      </svg>
-                    )
-                  }}
-                  isActive={false}
-                  isMore={true}
-                  onClick={() => navigate("/quick/categories")}
-                />
               </motion.div>
             </div>
           )}
@@ -799,13 +704,7 @@ const MainLocationHeader = ({
         onClose={() => setIsLocationOpen(false)}
       />
 
-      <HeaderCategoryDrawer
-        isOpen={isHeaderSelectOpen}
-        onClose={() => setIsHeaderSelectOpen(false)}
-        categories={categories}
-        activeCategory={activeCategory}
-        onSelect={onCategorySelect}
-      />
+
     </>
   );
 };

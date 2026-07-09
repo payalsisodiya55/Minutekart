@@ -43,7 +43,7 @@ const CategoryManagement = () => {
         status: 'active',
         type: 'header',
         parentId: '',
-
+        sortOrder: 0,
     });
 
     const [imageFile, setImageFile] = useState(null);
@@ -236,7 +236,7 @@ const CategoryManagement = () => {
                 status: item.status || 'active',
                 type: item.type,
                 parentId: item.parentId || '',
-
+                sortOrder: item.sortOrder || 0,
             });
             setEditingItem(item);
             setPreviewUrl(item.image || null);
@@ -250,7 +250,7 @@ const CategoryManagement = () => {
                 status: 'active',
                 type: type,
                 parentId: parentId || '',
-
+                sortOrder: 0,
             });
             setEditingItem(null);
             setPreviewUrl(null);
@@ -746,8 +746,17 @@ const CategoryManagement = () => {
                                         />
                                     </div>
 
-
-
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Sort Order Position</label>
+                                        <input
+                                            type="number"
+                                            value={formData.sortOrder}
+                                            onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })}
+                                            className="w-full px-4 py-2.5 bg-slate-100/50 border-none rounded-xl text-xs font-bold outline-none placeholder:text-slate-300"
+                                            placeholder="e.g. 1"
+                                            min="0"
+                                        />
+                                    </div>
                                     <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                         <div>
                                             <p className="text-xs font-bold text-slate-900">Visibility Status</p>
