@@ -61,6 +61,7 @@ const toCategory = (category) => ({
   isActive: category.isActive,
   approvalStatus: category.approvalStatus || 'approved',
   approvedAt: category.approvedAt || null,
+  banner: category.banner || '',
 });
 
 const toProduct = (product) => ({
@@ -279,6 +280,14 @@ const getCategoryImage = async (req) => {
   return String(req.body?.image || '').trim();
 };
 
+const getCategoryBanner = async (req) => {
+  const file = req.files?.banner?.[0];
+  if (file?.buffer) {
+    return uploadImageBuffer(file.buffer, 'quick-commerce/categories/banners');
+  }
+  return String(req.body?.banner || '').trim();
+};
+
 
 const getProductImages = async (req) => {
   const mainFile = req.files?.mainImage?.[0];
@@ -448,8 +457,10 @@ export const createCategory = async (req, res) => {
     adminCommission,
     handlingFees,
     headerColor,
+    banner,
   } = req.body || {};
   const image = await getCategoryImage(req);
+  const bannerImage = await getCategoryBanner(req);
 
   if (!name) {
     return res.status(400).json({ success: false, message: 'name is required' });
@@ -482,6 +493,7 @@ export const createCategory = async (req, res) => {
     accentColor: accentColor || '#0c831f',
     sortOrder: Number(sortOrder || 0),
     isActive: (status || 'active') === 'active',
+    banner: bannerImage || '',
   });
 
   clearContentCache();
@@ -495,6 +507,7 @@ export const updateCategory = async (req, res) => {
   }
 
   const image = await getCategoryImage(req);
+  const bannerImage = await getCategoryBanner(req);
   const {
     name,
     slug,
@@ -509,6 +522,7 @@ export const updateCategory = async (req, res) => {
     adminCommission,
     handlingFees,
     headerColor,
+    banner,
   } = req.body || {};
 
   if (name !== undefined) category.name = name;
@@ -531,6 +545,8 @@ export const updateCategory = async (req, res) => {
   if (iconId !== undefined) category.iconId = iconId || '';
   if (adminCommission !== undefined) category.adminCommission = parseNumber(adminCommission, 0);
   if (handlingFees !== undefined) category.handlingFees = parseNumber(handlingFees, 0);
+  if (bannerImage) category.banner = bannerImage;
+  if (banner !== undefined && !bannerImage) category.banner = banner || '';
 
   await category.save();
   clearContentCache();

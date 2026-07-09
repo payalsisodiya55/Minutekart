@@ -196,6 +196,7 @@ router.post(
   ...adminOnly,
   upload.fields([
     { name: "image", maxCount: 1 },
+    { name: "banner", maxCount: 1 },
   ]),
   createCategory,
 );
@@ -204,6 +205,7 @@ router.put(
   ...adminOnly,
   upload.fields([
     { name: "image", maxCount: 1 },
+    { name: "banner", maxCount: 1 },
   ]),
   updateCategory,
 );

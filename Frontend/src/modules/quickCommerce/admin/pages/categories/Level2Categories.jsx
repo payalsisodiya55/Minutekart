@@ -66,11 +66,24 @@ const Level2Categories = () => {
     status: "active",
     type: "category",
     parentId: "",
+    banner: "",
   });
 
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
+
+  const [bannerFile, setBannerFile] = useState(null);
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState(null);
+  const bannerFileInputRef = useRef(null);
+
+  const handleBannerChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBannerFile(file);
+      setBannerPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
 
 
@@ -132,6 +145,9 @@ const Level2Categories = () => {
       if (imageFile) {
         data.append("image", imageFile);
       }
+      if (bannerFile) {
+        data.append("banner", bannerFile);
+      }
 
 
       if (editingItem) {
@@ -175,9 +191,12 @@ const Level2Categories = () => {
       status: "active",
       type: "category",
       parentId: "",
+      banner: "",
     });
     setImageFile(null);
     setPreviewUrl(null);
+    setBannerFile(null);
+    setBannerPreviewUrl(null);
     setIsAddModalOpen(true);
   };
 
@@ -190,8 +209,11 @@ const Level2Categories = () => {
       status: item.status,
       type: "category",
       parentId: item.parentId?._id || item.parentId || "",
+      banner: item.banner || "",
     });
     setPreviewUrl(item.image?.url || item.image || null);
+    setBannerFile(null);
+    setBannerPreviewUrl(item.banner || null);
     setIsAddModalOpen(true);
   };
 
@@ -525,6 +547,51 @@ const Level2Categories = () => {
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex items-center justify-between">
+                    <span>Category Banner (Landscape - Optional)</span>
+                    {bannerPreviewUrl && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBannerFile(null);
+                          setBannerPreviewUrl(null);
+                          setFormData(prev => ({ ...prev, banner: "" }));
+                        }}
+                        className="text-xs text-red-500 hover:text-red-700 font-medium"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </label>
+                  <div
+                    onClick={() => bannerFileInputRef.current?.click()}
+                    className="w-full h-24 rounded-lg bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-indigo-500 overflow-hidden transition-colors">
+                    {bannerPreviewUrl ? (
+                      <img
+                        src={bannerPreviewUrl}
+                        alt="Banner Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center py-2">
+                        <Upload className="w-6 h-6 text-gray-400 mx-auto" />
+                        <span className="text-xs text-gray-500 mt-1 block">
+                          Upload Landscape Banner
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    ref={bannerFileInputRef}
+                    className="hidden"
+                    onChange={handleBannerChange}
+                    accept="image/*"
+                  />
                 </div>
 
               </div>

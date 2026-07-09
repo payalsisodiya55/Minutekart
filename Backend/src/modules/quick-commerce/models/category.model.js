@@ -17,6 +17,7 @@ const quickCategorySchema = new mongoose.Schema({
   accentColor: { type: String, default: '#0c831f' },
   sortOrder: { type: Number, default: 0 },
   isActive: { type: Boolean, default: true },
+  banner: { type: String, default: '' },
 }, { timestamps: true });
 
 quickCategorySchema.index({ type: 1, approvalStatus: 1, isActive: 1, parentId: 1 });

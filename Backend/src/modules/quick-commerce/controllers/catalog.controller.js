@@ -85,6 +85,7 @@ const mapCategory = (category) => ({
   adminCommission: Number(category.adminCommission || 0),
   color: category.accentColor,
   approvalStatus: category.approvalStatus || 'approved',
+  banner: category.banner || '',
 });
 
 export const buildSellerMap = async (products = []) => {

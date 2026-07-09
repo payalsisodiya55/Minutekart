@@ -379,6 +379,7 @@ const CategoryProductsPage = () => {
                         id: normalizeId(s._id || s.id),
                         name: s.name,
                         icon: s.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png',
+                        banner: s.banner || '',
                     }));
                     setSubCategories([{ id: 'all', name: 'All', icon: currentCat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs]);
                     
@@ -774,8 +775,23 @@ const CategoryProductsPage = () => {
                                 />
                             </div>
                         )}
+                        {(() => {
+                            const activeBanner = selectedSubCategory === 'all'
+                                ? category?.banner
+                                : subCategories.find(s => s.id === selectedSubCategory)?.banner;
 
+                            if (!activeBanner) return null;
 
+                            return (
+                                <div className="mb-3.5 rounded-xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-neutral-800/80">
+                                    <img 
+                                        src={resolveQuickImageUrl(activeBanner) || activeBanner} 
+                                        alt="Category Banner" 
+                                        className="w-full h-auto object-cover max-h-[140px] md:max-h-[185px]"
+                                    />
+                                </div>
+                            );
+                        })()}
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4">
                             {isLoading ? (
