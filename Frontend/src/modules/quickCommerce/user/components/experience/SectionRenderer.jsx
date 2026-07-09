@@ -226,45 +226,48 @@ const SectionRenderer = ({ sections = [], productsById = {}, categoriesById = {}
             const pItems = hydratedItems || [];
             if (pItems.length > 0) {
               const firstItem = pItems[0];
-              const fullProd = typeof firstItem === 'object' && firstItem !== null 
-                ? firstItem 
-                : productsById[firstItem?._id || firstItem?.id || firstItem];
+              const pId = typeof firstItem === 'object' && firstItem !== null ? (firstItem._id || firstItem.id) : firstItem;
+              const fullProd = productsById[pId] || firstItem;
+
               if (fullProd) {
                 // Extract subcategory ID
-                const subcatVal = fullProd.subcategoryId || fullProd.subcategory;
+                const subcatVal = fullProd.subcategoryId || fullProd.subcategory || (typeof firstItem === 'object' ? (firstItem.subcategoryId || firstItem.subcategory) : null);
                 if (subcatVal && !subId) {
                   subId = typeof subcatVal === 'object' ? (subcatVal._id || subcatVal.id) : subcatVal;
                 }
 
                 // Extract category ID
-                const catVal = fullProd.categoryId || fullProd.category;
+                const catVal = fullProd.categoryId || fullProd.category || (typeof firstItem === 'object' ? (firstItem.categoryId || firstItem.category) : null);
                 if (catVal && !catId) {
                   catId = typeof catVal === 'object' ? (catVal._id || catVal.id) : catVal;
                 }
               }
             }
 
-            // If we found a subcategory but not a main category, try to resolve parent from categoryMap or subcategoryMap
-            if (subId && !catId) {
-              const subObj = categoriesById[subId] || subcategoriesById[subId];
-              if (subObj) {
-                const parentId = subObj.parentId || subObj.headerId || subObj.parent?._id || subObj.parent || subObj.header?._id || subObj.header;
-                catId = parentId ? (typeof parentId === 'object' ? (parentId._id || parentId.id) : parentId) : subId;
-              }
+            if (subId) {
+                if (categoriesById[subId]) {
+                    // subId is actually a Level 2 category! Navigate directly to it.
+                    catId = subId;
+                    subId = null;
+                } else if (subcategoriesById[subId]) {
+                    // subId is a Level 3 subcategory. Resolve its Level 2 parent.
+                    const subObj = subcategoriesById[subId];
+                    const parentId = subObj.parentId || subObj.headerId || subObj.parent?._id || subObj.parent;
+                    const resolvedParentId = parentId ? (typeof parentId === 'object' ? (parentId._id || parentId.id) : parentId) : null;
+                    if (resolvedParentId) {
+                        catId = resolvedParentId;
+                    }
+                }
             }
 
-            // If we found a category, see if we can resolve its parent if it's actually a subcategory
-            if (catId) {
-              const catObj = categoriesById[catId] || subcategoriesById[catId];
-              if (catObj) {
-                const parentId = catObj.parentId || catObj.headerId || catObj.parent?._id || catObj.parent || catObj.header?._id || catObj.header;
-                const resolvedParentId = parentId ? (typeof parentId === 'object' ? (parentId._id || parentId.id) : parentId) : null;
-                if (resolvedParentId) {
-                  // The catId was actually a subcategory! Update subId to catId, and catId to the parent category
-                  if (!subId) subId = catId;
-                  catId = resolvedParentId;
+            if (catId && !subId) {
+                if (subcategoriesById[catId]) {
+                    // catId is actually a Level 3 subcategory!
+                    subId = catId;
+                    const subObj = subcategoriesById[catId];
+                    const parentId = subObj.parentId || subObj.headerId || subObj.parent?._id || subObj.parent;
+                    catId = parentId ? (typeof parentId === 'object' ? (parentId._id || parentId.id) : parentId) : subId;
                 }
-              }
             }
 
             return { catId, subId };

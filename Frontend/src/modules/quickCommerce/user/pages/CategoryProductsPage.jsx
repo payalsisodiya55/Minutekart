@@ -19,6 +19,14 @@ const QUICK_THEME_STORAGE_KEY = "food.quick.headerColor";
 const QUICK_HEADER_RETURN_STORAGE_KEY = "food.quick.headerReturn";
 const FALLBACK_HEADER_COLOR = "#0c831f";
 
+const normalizeId = (value) => {
+    if (value == null) return null;
+    if (typeof value === 'object') {
+        return String(value._id || value.id || value.slug || '');
+    }
+    return String(value);
+};
+
 // Custom premium product card matching the 2nd reference image
 const CategoryProductCard = ({ product }) => {
     const { cart, addToCart, updateQuantity } = useCart();
@@ -212,11 +220,12 @@ const CategoryProductCard = ({ product }) => {
 };
 
 const CategoryProductsPage = () => {
-    const { categoryId: catId } = useParams();
+    const { categoryId: rawCatId } = useParams();
+    const catId = normalizeId(rawCatId);
     const navigate = useNavigate();
     const location = useLocation();
     const { currentLocation } = useAppLocation();
-    const initialSubcategoryId = location.state?.activeSubcategoryId || 'all';
+    const initialSubcategoryId = normalizeId(location.state?.activeSubcategoryId) || 'all';
     const { isOpen: isProductDetailOpen } = useProductDetail();
     const [selectedSubCategory, setSelectedSubCategory] = useState(initialSubcategoryId);
     const [category, setCategory] = useState(null);
@@ -408,15 +417,16 @@ const CategoryProductsPage = () => {
                 
                 const flatten = (items) => {
                     items.forEach(item => {
-                        fullMap[item._id] = item;
-                        if (item.slug) fullMap[item.slug] = item;
+                        const itemId = normalizeId(item._id || item.id);
+                        if (itemId) fullMap[itemId] = item;
+                        if (item.slug) fullMap[String(item.slug)] = item;
                         if (item.type === 'category') {
-                            cMap[item._id] = item;
-                            if (item.slug) cMap[item.slug] = item;
+                            if (itemId) cMap[itemId] = item;
+                            if (item.slug) cMap[String(item.slug)] = item;
                         }
                         else if (item.type === 'subcategory') {
-                            sMap[item._id] = item;
-                            if (item.slug) sMap[item.slug] = item;
+                            if (itemId) sMap[itemId] = item;
+                            if (item.slug) sMap[String(item.slug)] = item;
                         }
                         if (item.children && item.children.length > 0) flatten(item.children);
                     });
@@ -434,17 +444,17 @@ const CategoryProductsPage = () => {
                     if (currentCat.children && currentCat.children.length > 0) {
                         subs = currentCat.children;
                     } else if (currentCat.parentId) {
-                        const parent = fullMap[currentCat.parentId?._id || currentCat.parentId];
+                        const parent = fullMap[normalizeId(currentCat.parentId?._id || currentCat.parentId)];
                         if (parent) {
                             subs = parent.children && parent.children.length > 0
                                 ? parent.children
-                                : allCats.filter(cat => cat.parentId === parent._id || cat.parentId?._id === parent._id);
+                                : allCats.filter(cat => normalizeId(cat.parentId?._id || cat.parentId) === normalizeId(parent._id));
                         }
                         isDirectSub = true;
                     }
 
                     const formattedSubs = subs.map(s => ({
-                        id: s._id,
+                        id: normalizeId(s._id || s.id),
                         name: s.name,
                         icon: s.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png',
                         bannerImage: s.bannerImage || '',
@@ -454,7 +464,7 @@ const CategoryProductsPage = () => {
                     setSubCategories([{ id: 'all', name: 'All', icon: currentCat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs]);
                     
                     if (isDirectSub && selectedSubCategory === 'all' && !location.state?.activeSubcategoryId) {
-                        setSelectedSubCategory(currentCat._id);
+                        setSelectedSubCategory(normalizeId(currentCat._id || currentCat.id));
                     }
                 }
             }
@@ -475,7 +485,7 @@ const CategoryProductsPage = () => {
 
     useEffect(() => {
         fetchData();
-        setSelectedSubCategory(location.state?.activeSubcategoryId || 'all');
+        setSelectedSubCategory(normalizeId(location.state?.activeSubcategoryId) || 'all');
     }, [catId, location.state?.activeSubcategoryId, currentLocation?.latitude, currentLocation?.longitude]);
 
     const safeProducts = Array.isArray(products) ? products : [];
@@ -483,8 +493,8 @@ const CategoryProductsPage = () => {
     const filteredProducts = React.useMemo(() => {
         let list = safeProducts.filter(p => {
             if (selectedSubCategory === 'all') return true;
-            const subId = String(p.subcategoryId?._id || p.subcategoryId || '');
-            const catIdStr = String(p.categoryId?._id || p.categoryId || '');
+            const subId = normalizeId(p.subcategoryId?._id || p.subcategoryId) || '';
+            const catIdStr = normalizeId(p.categoryId?._id || p.categoryId) || '';
             return subId === selectedSubCategory || catIdStr === selectedSubCategory;
         });
 
@@ -526,7 +536,7 @@ const CategoryProductsPage = () => {
     const currentSubCatIndex = subCategories.findIndex(s => s.id === selectedSubCategory);
     const nextSubCat = currentSubCatIndex !== -1 && currentSubCatIndex < subCategories.length - 1 ? subCategories[currentSubCatIndex + 1] : null;
 
-    const currentCatIndex = mainCategories.findIndex(c => c._id === catId || c.slug === catId);
+    const currentCatIndex = mainCategories.findIndex(c => normalizeId(c._id || c.id) === catId || String(c.slug || '') === catId);
     const nextMainCat = !nextSubCat && currentCatIndex !== -1 && currentCatIndex < mainCategories.length - 1 ? mainCategories[currentCatIndex + 1] : null;
 
     // Track scroll pull-progress of the next-category trigger element to scale the circular image dynamically
