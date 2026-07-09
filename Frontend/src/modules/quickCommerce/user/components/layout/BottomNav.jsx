@@ -13,6 +13,8 @@ import {
 } from '../../utils/routes';
 import DraggableModuleSwitcher from "../../../../common/components/DraggableModuleSwitcher";
 
+import { useProfile } from '@food/context/ProfileContext';
+
 const BottomNav = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -29,6 +31,17 @@ const BottomNav = () => {
             }
         } catch (e) {}
     }
+
+    const { userProfile } = useProfile() || {};
+    const avatarInitial =
+        userProfile?.name?.charAt(0)?.toUpperCase() ||
+        userProfile?.phone?.charAt(1)?.toUpperCase() ||
+        "";
+    const profileImageUrl =
+        userProfile?.profileImage &&
+        (typeof userProfile.profileImage === "string"
+            ? userProfile.profileImage.trim()
+            : userProfile.profileImage?.url);
 
     const isSharedQuickProfileRoute =
         location.pathname === '/profile' &&
@@ -63,15 +76,48 @@ const BottomNav = () => {
 
                     const content = (
                         <div className="flex flex-col items-center justify-center relative w-full h-full">
-                            <div className="relative">
-                                <IconComponent
-                                    size={20}
-                                    strokeWidth={isActive ? 2.5 : 2}
-                                    className={cn(
-                                        "transition-colors duration-300",
-                                        isActive ? "text-[#0c831f]" : "text-gray-400 dark:text-slate-500"
-                                    )}
-                                />
+                            <div className={cn("relative flex items-center justify-center", item.label === 'Profile' ? "h-7 w-7" : "h-5 w-5")}>
+                                {item.label === 'Profile' ? (
+                                    profileImageUrl ? (
+                                        <img
+                                            src={profileImageUrl}
+                                            alt="Profile"
+                                            className={cn(
+                                                "h-7 w-7 rounded-full object-cover transition-all duration-300 border",
+                                                isActive ? "border-[#0c831f] scale-105" : "border-gray-200"
+                                            )}
+                                        />
+                                    ) : avatarInitial ? (
+                                        <div
+                                            className={cn(
+                                                "h-7 w-7 rounded-full flex items-center justify-center text-[13px] font-black leading-none transition-all duration-300",
+                                                isActive 
+                                                    ? "bg-[#0c831f] text-white scale-105" 
+                                                    : "bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400"
+                                            )}
+                                        >
+                                            {avatarInitial}
+                                        </div>
+                                    ) : (
+                                        <IconComponent
+                                            size={20}
+                                            strokeWidth={isActive ? 2.5 : 2}
+                                            className={cn(
+                                                "transition-colors duration-300",
+                                                isActive ? "text-[#0c831f]" : "text-gray-400 dark:text-slate-500"
+                                            )}
+                                        />
+                                    )
+                                ) : (
+                                    <IconComponent
+                                        size={20}
+                                        strokeWidth={isActive ? 2.5 : 2}
+                                        className={cn(
+                                            "transition-colors duration-300",
+                                            isActive ? "text-[#0c831f]" : "text-gray-400 dark:text-slate-500"
+                                        )}
+                                    />
+                                )}
                                 {item.hasBadge && cartCount > 0 && (
                                     <span className="absolute -top-1.5 -right-2.5 bg-[#e23737] text-white text-[8px] font-black rounded-full min-w-[14px] h-[14px] px-0.5 flex items-center justify-center border border-white shadow-sm">
                                         {cartCount}
