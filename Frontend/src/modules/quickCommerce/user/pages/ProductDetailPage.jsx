@@ -141,13 +141,11 @@ const ProductDetailPage = () => {
   const detailScrollRef = React.useRef(null);
 
   useEffect(() => {
+    setCurrentImgIdx(0);
     if (detailScrollRef.current) {
-      const width = detailScrollRef.current.clientWidth;
-      if (width > 0) {
-        detailScrollRef.current.scrollLeft = currentImgIdx * width;
-      }
+      detailScrollRef.current.scrollLeft = 0;
     }
-  }, [currentImgIdx]);
+  }, [resolvedProductId]);
   const [reviews, setReviews] = useState([]);
   const [reviewLoading, setReviewLoading] = useState(true);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
@@ -569,10 +567,10 @@ const ProductDetailPage = () => {
                   <div
                     key={dotIdx}
                     className={cn(
-                      "w-2 h-2 rounded-full transition-all duration-300",
+                      "w-1.5 h-1.5 rounded-full transition-all duration-300",
                       dotIdx === currentImgIdx
-                        ? "bg-slate-800 dark:bg-white w-4"
-                        : "bg-slate-300 dark:bg-slate-700"
+                        ? "bg-[#282c3f] dark:bg-white scale-110"
+                        : "bg-slate-300 dark:bg-slate-200"
                     )}
                   />
                 ))}
