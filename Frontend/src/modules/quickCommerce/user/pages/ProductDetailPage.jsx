@@ -527,7 +527,8 @@ const ProductDetailPage = () => {
               {product.images.map((image, index) => (
                 <div 
                   key={`${image}-${index}`}
-                  className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center cursor-zoom-in"
+                  className="w-full h-full flex-shrink-0 snap-start snap-always flex items-center justify-center cursor-zoom-in"
+                  style={{ scrollSnapStop: 'always' }}
                   onClick={() => setIsFullscreenOpen(true)}
                 >
                   <img
