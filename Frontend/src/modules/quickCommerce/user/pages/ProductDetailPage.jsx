@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useHeroTransition } from "../context/HeroTransitionContext";
 import {
   ArrowLeft,
   Clock,
@@ -118,6 +119,31 @@ const ProductDetailPage = () => {
   const resolvedProductId = productId || id;
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Hero transition integration
+  const { heroState, onDetailMounted, triggerHeroCollapse } = useHeroTransition();
+  const arrivedFromHero = location.state?.fromHero === true;
+  // Start invisible if arriving via hero — reveal after the overlay has navigated
+  const [isRevealed, setIsRevealed] = useState(!arrivedFromHero);
+
+  // Tell the hero overlay to dismiss once this page has mounted
+  useEffect(() => {
+    if (arrivedFromHero) {
+      onDetailMounted();
+      // Slight delay for overlay to fade before revealing the page
+      const t = setTimeout(() => setIsRevealed(true), 120);
+      return () => clearTimeout(t);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Back handler — collapses hero overlay then pops the route
+  const handleBack = () => {
+    if (heroState.originRect && heroState.phase === 'idle') {
+      triggerHeroCollapse(() => navigate(-1));
+    } else {
+      navigate(-1);
+    }
+  };
 
   const initialProduct = useMemo(() => {
     const routeProduct = location.state?.product;
@@ -504,7 +530,13 @@ const ProductDetailPage = () => {
   }
 
   return (
-    <div className="relative z-10 mx-auto w-full max-w-[1920px] animate-in px-4 py-4 pb-24 md:pb-8 fade-in duration-700 md:px-[50px] md:py-8">
+    <div
+      className="relative z-10 mx-auto w-full max-w-[1920px] px-4 py-4 pb-24 md:pb-8 md:px-[50px] md:py-8"
+      style={{
+        opacity: isRevealed ? 1 : 0,
+        transition: isRevealed ? 'opacity 280ms ease-out' : 'none',
+      }}
+    >
       <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
         <div className="space-y-4 lg:w-[45%] xl:w-[40%]">
           {/* Swipeable Carousel */}
@@ -542,7 +574,7 @@ const ProductDetailPage = () => {
 
             {/* Back Button Overlay */}
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
               className="absolute left-3 top-3 rounded-full p-2.5 bg-white/90 dark:bg-black/60 hover:bg-white dark:hover:bg-black text-slate-700 dark:text-white shadow-sm transition-all z-20"
             >
               <ArrowLeft size={20} />

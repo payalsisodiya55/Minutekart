@@ -34,6 +34,8 @@ import { LocationProvider } from "./user/context/LocationContext"
 import { ProductDetailProvider } from "./user/context/ProductDetailContext"
 import { WishlistProvider } from "./user/context/WishlistContext"
 import { CartAnimationProvider } from "./user/context/CartAnimationContext"
+import { HeroTransitionProvider } from "./user/context/HeroTransitionContext"
+import HeroOverlay from "./user/components/shared/HeroOverlay"
 import { ProfileProvider } from "@food/context/ProfileContext"
 import { CartProvider as FoodCartProvider } from "@food/context/CartContext"
 
@@ -41,6 +43,7 @@ import { CartProvider as FoodCartProvider } from "@food/context/CartContext"
 function QuickCommerceInnerRoutes() {
   return (
     <Suspense fallback={<Loader />}>
+      <HeroOverlay />
       <Routes>
         <Route element={<UserLayout />}>
           <Route index element={<Home />} />
@@ -83,18 +86,20 @@ function QuickCommerceInnerRoutes() {
 
 export default function QuickCommerceRoutes() {
   return (
-    <ProfileProvider>
-      <CartProvider>
-        <LocationProvider>
-          <WishlistProvider>
-            <CartAnimationProvider>
-              <ProductDetailProvider>
-                <QuickCommerceInnerRoutes />
-              </ProductDetailProvider>
-            </CartAnimationProvider>
-          </WishlistProvider>
-        </LocationProvider>
-      </CartProvider>
-    </ProfileProvider>
+    <HeroTransitionProvider>
+      <ProfileProvider>
+        <CartProvider>
+          <LocationProvider>
+            <WishlistProvider>
+              <CartAnimationProvider>
+                <ProductDetailProvider>
+                  <QuickCommerceInnerRoutes />
+                </ProductDetailProvider>
+              </CartAnimationProvider>
+            </WishlistProvider>
+          </LocationProvider>
+        </CartProvider>
+      </ProfileProvider>
+    </HeroTransitionProvider>
   );
 }

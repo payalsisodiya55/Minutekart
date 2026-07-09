@@ -14,6 +14,7 @@ import SectionRenderer from "../components/experience/SectionRenderer";
 import { useLocation as useAppLocation } from '../context/LocationContext';
 import { useCartAnimation } from '../context/CartAnimationContext';
 import { resolveQuickImageUrl } from '../utils/image';
+import { useHeroTransition } from '../context/HeroTransitionContext';
 
 const QUICK_THEME_STORAGE_KEY = "food.quick.headerColor";
 const QUICK_HEADER_RETURN_STORAGE_KEY = "food.quick.headerReturn";
@@ -32,8 +33,26 @@ const CategoryProductCard = ({ product }) => {
     const { cart, addToCart, updateQuantity } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const { animateAddToCart, animateRemoveFromCart } = useCartAnimation();
+    const { triggerHeroExpand } = useHeroTransition();
+    const navigate = useNavigate();
     const [currentImgIdx, setCurrentImgIdx] = useState(0);
     const imageRef = React.useRef(null);
+    const cardRef = React.useRef(null);
+
+    // Intercept card tap: capture rect, trigger hero expand, then navigate
+    const handleCardTap = (e) => {
+        // Don't trigger hero if tapping wishlist button or add/quantity controls
+        if (e.target.closest('button')) return;
+        if (!cardRef.current) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        triggerHeroExpand(
+            rect,
+            product,
+            () => navigate(`/quick/product/${product.id}`, {
+                state: { product, fromHero: true }
+            })
+        );
+    };
 
     const allImages = React.useMemo(() => {
         const main = product.image || product.mainImage;
@@ -59,7 +78,12 @@ const CategoryProductCard = ({ product }) => {
     const discountPercent = showDiscount ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) : 0;
 
     return (
-        <div className="flex flex-col bg-white dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-800 rounded-[14px] pt-1.5 px-2 md:px-2.5 pb-2.5 relative group select-none shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:shadow-[0_6px_16px_rgba(0,0,0,0.04)] h-full justify-between">
+        <div
+            ref={cardRef}
+            onClick={handleCardTap}
+            className="flex flex-col bg-white dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-800 rounded-[14px] pt-1.5 px-2 md:px-2.5 pb-2.5 relative group select-none shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:shadow-[0_6px_16px_rgba(0,0,0,0.04)] h-full justify-between cursor-pointer active:scale-[0.97]"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
+        >
             {/* Top section: Time badge & Wishlist */}
             <div className="flex items-center justify-between mb-1">
                 <div className="bg-[#E5F7ED] dark:bg-emerald-950/40 text-[#0c831f] dark:text-emerald-400 font-bold text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-[4px] inline-flex items-center justify-center leading-tight">

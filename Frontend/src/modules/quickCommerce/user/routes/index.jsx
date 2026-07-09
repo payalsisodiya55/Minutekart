@@ -24,43 +24,48 @@ import { WishlistProvider } from '../context/WishlistContext';
 import { CartProvider } from '../context/CartContext';
 import { CartAnimationProvider } from '../context/CartAnimationContext';
 import { LocationProvider } from '../context/LocationContext';
+import { HeroTransitionProvider } from '../context/HeroTransitionContext';
+import HeroOverlay from '../components/shared/HeroOverlay';
 
 import ProtectedRoute from '@core/guards/ProtectedRoute';
 
 const CustomerRoutes = () => {
     return (
-        <LocationProvider>
-            <WishlistProvider>
-                <CartProvider>
-                    <CartAnimationProvider>
-                        <ScrollToTop />
-                        <Routes>
-                            <Route path="/" element={<Home />} />
-                            <Route path="categories" element={<CategoriesPage />} />
-                            <Route path="category/:categoryName" element={<CategoryProductsPage />} />
-                            <Route path="product/:productId" element={<ProductDetailPage />} />
-                            <Route path="terms" element={<TermsPage />} />
-                            <Route path="privacy" element={<PrivacyPage />} />
-                            <Route path="about" element={<AboutPage />} />
-                            <Route path="offers" element={<OffersPage />} />
+        <HeroTransitionProvider>
+            <LocationProvider>
+                <WishlistProvider>
+                    <CartProvider>
+                        <CartAnimationProvider>
+                            <HeroOverlay />
+                            <ScrollToTop />
+                            <Routes>
+                                <Route path="/" element={<Home />} />
+                                <Route path="categories" element={<CategoriesPage />} />
+                                <Route path="category/:categoryName" element={<CategoryProductsPage />} />
+                                <Route path="product/:productId" element={<ProductDetailPage />} />
+                                <Route path="terms" element={<TermsPage />} />
+                                <Route path="privacy" element={<PrivacyPage />} />
+                                <Route path="about" element={<AboutPage />} />
+                                <Route path="offers" element={<OffersPage />} />
 
-                            {/* Protected Customer Routes */}
-                            <Route path="wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
-                            <Route path="orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-                            <Route path="orders/:orderId" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
-                            <Route path="transactions" element={<ProtectedRoute><OrderTransactionsPage /></ProtectedRoute>} />
-                            <Route path="addresses" element={<ProtectedRoute><AddressesPage /></ProtectedRoute>} />
-                            <Route path="settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-                            <Route path="support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
-                            <Route path="chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-                            <Route path="checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-                            <Route path="profile" element={<Navigate to="/profile?from=quick" replace />} />
-                            <Route path="profile/edit" element={<Navigate to="/profile/edit?from=quick" replace />} />
-                        </Routes>
-                    </CartAnimationProvider>
-                </CartProvider>
-            </WishlistProvider>
-        </LocationProvider>
+                                {/* Protected Customer Routes */}
+                                <Route path="wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
+                                <Route path="orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+                                <Route path="orders/:orderId" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
+                                <Route path="transactions" element={<ProtectedRoute><OrderTransactionsPage /></ProtectedRoute>} />
+                                <Route path="addresses" element={<ProtectedRoute><AddressesPage /></ProtectedRoute>} />
+                                <Route path="settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+                                <Route path="support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+                                <Route path="chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+                                <Route path="checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+                                <Route path="profile" element={<Navigate to="/profile?from=quick" replace />} />
+                                <Route path="profile/edit" element={<Navigate to="/profile/edit?from=quick" replace />} />
+                            </Routes>
+                        </CartAnimationProvider>
+                    </CartProvider>
+                </WishlistProvider>
+            </LocationProvider>
+        </HeroTransitionProvider>
     );
 };
 
