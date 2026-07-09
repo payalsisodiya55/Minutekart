@@ -59,7 +59,7 @@ const CategoryProductCard = ({ product }) => {
     const discountPercent = showDiscount ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) : 0;
 
     return (
-        <div className="flex flex-col bg-white dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-800 rounded-[12px] p-2 md:p-2.5 relative group select-none shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:shadow-[0_6px_16px_rgba(0,0,0,0.04)] h-full justify-between">
+        <div className="flex flex-col bg-white dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-800 rounded-[14px] pt-1.5 px-2 md:px-2.5 pb-2.5 relative group select-none shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:shadow-[0_6px_16px_rgba(0,0,0,0.04)] h-full justify-between">
             {/* Top section: Time badge & Wishlist */}
             <div className="flex items-center justify-between mb-1">
                 <div className="bg-[#E5F7ED] dark:bg-emerald-950/40 text-[#0c831f] dark:text-emerald-400 font-bold text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-[4px] inline-flex items-center justify-center leading-tight">
@@ -67,12 +67,12 @@ const CategoryProductCard = ({ product }) => {
                 </div>
                 <button
                     onClick={() => toggleWishlist(product)}
-                    className="w-7 h-7 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm cursor-pointer active:scale-90 transition-transform"
+                    className="w-5 h-5 flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
                 >
                     <Heart
-                        size={14}
+                        size={15}
                         className={cn(
-                            isWishlisted ? "fill-red-500 text-red-500" : "text-slate-400"
+                            isWishlisted ? "fill-red-500 text-red-500" : "text-slate-400 dark:text-slate-500 hover:text-slate-600"
                         )}
                     />
                 </button>
