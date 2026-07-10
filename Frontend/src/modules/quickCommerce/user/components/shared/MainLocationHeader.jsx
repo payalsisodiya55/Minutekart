@@ -265,7 +265,8 @@ const MainLocationHeader = ({
                 id: cat._id,
                 icon: resolvedImg || (cat.iconId && ICON_COMPONENTS[cat.iconId]) || Sparkles,
               };
-            });
+            })
+            .sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
           setInternalCategories(headers);
         }
       });

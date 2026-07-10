@@ -246,7 +246,9 @@ export const useQuickHomeData = ({ currentLocation }) => {
 
           const allHeaderFromAdmin = formattedHeaders.find(h => (h.slug?.toLowerCase() === "all") || (h.name?.toLowerCase() === "all"));
           const mergedAllCategory = allHeaderFromAdmin ? { ...ALL_CATEGORY, headerColor: allHeaderFromAdmin.headerColor || ALL_CATEGORY.headerColor, icon: allHeaderFromAdmin.icon || ALL_CATEGORY.icon } : ALL_CATEGORY;
-          const headersWithoutAll = formattedHeaders.filter(h => !((h.slug?.toLowerCase() === "all") || (h.name?.toLowerCase() === "all")));
+          const headersWithoutAll = formattedHeaders
+            .filter(h => !((h.slug?.toLowerCase() === "all") || (h.name?.toLowerCase() === "all")))
+            .sort((a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0));
           
           const finalCategories = [mergedAllCategory, ...headersWithoutAll];
           setCategories(finalCategories);

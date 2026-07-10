@@ -86,6 +86,7 @@ const mapCategory = (category) => ({
   color: category.accentColor,
   approvalStatus: category.approvalStatus || 'approved',
   banner: category.banner || '',
+  sortOrder: Number(category.sortOrder || 0),
 });
 
 export const buildSellerMap = async (products = []) => {

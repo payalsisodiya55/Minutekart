@@ -489,7 +489,8 @@ const CategoryProductsPage = () => {
                             name: s.name,
                             icon: s.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png',
                             banner: s.banner || '',
-                        }));
+                            sortOrder: Number(s.sortOrder || 0),
+                        })).sort((a, b) => a.sortOrder - b.sortOrder);
                         subCategoriesList = [{ id: 'all', name: 'All', icon: targetCategory.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs];
                     }
                 }
@@ -616,7 +617,8 @@ const CategoryProductsPage = () => {
             name: s.name,
             icon: s.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png',
             banner: s.banner || '',
-        }));
+            sortOrder: Number(s.sortOrder || 0),
+        })).sort((a, b) => a.sortOrder - b.sortOrder);
         
         return [{ id: 'all', name: 'All', icon: cat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs];
     };
