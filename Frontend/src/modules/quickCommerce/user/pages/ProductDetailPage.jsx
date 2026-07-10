@@ -1098,7 +1098,7 @@ const ProductDetailPage = () => {
           transform: revealSecondary ? 'translateY(0px)' : 'translateY(80px)',
           transition: 'opacity 300ms ease-out, transform 300ms cubic-bezier(0.16, 1, 0.3, 1)',
         }}
-        className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] flex items-center justify-between md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-2.5 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] flex items-center justify-between md:hidden"
       >
         <div>
           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
