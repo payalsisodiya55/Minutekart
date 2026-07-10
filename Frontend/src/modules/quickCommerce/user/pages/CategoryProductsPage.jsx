@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Heart, Minus, Plus, ChevronsDown, SlidersHorizontal, ArrowUpDown, ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronLeft, Heart, Minus, Plus, ChevronsDown, ChevronsUp, SlidersHorizontal, ArrowUpDown, ChevronDown, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -243,7 +243,45 @@ const CategoryProductCard = ({ product }) => {
     );
 };
 
+// Custom premium transition separating sheet banner
+const TransitionBanner = ({ direction, name, icon, arrowRef }) => {
+    const isUp = direction === 'up';
+    return (
+        <div className="w-full flex flex-col items-center pt-8 pb-7 bg-[#F4FCF3] dark:bg-emerald-950/10 border-t border-emerald-100/50 dark:border-emerald-900/20 rounded-t-3xl border-b border-b-slate-100/30">
+            <div
+                ref={arrowRef}
+                className="text-[#0c831f] mb-1 flex flex-col items-center opacity-60 transition-transform duration-75"
+                style={{ transform: 'scale(0.8) translateY(0px)' }}
+            >
+                {isUp ? (
+                    <ChevronsUp size={28} strokeWidth={3} className="animate-pulse" />
+                ) : (
+                    <ChevronsDown size={28} strokeWidth={3} className="animate-pulse" />
+                )}
+            </div>
+
+            <span className="text-[10px] font-black uppercase tracking-[0.24em] text-[#0c831f]/75 mb-1.5">
+                {isUp ? "Pull Up for Next" : "Pull Down for Previous"}
+            </span>
+
+            <h4 className="text-[17px] font-extrabold text-slate-800 dark:text-white mb-4">
+                {name || ""}
+            </h4>
+
+            <div className="w-16 h-16 rounded-full bg-white dark:bg-neutral-800 border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center p-3 shadow-md">
+                <img 
+                    src={icon || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png'} 
+                    alt="Category Icon" 
+                    className="w-full h-full object-contain" 
+                />
+            </div>
+        </div>
+    );
+};
+
 const CategoryProductsPage = () => {
+    const prevArrowRef = React.useRef(null);
+    const nextArrowRef = React.useRef(null);
     const { categoryId: rawCatId } = useParams();
     const catId = normalizeId(rawCatId);
     const navigate = useNavigate();
@@ -251,6 +289,8 @@ const CategoryProductsPage = () => {
     const { currentLocation } = useAppLocation();
     const initialSubcategoryId = normalizeId(location.state?.activeSubcategoryId) || 'all';
     const { isOpen: isProductDetailOpen } = useProductDetail();
+    
+    // Core Layout States
     const [selectedSubCategory, setSelectedSubCategory] = useState(initialSubcategoryId);
     const [category, setCategory] = useState(null);
     const [subCategories, setSubCategories] = useState([{ id: 'all', name: 'All', icon: 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }]);
@@ -258,35 +298,45 @@ const CategoryProductsPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [headerTheme, setHeaderTheme] = useState(FALLBACK_HEADER_COLOR);
     const [mainCategories, setMainCategories] = useState([]);
-    const [pullProgress, setPullProgress] = useState(0);
-    const [isTransitioning, setIsTransitioning] = useState(false);
-    const [isScrollable, setIsScrollable] = useState(false);
+    const [experienceSections, setExperienceSections] = useState([]);
+    const [heroConfig, setHeroConfig] = useState(null);
+    const [categoryMap, setCategoryMap] = useState({});
+    const [subcategoryMap, setSubcategoryMap] = useState({});
+
+    // Filter and Sort States
     const [activeDropdown, setActiveDropdown] = useState(null);
     const [selectedSort, setSelectedSort] = useState('default');
     const [selectedType, setSelectedType] = useState('all');
     const [selectedPriceRange, setSelectedPriceRange] = useState('all');
-    const triggerRef = React.useRef(null);
-    const hasScrolledSinceMount = React.useRef(false);
 
-    useEffect(() => {
-        hasScrolledSinceMount.current = false;
-    }, [selectedSubCategory, catId]);
+    // Caching & Deduplication Layer
+    const categoryCacheRef = React.useRef({});
+    const promisesCacheRef = React.useRef({});
+    
+    // Scroll state preservation map
+    const scrollPositionsRef = React.useRef({});
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-                const scrollable = document.documentElement.scrollHeight > window.innerHeight + 40;
-                setIsScrollable(scrollable);
-                if (!scrollable) {
-                    setPullProgress(1);
-                } else {
-                    setPullProgress(0);
-                }
-            }
-        }, 100);
-        return () => clearTimeout(timer);
-    }, [products, isLoading, selectedSubCategory]);
+    // Gesture Animation States & Refs
+    const [activeTransition, setActiveTransition] = useState({
+        active: false,
+        direction: null,
+        prevPanel: null,
+        nextPanel: null
+    });
 
+    const dragStartRef = React.useRef(null);
+    const isDraggingRef = React.useRef(false);
+    const gestureActiveRef = React.useRef(false);
+    const gestureDirectionRef = React.useRef(null);
+    const gestureStartRef = React.useRef(null);
+
+    const animationContainerRef = React.useRef(null);
+    const currentPanelScrollRef = React.useRef(null);
+    const currentPanelRef = React.useRef(null);
+    const prevPanelRef = React.useRef(null);
+    const nextPanelRef = React.useRef(null);
+
+    // Retrieve header theme on mount
     useEffect(() => {
         if (typeof window === "undefined") return;
         const storedTheme = window.sessionStorage.getItem(QUICK_THEME_STORAGE_KEY);
@@ -307,24 +357,92 @@ const CategoryProductsPage = () => {
         }
     }, []);
 
-    const [experienceSections, setExperienceSections] = useState([]);
-    const [heroConfig, setHeroConfig] = useState(null);
-    const [categoryMap, setCategoryMap] = useState({});
-    const [subcategoryMap, setSubcategoryMap] = useState({});
+    // Get categories mapping for SectionRenderer
+    const buildCategoryMap = (allCats) => {
+        const cMap = {};
+        const sMap = {};
+        const fullMap = {};
+        
+        const flatten = (items) => {
+            items.forEach(item => {
+                const itemId = normalizeId(item._id || item.id);
+                if (itemId) fullMap[itemId] = item;
+                if (item.slug) fullMap[String(item.slug)] = item;
+                if (item.type === 'category') {
+                    if (itemId) cMap[itemId] = item;
+                    if (item.slug) cMap[String(item.slug)] = item;
+                }
+                else if (item.type === 'subcategory') {
+                    if (itemId) sMap[itemId] = item;
+                    if (item.slug) sMap[String(item.slug)] = item;
+                }
+                if (item.children && item.children.length > 0) flatten(item.children);
+            });
+        };
+        flatten(allCats);
+        setCategoryMap(cMap);
+        setSubcategoryMap(sMap);
+        return fullMap;
+    };
 
+    // Unified caching & fetching handler
+    const getCategoryDataFromCacheOrFetch = async (targetCatId, forceFetch = false) => {
+        if (!targetCatId) return null;
+        const normId = normalizeId(targetCatId);
 
-    const fetchData = () => {
-        setIsLoading(true);
         const hasValidLocation =
             Number.isFinite(currentLocation?.latitude) &&
             Number.isFinite(currentLocation?.longitude);
 
-        if (hasValidLocation) {
-            customerApi.getProducts({
-                categoryId: catId,
-                lat: currentLocation.latitude,
-                lng: currentLocation.longitude,
-            }).then(prodRes => {
+        // Return from cache if available, not in loading placeholder state, and matches location availability
+        if (!forceFetch && categoryCacheRef.current[normId] && !categoryCacheRef.current[normId].isLoading) {
+            const cachedEntry = categoryCacheRef.current[normId];
+            if (!hasValidLocation || cachedEntry.hasLocation) {
+                return cachedEntry;
+            }
+        }
+
+        // Return existing in-flight promise if available
+        if (promisesCacheRef.current[normId]) {
+            return promisesCacheRef.current[normId];
+        }
+
+        // Set placeholder loading state in cache
+        if (!categoryCacheRef.current[normId]) {
+            categoryCacheRef.current[normId] = {
+                products: [],
+                subCategories: [{ id: 'all', name: 'All', icon: 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }],
+                category: null,
+                experienceSections: [],
+                heroConfig: null,
+                isLoading: true,
+                hasLocation: hasValidLocation
+            };
+        }
+
+        const fetchPromise = (async () => {
+            try {
+                let allCats = mainCategories;
+                if (!allCats || allCats.length === 0) {
+                    const catRes = await customerApi.getCategories({ tree: true });
+                    if (catRes?.data?.success) {
+                        const results = catRes.data.results || catRes.data.result || [];
+                        allCats = Array.isArray(results) ? results : [];
+                        setMainCategories(allCats);
+                    }
+                }
+
+                const [prodRes, expRes, heroRes] = await Promise.all([
+                    hasValidLocation ? customerApi.getProducts({
+                        categoryId: normId,
+                        lat: currentLocation.latitude,
+                        lng: currentLocation.longitude,
+                    }).catch(() => null) : null,
+                    customerApi.getExperienceSections({ pageType: 'header', headerId: normId }).catch(() => null),
+                    customerApi.getHeroConfig({ pageType: 'header', headerId: normId }).catch(() => null)
+                ]);
+
+                let productsList = [];
                 if (prodRes?.data?.success) {
                     const rawResult = prodRes.data.result;
                     const dbProds = Array.isArray(prodRes.data.results)
@@ -335,7 +453,7 @@ const CategoryProductsPage = () => {
                                 ? rawResult
                                 : [];
 
-                    const formattedProds = dbProds.map(p => ({
+                    productsList = dbProds.map(p => ({
                         ...p,
                         id: p._id,
                         image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
@@ -344,112 +462,188 @@ const CategoryProductsPage = () => {
                         weight: p.weight || "1 unit",
                         deliveryTime: "8-15 mins"
                     }));
-                    setProducts(Array.isArray(formattedProds) ? formattedProds : []);
                 }
-            }).catch(console.error).finally(() => setIsLoading(false));
-        } else {
-            setIsLoading(false);
-        }
 
-        customerApi.getCategories({ tree: true }).then(catRes => {
-            if (catRes?.data?.success) {
-                const results = catRes.data.results || catRes.data.result || [];
-                const allCats = Array.isArray(results) ? results : [];
-                setMainCategories(allCats);
+                let targetCategory = null;
+                let subCategoriesList = [{ id: 'all', name: 'All', icon: 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }];
 
-                const cMap = {};
-                const sMap = {};
-                const fullMap = {};
-                
-                const flatten = (items) => {
-                    items.forEach(item => {
-                        const itemId = normalizeId(item._id || item.id);
-                        if (itemId) fullMap[itemId] = item;
-                        if (item.slug) fullMap[String(item.slug)] = item;
-                        if (item.type === 'category') {
-                            if (itemId) cMap[itemId] = item;
-                            if (item.slug) cMap[String(item.slug)] = item;
+                if (allCats && allCats.length > 0) {
+                    const fullMap = buildCategoryMap(allCats);
+                    targetCategory = fullMap[normId];
+                    if (targetCategory) {
+                        let subs = [];
+                        if (targetCategory.children && targetCategory.children.length > 0) {
+                            subs = targetCategory.children;
+                        } else if (targetCategory.parentId) {
+                            const parentIdStr = normalizeId(targetCategory.parentId?._id || targetCategory.parentId);
+                            const parent = fullMap[parentIdStr];
+                            if (parent) {
+                                subs = parent.children && parent.children.length > 0
+                                    ? parent.children
+                                    : allCats.filter(cat => normalizeId(cat.parentId?._id || cat.parentId) === parentIdStr);
+                            }
                         }
-                        else if (item.type === 'subcategory') {
-                            if (itemId) sMap[itemId] = item;
-                            if (item.slug) sMap[String(item.slug)] = item;
-                        }
-                        if (item.children && item.children.length > 0) flatten(item.children);
-                    });
+
+                        const formattedSubs = subs.map(s => ({
+                            id: normalizeId(s._id || s.id),
+                            name: s.name,
+                            icon: s.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png',
+                            banner: s.banner || '',
+                        }));
+                        subCategoriesList = [{ id: 'all', name: 'All', icon: targetCategory.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs];
+                    }
+                }
+
+                const data = {
+                    products: productsList,
+                    subCategories: subCategoriesList,
+                    category: targetCategory,
+                    experienceSections: expRes?.data?.success ? (expRes.data.result || expRes.data.results || []) : [],
+                    heroConfig: heroRes?.data?.success ? heroRes.data.result : null,
+                    isLoading: false,
+                    hasLocation: hasValidLocation
                 };
-                flatten(allCats);
-                setCategoryMap(cMap);
-                setSubcategoryMap(sMap);
 
-                let currentCat = fullMap[catId];
-                if (currentCat) {
-                    setCategory(currentCat);
-                    let subs = [];
-                    let isDirectSub = false;
-
-                    if (currentCat.children && currentCat.children.length > 0) {
-                        subs = currentCat.children;
-                    } else if (currentCat.parentId) {
-                        const parent = fullMap[normalizeId(currentCat.parentId?._id || currentCat.parentId)];
-                        if (parent) {
-                            subs = parent.children && parent.children.length > 0
-                                ? parent.children
-                                : allCats.filter(cat => normalizeId(cat.parentId?._id || cat.parentId) === normalizeId(parent._id));
-                        }
-                        isDirectSub = true;
-                    }
-
-                    const formattedSubs = subs.map(s => ({
-                        id: normalizeId(s._id || s.id),
-                        name: s.name,
-                        icon: s.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png',
-                        banner: s.banner || '',
-                    }));
-                    setSubCategories([{ id: 'all', name: 'All', icon: currentCat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs]);
-                    
-                    if (isDirectSub && selectedSubCategory === 'all' && !location.state?.activeSubcategoryId) {
-                        setSelectedSubCategory(normalizeId(currentCat._id || currentCat.id));
-                    }
-                }
+                categoryCacheRef.current[normId] = data;
+                return data;
+            } catch (err) {
+                console.error("Error preloading category details:", err);
+                const errorData = {
+                    products: [],
+                    subCategories: [{ id: 'all', name: 'All', icon: 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }],
+                    category: null,
+                    experienceSections: [],
+                    heroConfig: null,
+                    isLoading: false,
+                    hasLocation: hasValidLocation,
+                    error: true
+                };
+                categoryCacheRef.current[normId] = errorData;
+                return errorData;
+            } finally {
+                delete promisesCacheRef.current[normId];
             }
-        }).catch(console.error);
+        })();
 
-        customerApi.getExperienceSections({ pageType: 'header', headerId: catId }).then(expRes => {
-            if (expRes?.data?.success) {
-                setExperienceSections(expRes.data.result || expRes.data.results || []);
-            }
-        }).catch(() => null);
-
-        customerApi.getHeroConfig({ pageType: 'header', headerId: catId }).then(heroRes => {
-            if (heroRes?.data?.success) {
-                setHeroConfig(heroRes.data.result);
-            }
-        }).catch(() => null);
+        promisesCacheRef.current[normId] = fetchPromise;
+        return fetchPromise;
     };
 
+    // Load active category
+    const fetchData = async (targetId) => {
+        const normId = normalizeId(targetId);
+        const hasValidLocation =
+            Number.isFinite(currentLocation?.latitude) &&
+            Number.isFinite(currentLocation?.longitude);
+        const cached = categoryCacheRef.current[normId];
+        
+        // Skip setting isLoading to true if category is preloaded and has location products loaded
+        const isCached = cached && !cached.isLoading && (!hasValidLocation || cached.hasLocation);
+        
+        if (!isCached) {
+            setIsLoading(true);
+        }
+
+        const data = await getCategoryDataFromCacheOrFetch(targetId);
+        if (data) {
+            setProducts(data.products);
+            setCategory(data.category);
+            setSubCategories(data.subCategories);
+            setExperienceSections(data.experienceSections);
+            setHeroConfig(data.heroConfig);
+        }
+        setIsLoading(false);
+    };
+
+    // Fetch on page navigate or location change
     useEffect(() => {
-        fetchData();
+        fetchData(catId);
         setSelectedSubCategory(normalizeId(location.state?.activeSubcategoryId) || 'all');
     }, [catId, location.state?.activeSubcategoryId, currentLocation?.latitude, currentLocation?.longitude]);
 
-    const safeProducts = Array.isArray(products) ? products : [];
+    // Background preloader for adjacent main categories
+    useEffect(() => {
+        if (!mainCategories || mainCategories.length === 0 || !catId) return;
 
-    const filteredProducts = React.useMemo(() => {
-        let list = safeProducts.filter(p => {
-            if (selectedSubCategory === 'all') return true;
-            const subId = normalizeId(p.subcategoryId?._id || p.subcategoryId) || '';
-            const catIdStr = normalizeId(p.categoryId?._id || p.categoryId) || '';
-            return subId === selectedSubCategory || catIdStr === selectedSubCategory;
+        const currentCatIndex = mainCategories.findIndex(c => normalizeId(c._id || c.id) === catId || String(c.slug || '') === catId);
+        if (currentCatIndex !== -1) {
+            const nextMain = currentCatIndex < mainCategories.length - 1 ? mainCategories[currentCatIndex + 1] : null;
+            const prevMain = currentCatIndex > 0 ? mainCategories[currentCatIndex - 1] : null;
+
+            if (nextMain) {
+                getCategoryDataFromCacheOrFetch(normalizeId(nextMain._id || nextMain.id));
+            }
+            if (prevMain) {
+                getCategoryDataFromCacheOrFetch(normalizeId(prevMain._id || prevMain.id));
+            }
+        }
+    }, [mainCategories, catId]);
+
+    // Synchronously extract subcategories for any main category
+    const getSubCategoriesForCategory = (mainCatId) => {
+        const normId = normalizeId(mainCatId);
+        if (!mainCategories || mainCategories.length === 0) return [];
+        
+        const fullMap = {};
+        const flatten = (items) => {
+            items.forEach(item => {
+                const itemId = normalizeId(item._id || item.id);
+                if (itemId) fullMap[itemId] = item;
+                if (item.slug) fullMap[String(item.slug)] = item;
+                if (item.children && item.children.length > 0) flatten(item.children);
+            });
+        };
+        flatten(mainCategories);
+        
+        const cat = fullMap[normId];
+        if (!cat) return [];
+        
+        let subs = [];
+        if (cat.children && cat.children.length > 0) {
+            subs = cat.children;
+        } else if (cat.parentId) {
+            const parentIdStr = normalizeId(cat.parentId?._id || cat.parentId);
+            const parent = fullMap[parentIdStr];
+            if (parent) {
+                subs = parent.children && parent.children.length > 0
+                    ? parent.children
+                    : mainCategories.filter(item => normalizeId(item.parentId?._id || item.parentId) === parentIdStr);
+            }
+        }
+        
+        const formattedSubs = subs.map(s => ({
+            id: normalizeId(s._id || s.id),
+            name: s.name,
+            icon: s.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png',
+            banner: s.banner || '',
+        }));
+        
+        return [{ id: 'all', name: 'All', icon: cat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321831.png' }, ...formattedSubs];
+    };
+
+    // Calculate panel data for render
+    const getPanelData = (mainId, subId) => {
+        const cached = categoryCacheRef.current[mainId];
+        if (!cached) {
+            return { products: [], subCategories: getSubCategoriesForCategory(mainId), category: null, experienceSections: [], heroConfig: null, isLoading: true };
+        }
+        
+        const safeProds = cached.products || [];
+        let list = safeProds.filter(p => {
+            if (subId === 'all') return true;
+            const pSubId = normalizeId(p.subcategoryId?._id || p.subcategoryId) || '';
+            const pCatId = normalizeId(p.categoryId?._id || p.categoryId) || '';
+            return pSubId === subId || pCatId === subId;
         });
-
-        // Apply Type Filter
+        
+        // Apply type filters
         if (selectedType === 'veg') {
             list = list.filter(p => p.isVeg || (p.name && /veg/i.test(p.name)) || (p.description && /veg/i.test(p.description)));
         } else if (selectedType === 'nonveg') {
             list = list.filter(p => !p.isVeg && !(p.name && /veg/i.test(p.name)));
         }
 
-        // Apply Price Filter
+        // Apply price filters
         if (selectedPriceRange === 'under-150') {
             list = list.filter(p => (p.price || 0) < 150);
         } else if (selectedPriceRange === '150-300') {
@@ -458,95 +652,496 @@ const CategoryProductsPage = () => {
             list = list.filter(p => (p.price || 0) > 300);
         }
 
-        // Apply Sort
+        // Apply sort filters
         if (selectedSort === 'price-low-high') {
             list = [...list].sort((a, b) => (a.price || 0) - (b.price || 0));
         } else if (selectedSort === 'price-high-low') {
             list = [...list].sort((a, b) => (b.price || 0) - (a.price || 0));
         }
+        
+        return {
+            products: list,
+            subCategories: cached.subCategories || getSubCategoriesForCategory(mainId),
+            category: cached.category,
+            experienceSections: cached.experienceSections || [],
+            heroConfig: cached.heroConfig,
+            isLoading: cached.isLoading
+        };
+    };
 
-        return list;
-    }, [safeProducts, selectedSubCategory, selectedSort, selectedType, selectedPriceRange]);
+    // Determine adjacent panels for transition
+    const getAdjacentPanels = () => {
+        if (!catId) return { prev: null, next: null };
+        
+        const subCats = subCategories;
+        const currentSubIndex = subCats.findIndex(s => s.id === selectedSubCategory);
+        
+        let prev = null;
+        let next = null;
+        
+        // Prev Category selection
+        if (currentSubIndex > 0) {
+            prev = {
+                mainCategoryId: catId,
+                subCategoryId: subCats[currentSubIndex - 1].id,
+                name: subCats[currentSubIndex - 1].name,
+                icon: subCats[currentSubIndex - 1].icon
+            };
+        } else {
+            const currentCatIndex = mainCategories.findIndex(c => normalizeId(c._id || c.id) === catId || String(c.slug || '') === catId);
+            if (currentCatIndex > 0) {
+                const prevMain = mainCategories[currentCatIndex - 1];
+                const prevMainId = normalizeId(prevMain._id || prevMain.id);
+                const prevSubCats = getSubCategoriesForCategory(prevMainId);
+                const targetSub = prevSubCats.length > 0 ? prevSubCats[prevSubCats.length - 1] : { id: 'all', name: 'All' };
+                
+                prev = {
+                    mainCategoryId: prevMainId,
+                    subCategoryId: targetSub.id,
+                    name: targetSub.name,
+                    icon: targetSub.icon || prevMain.image
+                };
+            }
+        }
+        
+        // Next Category selection
+        if (currentSubIndex !== -1 && currentSubIndex < subCats.length - 1) {
+            next = {
+                mainCategoryId: catId,
+                subCategoryId: subCats[currentSubIndex + 1].id,
+                name: subCats[currentSubIndex + 1].name,
+                icon: subCats[currentSubIndex + 1].icon
+            };
+        } else {
+            const currentCatIndex = mainCategories.findIndex(c => normalizeId(c._id || c.id) === catId || String(c.slug || '') === catId);
+            if (currentCatIndex !== -1 && currentCatIndex < mainCategories.length - 1) {
+                const nextMain = mainCategories[currentCatIndex + 1];
+                const nextMainId = normalizeId(nextMain._id || nextMain.id);
+                
+                next = {
+                    mainCategoryId: nextMainId,
+                    subCategoryId: 'all',
+                    name: nextMain.name || nextMain.slug,
+                    icon: nextMain.image
+                };
+            }
+        }
+        
+        return { prev, next };
+    };
 
-    const productsById = React.useMemo(() => {
-        const map = {};
-        safeProducts.forEach(p => {
-            map[p._id || p.id] = p;
-        });
-        return map;
-    }, [safeProducts]);
+    // Scroll listener for current panel
+    const handleScrollEvent = (e) => {
+        const scrollTop = e.currentTarget.scrollTop;
+        const cacheKey = `${catId}_${selectedSubCategory}`;
+        scrollPositionsRef.current[cacheKey] = scrollTop;
+    };
 
-    // Handle Category/Subcategory Switch Transition when scrolling to bottom
-    const currentSubCatIndex = subCategories.findIndex(s => s.id === selectedSubCategory);
-    const nextSubCat = currentSubCatIndex !== -1 && currentSubCatIndex < subCategories.length - 1 ? subCategories[currentSubCatIndex + 1] : null;
-
-    const currentCatIndex = mainCategories.findIndex(c => normalizeId(c._id || c.id) === catId || String(c.slug || '') === catId);
-    const nextMainCat = !nextSubCat && currentCatIndex !== -1 && currentCatIndex < mainCategories.length - 1 ? mainCategories[currentCatIndex + 1] : null;
-
-    // Track scroll pull-progress of the next-category trigger element to scale the circular image dynamically
+    // Restore scroll position on selection change
     useEffect(() => {
-        const handleScroll = () => {
-            if (!triggerRef.current || isTransitioning) return;
+        const container = currentPanelScrollRef.current;
+        if (container) {
+            const cacheKey = `${catId}_${selectedSubCategory}`;
+            const savedScroll = scrollPositionsRef.current[cacheKey];
+            
+            if (savedScroll !== undefined) {
+                setTimeout(() => {
+                    if (currentPanelScrollRef.current) {
+                        currentPanelScrollRef.current.scrollTop = savedScroll === 99999
+                            ? currentPanelScrollRef.current.scrollHeight
+                            : savedScroll;
+                    }
+                }, 20);
+            } else {
+                container.scrollTop = 0;
+            }
+        }
+    }, [selectedSubCategory, catId, isLoading]);
 
-            if (window.scrollY > 15) {
-                hasScrolledSinceMount.current = true;
+    // Gesture Handlers
+    const handleDragStart = (clientY, clientX, isTouch, scrollTop, scrollHeight, clientHeight) => {
+        if (isProductDetailOpen) return;
+        dragStartRef.current = {
+            y: clientY,
+            x: clientX,
+            scrollTop,
+            scrollHeight,
+            clientHeight,
+            isTouch,
+            time: Date.now()
+        };
+        isDraggingRef.current = true;
+    };
+
+    const handleDragMove = (clientY, clientX) => {
+        if (!isDraggingRef.current || !dragStartRef.current) return;
+        
+        const start = dragStartRef.current;
+        const deltaY = clientY - start.y;
+        const deltaX = clientX - start.x;
+        
+        // Avoid fighting horizontal scroll gestures on product lists
+        if (Math.abs(deltaX) > Math.abs(deltaY) * 0.8 && !gestureActiveRef.current) {
+            isDraggingRef.current = false;
+            return;
+        }
+
+        const container = currentPanelScrollRef.current;
+        if (!container) return;
+
+        const currentScrollTop = container.scrollTop;
+        const currentScrollHeight = container.scrollHeight;
+        const currentClientHeight = container.clientHeight;
+        const maxScroll = currentScrollHeight - currentClientHeight;
+
+        if (!gestureActiveRef.current) {
+            // Detect Boundary Overscroll Triggers (uses live scroll positions to support mid-drag boundary hits)
+            if (currentScrollTop <= 0 && deltaY > 0) {
+                gestureActiveRef.current = true;
+                gestureDirectionRef.current = 'down';
+                gestureStartRef.current = clientY;
+
+                const { prev } = getAdjacentPanels();
+                if (prev) {
+                    // Trigger preload in case it's not complete
+                    getCategoryDataFromCacheOrFetch(prev.mainCategoryId);
+                    setActiveTransition({
+                        active: true,
+                        direction: 'down',
+                        prevPanel: prev,
+                        nextPanel: null
+                    });
+                } else {
+                    gestureActiveRef.current = false;
+                }
+            } else if (currentScrollTop >= maxScroll - 2 && deltaY < 0) {
+                gestureActiveRef.current = true;
+                gestureDirectionRef.current = 'up';
+                gestureStartRef.current = clientY;
+
+                const { next } = getAdjacentPanels();
+                if (next) {
+                    // Trigger preload in case it's not complete
+                    getCategoryDataFromCacheOrFetch(next.mainCategoryId);
+                    setActiveTransition({
+                        active: true,
+                        direction: 'up',
+                        prevPanel: null,
+                        nextPanel: next
+                    });
+                } else {
+                    gestureActiveRef.current = false;
+                }
+            }
+        } else {
+            // Overscroll interactive transition is active
+            const offsetY = clientY - gestureStartRef.current;
+            const animContainer = animationContainerRef.current;
+            if (animContainer) {
+                if (gestureDirectionRef.current === 'down') {
+                    if (offsetY < 0) {
+                        animContainer.style.transform = 'translateY(0px)';
+                    } else {
+                        animContainer.style.transform = `translateY(${offsetY}px)`;
+                    }
+                } else {
+                    if (offsetY > 0) {
+                        animContainer.style.transform = 'translateY(0px)';
+                    } else {
+                        animContainer.style.transform = `translateY(${offsetY}px)`;
+                    }
+                }
             }
 
-            const rect = triggerRef.current.getBoundingClientRect();
-            const windowHeight = window.innerHeight;
-            
-            const visibleHeight = Math.max(0, windowHeight - rect.top);
-            // Calculate progress over the first 200px of scrolling the container into view
-            const progress = Math.min(1, visibleHeight / 200);
-            setPullProgress(progress);
+            // Animate transition chevrons representing drag force
+            const direction = gestureDirectionRef.current;
+            const containerHeight = currentClientHeight;
+            const progress = Math.min(1.2, Math.abs(offsetY) / (containerHeight * 0.4));
+            const arrowRef = direction === 'up' ? nextArrowRef : prevArrowRef;
 
-            // Require the user to scroll to the very bottom of the page (thoda force)
-            // instead of triggering immediately when the banner is partially visible.
-            const isAtBottom = windowHeight + window.scrollY >= document.documentElement.scrollHeight - 30;
-            const hasScrolledUpEnough = isAtBottom;
-
-            if (hasScrolledUpEnough && isScrollable && hasScrolledSinceMount.current) {
-                setIsTransitioning(true);
+            if (arrowRef && arrowRef.current) {
+                // Scale up and translate chevrons based on drag pull depth
+                const scale = 0.8 + Math.min(1.0, progress) * 0.55;
+                const translateY = direction === 'up' ? -progress * 25 : progress * 25;
+                arrowRef.current.style.transform = `scale(${scale}) translateY(${translateY}px)`;
                 
-                // Wait 1200ms to show the premium scale-up & rotate transition animation (added more time)
-                setTimeout(() => {
-                    if (nextSubCat) {
-                        setSelectedSubCategory(nextSubCat.id);
-                        window.scrollTo({ top: 0, behavior: 'auto' });
-                    } else if (nextMainCat) {
-                        navigate(`/quick/categories/${nextMainCat._id}`, { state: { activeSubcategoryId: 'all' } });
-                        window.scrollTo({ top: 0, behavior: 'auto' });
+                // Opacity scales from faint to fully solid
+                arrowRef.current.style.opacity = `${0.6 + Math.min(1.0, progress) * 0.4}`;
+
+                // Add bounce animation once threshold is breached
+                if (progress >= 1.0) {
+                    arrowRef.current.classList.add('animate-bounce');
+                } else {
+                    arrowRef.current.classList.remove('animate-bounce');
+                }
+            }
+        }
+    };
+
+    const handleDragEnd = (clientY) => {
+        isDraggingRef.current = false;
+        if (!gestureActiveRef.current || !dragStartRef.current) return;
+        
+        gestureActiveRef.current = false;
+        
+        const container = currentPanelScrollRef.current;
+        if (!container) return;
+        
+        const containerHeight = container.clientHeight;
+        const offsetY = clientY - gestureStartRef.current;
+        const duration = Date.now() - dragStartRef.current.time;
+        const velocity = offsetY / duration;
+
+        const direction = gestureDirectionRef.current;
+        let isComplete = false;
+
+        if (direction === 'up') {
+            if (offsetY < -containerHeight * 0.4 || velocity < -0.4) {
+                isComplete = true;
+            }
+        } else if (direction === 'down') {
+            if (offsetY > containerHeight * 0.4 || velocity > 0.4) {
+                isComplete = true;
+            }
+        }
+
+        const animContainer = animationContainerRef.current;
+        if (animContainer) {
+            animContainer.style.transition = 'transform 450ms cubic-bezier(0.175, 0.885, 0.32, 1.1)';
+            const targetY = isComplete
+                ? (direction === 'up' ? -containerHeight : containerHeight)
+                : 0;
+
+            animContainer.style.transform = `translateY(${targetY}px)`;
+
+            // Animate chevrons release transitions
+            const arrowRef = direction === 'up' ? nextArrowRef : prevArrowRef;
+            if (arrowRef && arrowRef.current) {
+                arrowRef.current.classList.remove('animate-bounce');
+                arrowRef.current.style.transition = 'transform 450ms cubic-bezier(0.175, 0.885, 0.32, 1.1), opacity 450ms';
+                if (isComplete) {
+                    const finalY = direction === 'up' ? -40 : 40;
+                    arrowRef.current.style.transform = `scale(1.4) translateY(${finalY}px)`;
+                    arrowRef.current.style.opacity = '1.0';
+                } else {
+                    arrowRef.current.style.transform = 'scale(0.8) translateY(0px)';
+                    arrowRef.current.style.opacity = '0.6';
+                }
+            }
+
+            setTimeout(() => {
+                animContainer.style.transition = 'none';
+                animContainer.style.transform = 'translateY(0px)';
+
+                // Clean up arrow transition styles
+                if (arrowRef && arrowRef.current) {
+                    arrowRef.current.style.transition = 'none';
+                    arrowRef.current.style.transform = 'scale(0.8) translateY(0px)';
+                    arrowRef.current.style.opacity = '0.6';
+                }
+
+                if (isComplete) {
+                    const targetPanel = direction === 'up' ? activeTransition.nextPanel : activeTransition.prevPanel;
+                    if (targetPanel) {
+                        const { mainCategoryId, subCategoryId } = targetPanel;
+                        const cacheKey = `${mainCategoryId}_${subCategoryId}`;
+                        
+                        if (scrollPositionsRef.current[cacheKey] === undefined) {
+                            scrollPositionsRef.current[cacheKey] = direction === 'down' ? 99999 : 0;
+                        }
+
+                        if (mainCategoryId !== catId) {
+                            navigate(`/quick/categories/${mainCategoryId}`, { 
+                                state: { activeSubcategoryId: subCategoryId },
+                                replace: true 
+                            });
+                        } else {
+                            setSelectedSubCategory(subCategoryId);
+                        }
                     }
-                    setIsTransitioning(false);
-                }, 1200);
+                }
+
+                setActiveTransition({
+                    active: false,
+                    direction: null,
+                    prevPanel: null,
+                    nextPanel: null
+                });
+            }, 450);
+        }
+    };
+
+    // Attach non-passive events directly to the current scrollable container
+    useEffect(() => {
+        const container = currentPanelScrollRef.current;
+        if (!container || isProductDetailOpen) return;
+
+        const onTouchStart = (e) => {
+            const touch = e.touches[0];
+            handleDragStart(
+                touch.clientY,
+                touch.clientX,
+                true,
+                container.scrollTop,
+                container.scrollHeight,
+                container.clientHeight
+            );
+        };
+
+        const onTouchMove = (e) => {
+            if (e.touches.length > 1) return;
+            const touch = e.touches[0];
+            
+            if (gestureActiveRef.current && e.cancelable) {
+                e.preventDefault();
+            }
+            
+            handleDragMove(touch.clientY, touch.clientX);
+            
+            if (gestureActiveRef.current && e.cancelable) {
+                e.preventDefault();
             }
         };
 
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        handleScroll();
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [selectedSubCategory, catId, subCategories, mainCategories, isTransitioning, isScrollable, nextSubCat, nextMainCat, navigate]);
+        const onTouchEnd = (e) => {
+            const touch = e.changedTouches[0] || e.touches[0];
+            handleDragEnd(touch ? touch.clientY : dragStartRef.current.y);
+        };
 
-    const handleNextTransition = () => {
-        if (isTransitioning) return;
-        setIsTransitioning(true);
-        setTimeout(() => {
-            if (nextSubCat) {
-                setSelectedSubCategory(nextSubCat.id);
-                window.scrollTo({ top: 0, behavior: 'auto' });
-            } else if (nextMainCat) {
-                navigate(`/quick/categories/${nextMainCat._id}`, { state: { activeSubcategoryId: 'all' } });
-                window.scrollTo({ top: 0, behavior: 'auto' });
-            }
-            setIsTransitioning(false);
-        }, 800);
+        const onMouseDown = (e) => {
+            handleDragStart(
+                e.clientY,
+                e.clientX,
+                false,
+                container.scrollTop,
+                container.scrollHeight,
+                container.clientHeight
+            );
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+        };
+
+        const onMouseMove = (e) => {
+            handleDragMove(e.clientY, e.clientX);
+        };
+
+        const onMouseUp = (e) => {
+            handleDragEnd(e.clientY);
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+        };
+
+        container.addEventListener('touchstart', onTouchStart, { passive: true });
+        container.addEventListener('touchmove', onTouchMove, { passive: false });
+        container.addEventListener('touchend', onTouchEnd, { passive: true });
+        container.addEventListener('mousedown', onMouseDown);
+
+        return () => {
+            container.removeEventListener('touchstart', onTouchStart);
+            container.removeEventListener('touchmove', onTouchMove);
+            container.removeEventListener('touchend', onTouchEnd);
+            container.removeEventListener('mousedown', onMouseDown);
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+        };
+    }, [selectedSubCategory, catId, activeTransition.active, isProductDetailOpen]);
+
+    const productsById = React.useMemo(() => {
+        const map = {};
+        products.forEach(p => {
+            map[p._id || p.id] = p;
+        });
+        return map;
+    }, [products]);
+
+    // Renders list content for individual panels
+    const renderPanelContent = (panelState, isCurrent) => {
+        const { mainCategoryId, subCategoryId, isLoading: panelLoading } = panelState;
+        const panelData = getPanelData(mainCategoryId, subCategoryId);
+        const productsList = panelData.products;
+        const bannerUrl = subCategoryId === 'all'
+            ? panelData.category?.banner
+            : panelData.subCategories.find(s => s.id === subCategoryId)?.banner;
+            
+        const isPanelLoading = panelLoading || panelData.isLoading;
+
+        return (
+            <div 
+                ref={isCurrent ? currentPanelScrollRef : null}
+                className="w-full h-full overflow-y-auto overscroll-y-contain pb-28 pt-1 px-3 hide-scrollbar select-none"
+                onScroll={isCurrent ? handleScrollEvent : null}
+            >
+                {subCategoryId === 'all' && panelData.experienceSections?.filter(s => !['bestseller', 'bestsellers', 'best seller', 'best sellers'].includes((s.title || '').trim().toLowerCase())).length > 0 && (
+                    <div className="mb-4">
+                        <SectionRenderer
+                            sections={panelData.experienceSections.filter(s => 
+                                !['bestseller', 'bestsellers', 'best seller', 'best sellers'].includes((s.title || '').trim().toLowerCase())
+                            )}
+                            productsById={productsList.reduce((acc, p) => ({ ...acc, [p.id]: p }), {})}
+                            categoriesById={categoryMap}
+                            subcategoriesById={subcategoryMap}
+                        />
+                    </div>
+                )}
+
+                {bannerUrl && (
+                    <div className="mb-3.5 rounded-xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-neutral-800/80">
+                        <img 
+                            src={resolveQuickImageUrl(bannerUrl) || bannerUrl} 
+                            alt="Category Banner" 
+                            className="w-full h-auto object-cover max-h-[140px] md:max-h-[185px]"
+                        />
+                    </div>
+                )}
+
+                {/* Subcategory Label inside Panel to announce category/subcategory */}
+                <div className="mb-3 mt-1 flex items-center justify-between px-1">
+                    <span className="text-[12px] font-black tracking-wide text-slate-800 dark:text-slate-200">
+                        {panelData.category?.name || ""}
+                        {subCategoryId !== 'all' && ` • ${panelData.subCategories.find(s => s.id === subCategoryId)?.name || ""}`}
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400">
+                        {productsList.length} items
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4">
+                    {isPanelLoading ? (
+                        Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="animate-pulse bg-transparent flex flex-col h-[220px]">
+                                <div className="flex flex-col rounded-[12px] overflow-hidden border border-slate-200/20 shadow-[0_1px_4px_rgba(0,0,0,0.02)] w-full">
+                                    <div className="w-full aspect-square bg-[#F3F4F6] dark:bg-neutral-800" />
+                                    <div className="w-full bg-white dark:bg-neutral-900 flex items-center justify-between px-3.5 py-2.5 border-t border-slate-100/50">
+                                        <div className="h-4 w-10 bg-slate-100 dark:bg-neutral-800 rounded" />
+                                        <div className="h-5 w-12 bg-slate-100 dark:bg-neutral-800 rounded" />
+                                    </div>
+                                </div>
+                                <div className="h-3 w-1/3 bg-slate-200/60 dark:bg-neutral-800 rounded mt-2.5 mb-1.5" />
+                                <div className="h-4 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1.5" />
+                                <div className="h-2 w-1/2 bg-slate-100/50 dark:bg-neutral-800 rounded" />
+                            </div>
+                        ))
+                    ) : (
+                        productsList.map((product) => (
+                            <CategoryProductCard key={product.id} product={product} />
+                        ))
+                    )}
+                    {productsList.length === 0 && !isPanelLoading && (
+                        <div className="col-span-full py-20 text-center w-full">
+                            <p className="text-gray-400 font-bold italic">No products found in this category</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500">
-            <div className="mx-auto flex w-full max-w-[1920px] flex-1 flex-col">
+        <div className="flex h-screen w-full flex-col bg-white dark:bg-background font-sans pt-0 transition-colors duration-500 overflow-hidden">
+            <div className="mx-auto flex w-full max-w-[1920px] flex-1 flex-col h-full overflow-hidden">
+                {/* Header */}
                 <header className={cn(
-                    "sticky top-0 z-[100] px-4 py-4 flex items-center justify-between border-b border-white/20 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur-md",
+                    "sticky top-0 z-[100] px-4 py-4 flex items-center justify-between border-b border-white/20 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur-md shrink-0",
                     isProductDetailOpen && "hidden md:flex"
                 )}
                     style={{
@@ -570,9 +1165,9 @@ const CategoryProductsPage = () => {
                     </div>
                 </header>
 
-                <div className="flex flex-1 relative">
+                <div className="flex flex-1 relative overflow-hidden h-full">
                     {/* Sidebar */}
-                    <aside className="w-[76px] md:w-24 shrink-0 border-r border-slate-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-900 overflow-y-auto hide-scrollbar sticky top-0 h-screen pb-32 transition-colors">
+                    <aside className="w-[76px] md:w-24 shrink-0 border-r border-slate-100 dark:border-neutral-800 flex flex-col bg-white dark:bg-neutral-900 overflow-y-auto hide-scrollbar h-full pb-32 transition-colors">
                         {subCategories.map((cat) => (
                             <button
                                 key={cat.id}
@@ -610,11 +1205,11 @@ const CategoryProductsPage = () => {
                         ))}
                     </aside>
 
-                    {/* Content */}
-                    <main className="flex-1 min-w-0 px-3 pt-1 pb-12 bg-white dark:bg-neutral-950 transition-colors flex flex-col min-h-[50vh]">
-                        {/* Horizontal Filters Pill Bar */}
-                        <div className="sticky top-[72px] md:top-[72px] z-40 bg-white dark:bg-neutral-900 mb-1.5 px-3 -mx-3">
-                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2.5 border-b border-slate-200/60 dark:border-neutral-800">
+                    {/* Content Area */}
+                    <main className="flex-1 min-w-0 bg-white dark:bg-neutral-950 transition-colors flex flex-col h-full overflow-hidden">
+                        {/* Horizontal Filters Pill Bar (Remains Static) */}
+                        <div className="bg-white dark:bg-neutral-900 mb-1.5 px-3 border-b border-slate-200/60 dark:border-neutral-800 z-10 shrink-0">
+                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2.5">
                                 {/* Filter 1: Filters */}
                                 <button 
                                     onClick={() => setActiveDropdown(activeDropdown === 'filters' ? null : 'filters')}
@@ -690,7 +1285,7 @@ const CategoryProductsPage = () => {
                                     />
                                     
                                     {/* Dropdown Box */}
-                                    <div className="absolute top-full left-0 z-50 mt-1 min-w-[200px] bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-150 flex flex-col gap-1">
+                                    <div className="absolute left-0 right-0 md:left-auto mt-0 mx-3 md:mx-0 z-50 min-w-[200px] bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-2xl shadow-xl p-2 animate-in fade-in slide-in-from-top-2 duration-150 flex flex-col gap-1">
                                         {activeDropdown === 'filters' && (
                                             <>
                                                 <div className="px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-neutral-500">Active Filters</div>
@@ -787,152 +1382,64 @@ const CategoryProductsPage = () => {
                             )}
                         </div>
 
-                        {selectedSubCategory === 'all' && experienceSections.filter(s => !['bestseller', 'bestsellers', 'best seller', 'best sellers'].includes((s.title || '').trim().toLowerCase())).length > 0 && (
-                            <div className="mb-4">
-                                <SectionRenderer
-                                    sections={experienceSections.filter(s => 
-                                        !['bestseller', 'bestsellers', 'best seller', 'best sellers'].includes((s.title || '').trim().toLowerCase())
-                                    )}
-                                    productsById={productsById}
-                                    categoriesById={categoryMap}
-                                    subcategoriesById={subcategoryMap}
-                                />
-                            </div>
-                        )}
-                        {(() => {
-                            const activeBanner = selectedSubCategory === 'all'
-                                ? category?.banner
-                                : subCategories.find(s => s.id === selectedSubCategory)?.banner;
-
-                            if (!activeBanner) return null;
-
-                            return (
-                                <div className="mb-3.5 rounded-xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-neutral-800/80">
-                                    <img 
-                                        src={resolveQuickImageUrl(activeBanner) || activeBanner} 
-                                        alt="Category Banner" 
-                                        className="w-full h-auto object-cover max-h-[140px] md:max-h-[185px]"
-                                    />
-                                </div>
-                            );
-                        })()}
-
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4">
-                            {isLoading ? (
-                                Array.from({ length: 12 }).map((_, i) => (
-                                    <div key={i} className="animate-pulse bg-transparent flex flex-col h-[220px]">
-                                        <div className="flex flex-col rounded-[12px] overflow-hidden border border-slate-200/20 shadow-[0_1px_4px_rgba(0,0,0,0.02)] w-full">
-                                            <div className="w-full aspect-square bg-[#F3F4F6] dark:bg-neutral-800" />
-                                            <div className="w-full bg-white dark:bg-neutral-900 flex items-center justify-between px-3.5 py-2.5 border-t border-slate-100/50">
-                                                <div className="h-4 w-10 bg-slate-100 dark:bg-neutral-800 rounded" />
-                                                <div className="h-5 w-12 bg-slate-100 dark:bg-neutral-800 rounded" />
-                                            </div>
-                                        </div>
-                                        <div className="h-3 w-1/3 bg-slate-200/60 dark:bg-neutral-800 rounded mt-2.5 mb-1.5" />
-                                        <div className="h-4 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1.5" />
-                                        <div className="h-2 w-1/2 bg-slate-100/50 dark:bg-neutral-800 rounded" />
-                                    </div>
-                                ))
-                            ) : (
-                                filteredProducts.map((product) => (
-                                    <CategoryProductCard key={product.id} product={product} />
-                                ))
-                            )}
-                            {filteredProducts.length === 0 && !isLoading && (
-                                <div className="col-span-2 py-20 text-center w-full">
-                                    <p className="text-gray-400 font-bold italic">No products found in this category</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Pull up / Tap to switch subcategory / category transition block */}
-                        {(nextSubCat || nextMainCat) && (
+                        {/* Interactive Stacked Sliding Panels Viewport */}
+                        <div className="flex-1 relative overflow-hidden w-full bg-white dark:bg-neutral-950">
                             <div 
-                                ref={triggerRef}
-                                onClick={handleNextTransition}
-                                className="w-full flex flex-col items-center select-none"
-                                style={{ 
-                                    opacity: pullProgress,
-                                    pointerEvents: pullProgress > 0.15 ? 'auto' : 'none'
-                                }}
+                                ref={animationContainerRef}
+                                className="w-full h-full relative"
+                                style={{ willChange: 'transform' }}
                             >
-                                {/* Green Transition Card Banner */}
-                                <div className="w-full flex flex-col items-center justify-center pt-8 pb-6 mt-10 border-t border-emerald-100/50 dark:border-emerald-900/20 bg-[#F4FCF3] dark:bg-emerald-950/10 rounded-t-3xl">
-                                    <motion.div
-                                        animate={isTransitioning ? { y: [0, -12, 0], scale: 1.1 } : { y: [0, -5, 0] }}
-                                        transition={isTransitioning ? { repeat: Infinity, duration: 0.6, ease: "easeInOut" } : { repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                                        className="text-[#0c831f] mb-1 flex flex-col items-center"
+                                {/* Previous Panel */}
+                                {activeTransition.active && activeTransition.direction === 'down' && activeTransition.prevPanel && (
+                                    <div 
+                                        ref={prevPanelRef}
+                                        className="absolute left-0 w-full h-full flex flex-col"
+                                        style={{ top: '-100%' }}
                                     >
-                                        <ChevronsDown size={22} className="rotate-180" />
-                                    </motion.div>
+                                        <div className="flex-1 min-h-0 relative">
+                                            {renderPanelContent(activeTransition.prevPanel, false)}
+                                        </div>
+                                        <div className="shrink-0">
+                                            <TransitionBanner 
+                                                direction="down" 
+                                                name={activeTransition.prevPanel.name} 
+                                                icon={activeTransition.prevPanel.icon} 
+                                                arrowRef={prevArrowRef}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0c831f]/70 mb-1">
-                                        Next Subcategory
-                                    </span>
-
-                                    <h4 className="text-[16px] font-extrabold text-slate-800 dark:text-white mb-4">
-                                        {nextSubCat ? nextSubCat.name : nextMainCat ? (nextMainCat.name || nextMainCat.slug) : ''}
-                                    </h4>
-
-                                    <motion.div 
-                                        animate={isTransitioning ? { scale: 1.25, rotate: 360 } : { scale: 0.85 + pullProgress * 0.35 }}
-                                        transition={isTransitioning ? { duration: 1, repeat: Infinity, ease: "linear" } : { duration: 0.1 }}
-                                        className="w-16 h-16 rounded-full bg-white dark:bg-neutral-800 border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center p-3 shadow-md relative"
-                                    >
-                                        {isTransitioning && (
-                                            <div className="absolute inset-0 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-                                        )}
-                                        <img 
-                                            src={nextSubCat ? nextSubCat.icon : nextMainCat ? (nextMainCat.image || 'https://cdn-icons-png.flaticon.com/128/2321/2321801.png') : ''} 
-                                            alt="Next Category" 
-                                            className="w-full h-full object-contain" 
-                                        />
-                                    </motion.div>
-                                </div>
-
-                                {/* Next Section Skeleton Loader representing incoming content on Normal Page Background */}
+                                {/* Current Panel */}
                                 <div 
-                                    className="w-full pt-6 flex flex-col items-center bg-white dark:bg-neutral-950 opacity-70 relative overflow-hidden h-[90px]"
-                                    style={{ maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)' }}
+                                    ref={currentPanelRef}
+                                    className="absolute top-0 left-0 w-full h-full"
                                 >
-                                    {/* Subcategory Pills Skeleton */}
-                                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full px-4 mb-4">
-                                        <div className="w-12 h-6 bg-white dark:bg-neutral-900 rounded-full border border-slate-200/30 dark:border-neutral-800 flex-shrink-0 animate-pulse" />
-                                        <div className="w-20 h-6 bg-white dark:bg-neutral-900 rounded-full border border-slate-200/30 dark:border-neutral-800 flex-shrink-0 animate-pulse" />
-                                        <div className="w-16 h-6 bg-white dark:bg-neutral-900 rounded-full border border-slate-200/30 dark:border-neutral-800 flex-shrink-0 animate-pulse" />
-                                        <div className="w-24 h-6 bg-white dark:bg-neutral-900 rounded-full border border-slate-200/30 dark:border-neutral-800 flex-shrink-0 animate-pulse" />
-                                    </div>
-
-                                    {/* Grid Skeletons */}
-                                    <div className="grid grid-cols-2 gap-3 w-full px-4">
-                                        <div className="flex flex-col bg-transparent h-[210px] animate-pulse">
-                                            <div className="flex flex-col rounded-[12px] overflow-hidden border border-slate-200/20 shadow-[0_1px_4px_rgba(0,0,0,0.02)] w-full">
-                                                <div className="w-full aspect-square bg-[#F3F4F6] dark:bg-neutral-800" />
-                                                <div className="w-full bg-white dark:bg-neutral-900 flex items-center justify-between px-3.5 py-2.5 border-t border-slate-100/50">
-                                                    <div className="h-4 w-10 bg-slate-100 dark:bg-neutral-800 rounded" />
-                                                    <div className="h-5 w-12 bg-slate-100 dark:bg-neutral-800 rounded" />
-                                                </div>
-                                            </div>
-                                            <div className="h-3 w-1/3 bg-slate-200/60 dark:bg-neutral-700 rounded mt-2.5 mb-1.5" />
-                                            <div className="h-4 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1.5" />
-                                            <div className="h-2 w-1/2 bg-slate-100/50 dark:bg-neutral-800 rounded" />
-                                        </div>
-                                        <div className="flex flex-col bg-transparent h-[210px] animate-pulse">
-                                            <div className="flex flex-col rounded-[12px] overflow-hidden border border-slate-200/20 shadow-[0_1px_4px_rgba(0,0,0,0.02)] w-full">
-                                                <div className="w-full aspect-square bg-[#F3F4F6] dark:bg-neutral-800" />
-                                                <div className="w-full bg-white dark:bg-neutral-900 flex items-center justify-between px-3.5 py-2.5 border-t border-slate-100/50">
-                                                    <div className="h-4 w-10 bg-slate-100 dark:bg-neutral-800 rounded" />
-                                                    <div className="h-5 w-12 bg-slate-100 dark:bg-neutral-800 rounded" />
-                                                </div>
-                                            </div>
-                                            <div className="h-3 w-1/3 bg-slate-200/60 dark:bg-neutral-700 rounded mt-2.5 mb-1.5" />
-                                            <div className="h-4 w-3/4 bg-slate-200/60 dark:bg-neutral-700 rounded mb-1.5" />
-                                            <div className="h-2 w-1/2 bg-slate-100/50 dark:bg-neutral-800 rounded" />
-                                        </div>
-                                    </div>
+                                    {renderPanelContent({ mainCategoryId: catId, subCategoryId: selectedSubCategory, isLoading }, true)}
                                 </div>
+
+                                {/* Next Panel */}
+                                {activeTransition.active && activeTransition.direction === 'up' && activeTransition.nextPanel && (
+                                    <div 
+                                        ref={nextPanelRef}
+                                        className="absolute left-0 w-full h-full flex flex-col"
+                                        style={{ top: '100%' }}
+                                    >
+                                        <div className="shrink-0">
+                                            <TransitionBanner 
+                                                direction="up" 
+                                                name={activeTransition.nextPanel.name} 
+                                                icon={activeTransition.nextPanel.icon} 
+                                                arrowRef={nextArrowRef}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-h-0 relative">
+                                            {renderPanelContent(activeTransition.nextPanel, false)}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </main>
                 </div>
 
@@ -960,13 +1467,6 @@ const CategoryProductsPage = () => {
                     .no-scrollbar {
                         -ms-overflow-style: none;
                         scrollbar-width: none;
-                    }
-                    @keyframes pulse-subtle {
-                        0%, 100% { opacity: 1; transform: scale(1.1); }
-                        50% { opacity: .8; transform: scale(1.05); }
-                    }
-                    .animate-pulse-subtle {
-                        animation: pulse-subtle 2s infinite ease-in-out;
                     }
                 `}} />
         </div>
