@@ -321,7 +321,7 @@ export const getOffers = async (_req, res) => {
 };
 
 export const getCategories = async (req, res) => {
-  setPublicCache(res, 300); // 5 minutes cache
+  setNoCache(res);
   await ensureQuickCommerceSeedData();
 
   const { tree, parentId } = req.query;

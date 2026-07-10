@@ -327,7 +327,7 @@ const ProductManagement = () => {
         salePrice: item.salePrice || "",
         stock: item.stock || "",
         lowStockAlert: item.lowStockAlert || 5,
-        header: item.headerId?._id || item.headerId || "",
+        header: item.categoryId?._id || item.categoryId || item.headerId?._id || item.headerId || "",
         category: item.categoryId?._id || item.categoryId || "",
         subcategory: item.subcategoryId?._id || item.subcategoryId || "",
         status: item.status || "active",
@@ -1073,65 +1073,48 @@ const ProductManagement = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-1.5 flex flex-col">
                           <label className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-widest ml-1">
-                            Main Group <span className="text-rose-500">*</span>
+                            Category <span className="text-rose-500">*</span>
                           </label>
                           <select
-                            value={formData.header}
+                            value={formData.category}
                             onChange={(e) =>
-                              setFormData({ ...formData, header: e.target.value, category: "", subcategory: "" })
+                              setFormData({
+                                ...formData,
+                                category: e.target.value,
+                                header: e.target.value,
+                                subcategory: "",
+                              })
                             }
                             className="w-full px-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm font-bold outline-none cursor-pointer">
-                            <option value="">Select Main Group</option>
-                            {categories.map((h) => (
-                              <option key={h._id || h.id} value={h._id || h.id}>
-                                {h.name}
+                            <option value="">Select Category</option>
+                            {categories.map((c) => (
+                              <option key={c._id || c.id} value={c._id || c.id}>
+                                {c.name}
                               </option>
                             ))}
                           </select>
                         </div>
                         <div className="space-y-1.5 flex flex-col">
                           <label className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-widest ml-1">
-                            Specific Category <span className="text-rose-500">*</span>
+                            Sub-Category <span className="text-rose-500">*</span>
                           </label>
                           <select
-                            value={formData.category}
+                            value={formData.subcategory}
                             onChange={(e) =>
-                              setFormData({ ...formData, category: e.target.value, subcategory: "" })
+                              setFormData({ ...formData, subcategory: e.target.value })
                             }
-                            disabled={!formData.header}
+                            disabled={!formData.category}
                             className="w-full px-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm font-bold outline-none cursor-pointer disabled:opacity-50">
-                            <option value="">Select Category</option>
+                            <option value="">Select Sub-Category</option>
                             {categories
-                              .find((h) => (h._id || h.id) === formData.header)
-                              ?.children?.map((c) => (
-                                <option key={c._id || c.id} value={c._id || c.id}>
-                                  {c.name}
+                              .find((c) => (c._id || c.id) === formData.category)
+                              ?.children?.map((sc) => (
+                                <option key={sc._id || sc.id} value={sc._id || sc.id}>
+                                  {sc.name}
                                 </option>
                               ))}
                           </select>
                         </div>
-                      </div>
-                      <div className="space-y-1.5 flex flex-col">
-                        <label className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-widest ml-1">
-                          Sub-Category <span className="text-rose-500">*</span>
-                        </label>
-                        <select
-                          value={formData.subcategory}
-                          onChange={(e) =>
-                            setFormData({ ...formData, subcategory: e.target.value })
-                          }
-                          disabled={!formData.category}
-                          className="w-full px-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm font-bold outline-none cursor-pointer disabled:opacity-50">
-                          <option value="">Select Sub-Category</option>
-                          {categories
-                            .find((h) => (h._id || h.id) === formData.header)
-                            ?.children?.find((c) => (c._id || c.id) === formData.category)
-                            ?.children?.map((sc) => (
-                              <option key={sc._id || sc.id} value={sc._id || sc.id}>
-                                {sc.name}
-                              </option>
-                            ))}
-                        </select>
                       </div>
                     </div>
                   )}

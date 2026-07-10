@@ -133,33 +133,23 @@ export const buildSellerCategoryTree = async () => {
 
 export const getDefaultSellerCategoryPath = async () => {
   await ensureSellerCategoriesSeeded();
-  const header = await QuickCategory.findOne({ type: "header", isActive: { $ne: false } })
+  const category = await QuickCategory.findOne({ type: "category", isActive: { $ne: false } })
     .sort({ sortOrder: 1, createdAt: 1 })
     .lean();
-  if (!header) return null;
+  if (!category) return null;
 
-  const category = await QuickCategory.findOne({
-    parentId: header._id,
-    type: "category",
+  const subcategory = await QuickCategory.findOne({
+    parentId: category._id,
+    type: "subcategory",
     isActive: { $ne: false },
   })
     .sort({ sortOrder: 1, createdAt: 1 })
     .lean();
 
-  const subcategory = category
-    ? await QuickCategory.findOne({
-        parentId: category._id,
-        type: "subcategory",
-        isActive: { $ne: false },
-      })
-        .sort({ sortOrder: 1, createdAt: 1 })
-        .lean()
-    : null;
-
   return {
-    headerId: header?._id || null,
-    categoryId: category?._id || null,
-    subcategoryId: subcategory?._id || category?._id || header?._id || null,
+    headerId: category._id,
+    categoryId: category._id,
+    subcategoryId: subcategory?._id || null,
   };
 };
 
@@ -176,59 +166,17 @@ export const resolveSellerCategoryIds = async ({
   if (selectedIds.length >= 1) {
     const docs = await QuickCategory.find({ _id: { $in: selectedIds } }).lean();
     const byId = new Map(docs.map((doc) => [String(doc._id), doc]));
-    const selectedHeader = headerId ? byId.get(String(headerId)) : null;
-    const selectedCategory = categoryId ? byId.get(String(categoryId)) : null;
-    const selectedSubcategory = subcategoryId
-      ? byId.get(String(subcategoryId))
-      : null;
-
-    const category =
-      selectedCategory?.type === "category"
-        ? selectedCategory
-        : selectedSubcategory?.type === "subcategory" &&
-            selectedSubcategory.parentId
-          ? await QuickCategory.findOne({
-              _id: selectedSubcategory.parentId,
-              type: "category",
-              isActive: { $ne: false },
-            }).lean()
-          : null;
-
-    const header =
-      selectedHeader?.type === "header"
-        ? selectedHeader
-        : category?.parentId
-          ? await QuickCategory.findOne({
-              _id: category.parentId,
-              type: "header",
-              isActive: { $ne: false },
-            }).lean()
-          : null;
-
-    const subcategory =
-      selectedSubcategory?.type === "subcategory" ? selectedSubcategory : null;
-
-    if (category && header && String(category.parentId) === String(header._id)) {
+    
+    const subcatDoc = subcategoryId ? byId.get(String(subcategoryId)) : null;
+    let finalCategoryId = categoryId || (subcatDoc?.parentId ? String(subcatDoc.parentId) : null);
+    
+    const catDoc = finalCategoryId ? byId.get(String(finalCategoryId)) : null;
+    
+    if (catDoc && (catDoc.type === "category" || catDoc.type === "header")) {
       return {
-        headerId: header._id,
-        categoryId: category._id,
-        subcategoryId:
-          subcategory && String(subcategory.parentId) === String(category._id)
-            ? subcategory._id
-            : null,
-      };
-    }
-
-    if (
-      selectedHeader?.type === "header" &&
-      !selectedCategory &&
-      !selectedSubcategory
-    ) {
-      const fallback = await getDefaultSellerCategoryPath();
-      return {
-        headerId: selectedHeader._id,
-        categoryId: fallback?.categoryId || null,
-        subcategoryId: fallback?.subcategoryId || null,
+        headerId: catDoc._id,
+        categoryId: catDoc._id,
+        subcategoryId: (subcatDoc && String(subcatDoc.parentId) === String(catDoc._id)) ? subcatDoc._id : null,
       };
     }
   }

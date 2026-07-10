@@ -50,7 +50,7 @@ const toCategory = (category) => ({
   image: category.image,
   accentColor: category.accentColor,
   description: category.description || '',
-  type: category.type || 'header',
+  type: category.type || 'category',
   status: category.status || (category.isActive ? 'active' : 'inactive'),
   parentId: category.parentId || null,
   iconId: category.iconId || '',
@@ -475,7 +475,7 @@ export const createCategory = async (req, res) => {
     slug,
     image,
     description: description || '',
-    type: type || 'header',
+    type: type || 'category',
     status: status || 'active',
     approvalStatus:
       type === 'subcategory'
@@ -527,7 +527,8 @@ export const updateCategory = async (req, res) => {
 
   if (name !== undefined) category.name = name;
   if (slug !== undefined) category.slug = slugify(slug || name || category.name);
-  if (image) category.image = image;
+  const hasImage = req.file || req.files?.image?.[0] || (req.body && 'image' in req.body);
+  if (hasImage) category.image = image || '';
   if (description !== undefined) category.description = description;
   if (type !== undefined) category.type = type || 'header';
   if (status !== undefined) {

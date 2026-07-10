@@ -5,7 +5,7 @@ const quickCategorySchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true, index: true },
   image: { type: String, default: '' },
   description: { type: String, default: '' },
-  type: { type: String, default: 'header', index: true },
+  type: { type: String, default: 'category', index: true },
   status: { type: String, default: 'active', index: true },
   approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved', index: true },
   approvedAt: { type: Date, default: null },

@@ -703,7 +703,13 @@ const Home = ({ embedded = false, onThemeChange, embeddedHeaderColor = null }) =
           categories={categories}
           quickCategories={effectiveQuickCategories}
           activeCategory={activeCategory}
-          onCategorySelect={setActiveCategory}
+          onCategorySelect={(cat) => {
+            if (cat && cat.id !== "all" && cat._id !== "all") {
+              navigate(getQuickCategoryPath(cat._id || cat.id));
+            } else {
+              setActiveCategory(ALL_CATEGORY);
+            }
+          }}
           embedded={embedded}
           embeddedHeaderColor={embeddedHeaderColor}
           showTopContent={!embedded}

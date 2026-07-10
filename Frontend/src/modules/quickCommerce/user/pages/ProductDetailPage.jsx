@@ -123,23 +123,30 @@ const ProductDetailPage = () => {
   // Hero transition integration
   const { heroState, onDetailMounted, triggerHeroCollapse } = useHeroTransition();
   const arrivedFromHero = location.state?.fromHero === true;
-  // Start invisible if arriving via hero — reveal after the overlay has navigated
-  const [isRevealed, setIsRevealed] = useState(!arrivedFromHero);
+  // Start fully visible for shared elements, but reveal secondary content with transition
+  const [isRevealed, setIsRevealed] = useState(true);
+  const [revealSecondary, setRevealSecondary] = useState(!arrivedFromHero);
 
   // Tell the hero overlay to dismiss once this page has mounted
   useEffect(() => {
     if (arrivedFromHero) {
       onDetailMounted();
-      // Slight delay for overlay to fade before revealing the page
-      const t = setTimeout(() => setIsRevealed(true), 120);
+      // Set secondary content to reveal after the shared elements have settled
+      const t = setTimeout(() => setRevealSecondary(true), 200);
       return () => clearTimeout(t);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [arrivedFromHero, onDetailMounted]);
 
   // Back handler — collapses hero overlay then pops the route
   const handleBack = () => {
     if (heroState.originRect && heroState.phase === 'idle') {
-      triggerHeroCollapse(() => navigate(-1));
+      // 1. Hide secondary info first
+      setRevealSecondary(false);
+      // 2. Wait for the fade out to finish (150ms)
+      setTimeout(() => {
+        // 3. Trigger the collapse animation
+        triggerHeroCollapse(() => navigate(-1));
+      }, 150);
     } else {
       navigate(-1);
     }
@@ -530,13 +537,7 @@ const ProductDetailPage = () => {
   }
 
   return (
-    <div
-      className="relative z-10 mx-auto w-full max-w-[1920px] px-4 py-4 pb-24 md:pb-8 md:px-[50px] md:py-8"
-      style={{
-        opacity: isRevealed ? 1 : 0,
-        transition: isRevealed ? 'opacity 280ms ease-out' : 'none',
-      }}
-    >
+    <div className="relative z-10 mx-auto w-full max-w-[1920px] px-4 py-4 pb-24 md:pb-8 md:px-[50px] md:py-8">
       <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
         <div className="space-y-4 lg:w-[45%] xl:w-[40%]">
           {/* Swipeable Carousel */}
@@ -613,8 +614,41 @@ const ProductDetailPage = () => {
         </div>
 
         <div className="space-y-6 md:space-y-8 lg:w-[55%] xl:w-[60%]">
-          <div>
-            <div className="mb-4 flex items-center gap-2 text-xs font-medium">
+          {/* Shared Product Name */}
+          <h1 className="mb-2 text-xl font-bold leading-tight text-slate-800 dark:text-white transition-colors">
+            {product.name}
+          </h1>
+
+          {/* Shared Price Block (only if no variants) */}
+          {!product.variants || product.variants.length === 0 ? (
+            <div className="mb-5 flex items-baseline gap-4">
+              <span className="text-3xl font-black text-[#0c831f] dark:text-emerald-500">
+                ₹{displayPrice}
+              </span>
+              {displayOriginalPrice > displayPrice && (
+                <>
+                  <span className="text-lg font-bold text-slate-400 dark:text-slate-500 line-through">
+                    ₹{displayOriginalPrice}
+                  </span>
+                  <span className="rounded-lg bg-red-50 dark:bg-red-950/30 px-2 py-1 text-xs font-black uppercase text-red-500">
+                    {displayDiscount}% OFF
+                  </span>
+                </>
+              )}
+            </div>
+          ) : null}
+
+          {/* Secondary Details (Staggered Fade-In) */}
+          <div
+            style={{
+              opacity: revealSecondary ? 1 : 0,
+              transform: revealSecondary ? 'translateY(0px)' : 'translateY(15px)',
+              transition: 'opacity 350ms ease-out, transform 350ms cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+            className="space-y-6 md:space-y-8"
+          >
+            {/* Category / Rating badge */}
+            <div className="flex items-center gap-2 text-xs font-medium">
               <span className="rounded-full border border-[#0c831f]/20 bg-[#0c831f]/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#0c831f]">
                 {product.category}
               </span>
@@ -647,11 +681,7 @@ const ProductDetailPage = () => {
               </span>
             </div>
 
-            <h1 className="mb-2 text-xl font-bold leading-tight text-slate-800 dark:text-white transition-colors">
-              {product.name}
-            </h1>
-
-            {/* Variant Selector placed directly under product name */}
+            {/* Variant Selector */}
             {product.variants && product.variants.length > 0 && (
               <div className="py-4 border-b border-slate-100 dark:border-slate-800">
                 <h3 className="mb-3 text-sm font-bold text-slate-800 dark:text-slate-200">
@@ -703,30 +733,29 @@ const ProductDetailPage = () => {
               </div>
             )}
 
-            <div className="mt-4 mb-4 flex items-center gap-2">
+            {/* Sold by / Seller Info */}
+            <div className="flex items-center gap-2">
               <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <ShieldCheck size={14} />
               </div>
               <span className="text-sm font-black uppercase tracking-tighter text-slate-500 dark:text-slate-400">
-                Sold by:
-                {" "}
+                Sold by:{" "}
                 <span className="text-foreground underline decoration-emerald-500/30 decoration-2 underline-offset-4">
                   {product.storeName}
                 </span>
               </span>
             </div>
 
-            {!product.variants || product.variants.length === 0 ? (
-              <div className="mb-5 flex items-baseline gap-4">
+            {/* Price section if variants exist */}
+            {product.variants && product.variants.length > 0 ? (
+              <div className="flex items-baseline gap-4">
                 <span className="text-3xl font-black text-[#0c831f] dark:text-emerald-500">
-                  {"\u20B9"}
-                  {displayPrice}
+                  ₹{displayPrice}
                 </span>
                 {displayOriginalPrice > displayPrice && (
                   <>
                     <span className="text-lg font-bold text-slate-400 dark:text-slate-500 line-through">
-                      {"\u20B9"}
-                      {displayOriginalPrice}
+                      ₹{displayOriginalPrice}
                     </span>
                     <span className="rounded-lg bg-red-50 dark:bg-red-950/30 px-2 py-1 text-xs font-black uppercase text-red-500">
                       {displayDiscount}% OFF
@@ -736,72 +765,83 @@ const ProductDetailPage = () => {
               </div>
             ) : null}
 
+            {/* Description */}
             <p className="max-w-2xl text-base font-medium leading-relaxed text-slate-600 dark:text-slate-300 transition-colors">
               {product.description}
             </p>
-          </div>
 
-          <div className="hidden md:flex flex-col items-center gap-6 rounded-[2.5rem] border border-border bg-card dark:bg-slate-900/50 p-6 sm:flex-row transition-colors">
-            <div className="w-full sm:w-72">
-              {quantity > 0 ? (
-                <div className="flex h-16 w-full items-center rounded-2xl bg-[#0c831f] px-2 text-white shadow-xl shadow-green-100">
-                  <button
-                    onClick={handleDecrement}
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all hover:bg-white/20"
+            {/* Desktop Add to Cart Bar */}
+            <div className="hidden md:flex flex-col items-center gap-6 rounded-[2.5rem] border border-border bg-card dark:bg-slate-900/50 p-6 sm:flex-row transition-colors">
+              <div className="w-full sm:w-72">
+                {quantity > 0 ? (
+                  <div className="flex h-16 w-full items-center rounded-2xl bg-[#0c831f] px-2 text-white shadow-xl shadow-green-100">
+                    <button
+                      onClick={handleDecrement}
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all hover:bg-white/20"
+                    >
+                      <Minus size={24} strokeWidth={3} />
+                    </button>
+                    <span className="flex-1 text-center text-xl font-black">{quantity}</span>
+                    <button
+                      disabled={quantity >= Number(displayStock ?? Infinity)}
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                      onClick={handleIncrement}
+                    >
+                      <Plus size={24} strokeWidth={3} />
+                    </button>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={handleAddToCart}
+                    className="h-16 w-full rounded-2xl bg-[#0c831f] text-lg font-black text-white shadow-xl shadow-green-100 transition-all hover:-translate-y-1 hover:bg-[#0b721b]"
                   >
-                    <Minus size={24} strokeWidth={3} />
-                  </button>
-                  <span className="flex-1 text-center text-xl font-black">{quantity}</span>
-                  <button
-                    disabled={quantity >= Number(displayStock ?? Infinity)}
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
-                    onClick={handleIncrement}
-                  >
-                    <Plus size={24} strokeWidth={3} />
-                  </button>
-                </div>
-              ) : (
-                <Button
-                  onClick={handleAddToCart}
-                  className="h-16 w-full rounded-2xl bg-[#0c831f] text-lg font-black text-white shadow-xl shadow-green-100 transition-all hover:-translate-y-1 hover:bg-[#0b721b]"
-                >
-                  <Plus className="mr-2" size={24} strokeWidth={3} />
-                  ADD TO CART
-                </Button>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1 text-center sm:text-left">
-              <span className="flex items-center justify-center gap-1 text-xs font-black uppercase tracking-widest text-[#0c831f] sm:justify-start">
-                <ShieldCheck size={14} />
-                Hygiene Guaranteed
-              </span>
-              <span className="flex items-center justify-center gap-1 text-sm font-bold text-slate-400 dark:text-slate-500 sm:justify-start">
-                <Clock size={14} />
-                Delivered in {product.deliveryTime}
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            {displayDetails.map((detail) => (
-              <div
-                key={detail.label}
-                className="rounded-2xl border border-border bg-card p-4 text-center shadow-sm transition-colors"
-              >
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                  {detail.label}
-                </p>
-                <p className="text-sm font-black text-foreground">{detail.value}</p>
+                    <Plus className="mr-2" size={24} strokeWidth={3} />
+                    ADD TO CART
+                  </Button>
+                )}
               </div>
-            ))}
+
+              <div className="flex flex-col gap-1 text-center sm:text-left">
+                <span className="flex items-center justify-center gap-1 text-xs font-black uppercase tracking-widest text-[#0c831f] sm:justify-start">
+                  <ShieldCheck size={14} />
+                  Hygiene Guaranteed
+                </span>
+                <span className="flex items-center justify-center gap-1 text-sm font-bold text-slate-400 dark:text-slate-500 sm:justify-start">
+                  <Clock size={14} />
+                  Delivered in {product.deliveryTime}
+                </span>
+              </div>
+            </div>
+
+            {/* Spec Details Grid */}
+            <div className="grid grid-cols-3 gap-4">
+              {displayDetails.map((detail) => (
+                <div
+                  key={detail.label}
+                  className="rounded-2xl border border-border bg-card p-4 text-center shadow-sm transition-colors"
+                >
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                    {detail.label}
+                  </p>
+                  <p className="text-sm font-black text-foreground">{detail.value}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Customer Reviews Section */}
       {!reviewLoading && reviews.length > 0 && (
-        <div className="mt-10 border-t border-border pt-8 max-w-4xl mx-auto w-full">
+        <div 
+          style={{
+            opacity: revealSecondary ? 1 : 0,
+            transform: revealSecondary ? 'translateY(0px)' : 'translateY(15px)',
+            transition: 'opacity 350ms ease-out, transform 350ms cubic-bezier(0.16, 1, 0.3, 1)',
+            transitionDelay: '80ms'
+          }}
+          className="mt-10 border-t border-border pt-8 max-w-4xl mx-auto w-full"
+        >
           <div className="space-y-8">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-3xl font-black text-foreground">Customer Reviews</h3>
@@ -869,7 +909,15 @@ const ProductDetailPage = () => {
 
       {/* Similar products section */}
       {!similarLoading && similarProducts.length > 0 && (
-        <div className="mt-10 border-t border-border pt-8">
+        <div 
+          style={{
+            opacity: revealSecondary ? 1 : 0,
+            transform: revealSecondary ? 'translateY(0px)' : 'translateY(15px)',
+            transition: 'opacity 350ms ease-out, transform 350ms cubic-bezier(0.16, 1, 0.3, 1)',
+            transitionDelay: '120ms'
+          }}
+          className="mt-10 border-t border-border pt-8"
+        >
           <h3 className="mb-8 text-2xl font-black text-foreground">
             Similar products
           </h3>
@@ -1044,7 +1092,14 @@ const ProductDetailPage = () => {
       )}
 
       {/* Fixed Bottom Bar for Mobile/Tablet */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] flex items-center justify-between md:hidden animate-in slide-in-from-bottom duration-300">
+      <div 
+        style={{
+          opacity: revealSecondary ? 1 : 0,
+          transform: revealSecondary ? 'translateY(0px)' : 'translateY(80px)',
+          transition: 'opacity 300ms ease-out, transform 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] flex items-center justify-between md:hidden"
+      >
         <div>
           <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
             {displayWeight}

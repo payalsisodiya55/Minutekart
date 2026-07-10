@@ -21,8 +21,7 @@ export const quickAdminSidebarMenu = [
         icon: "FolderTree",
         subItems: [
           { label: "All Categories", path: "/admin/quick-commerce/categories/hierarchy" },
-          { label: "Header Categories", path: "/admin/quick-commerce/categories/header" },
-          { label: "Main Categories", path: "/admin/quick-commerce/categories/level2" },
+          { label: "Categories", path: "/admin/quick-commerce/categories/header" },
           { label: "Sub-Categories", path: "/admin/quick-commerce/categories/sub" },
         ],
       },

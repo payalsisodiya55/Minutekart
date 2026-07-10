@@ -64,7 +64,7 @@ const HeaderCategories = () => {
     slug: "",
     description: "",
     status: "active",
-    type: "header",
+    type: "category",
     parentId: "",
     iconId: "",
     adminCommission: 0,
@@ -110,20 +110,20 @@ const HeaderCategories = () => {
   const fetchCategories = async (requestedPage = 1) => {
     setIsLoading(true);
     try {
-      const params = { type: "header", page: requestedPage, limit: pageSize };
+      const params = { type: "category", page: requestedPage, limit: pageSize };
       if (searchTerm) params.search = searchTerm;
       const res = await adminApi.getCategories(params);
       if (res.data.success) {
         const payload = res.data.result || {};
         const list = Array.isArray(payload.items) ? payload.items : [];
         const allCats = res.data.results || [];
-        const headers = list.length > 0 ? list : allCats.filter((c) => c.type === "header");
+        const headers = list.length > 0 ? list : allCats.filter((c) => c.type === "category");
         setCategories(headers);
         setTotal(typeof payload.total === "number" ? payload.total : headers.length);
         setPage(typeof payload.page === "number" ? payload.page : requestedPage);
       }
     } catch (error) {
-      toast.error("Failed to fetch header categories");
+      toast.error("Failed to fetch categories");
     } finally {
       setIsLoading(false);
     }
@@ -172,8 +172,8 @@ const HeaderCategories = () => {
     setIsSaving(true);
     try {
       const data = new FormData();
-      // Ensure type is always header
-      data.append("type", "header");
+      // Ensure type is always category
+      data.append("type", "category");
       Object.keys(formData).forEach((key) => {
         if (key !== "type") {
           let value = formData[key];
@@ -186,14 +186,16 @@ const HeaderCategories = () => {
 
       if (imageFile) {
         data.append("image", imageFile);
+      } else {
+        data.append("image", previewUrl || "");
       }
 
       if (editingItem) {
         await adminApi.updateCategory(editingItem._id || editingItem.id, data);
-        toast.success("Header category updated");
+        toast.success("Category updated");
       } else {
         await adminApi.createCategory(data);
-        toast.success("Header category created");
+        toast.success("Category created");
       }
       setIsAddModalOpen(false);
       setEditingItem(null);
@@ -211,7 +213,7 @@ const HeaderCategories = () => {
 
     try {
       await adminApi.deleteCategory(deleteTarget._id || deleteTarget.id);
-      toast.success("Header category deleted");
+      toast.success("Category deleted");
       setIsDeleteModalOpen(false);
       setDeleteTarget(null);
       fetchCategories(page);
@@ -227,7 +229,7 @@ const HeaderCategories = () => {
       slug: "",
       description: "",
       status: "active",
-      type: "header",
+      type: "category",
       parentId: "",
       iconId: "",
       adminCommission: 0,
@@ -247,7 +249,7 @@ const HeaderCategories = () => {
       slug: item.slug,
       description: item.description || "",
       status: item.status,
-      type: "header",
+      type: "category",
       parentId: "",
       iconId: item.iconId || "",
       adminCommission: item.adminCommission || 0,
@@ -264,7 +266,7 @@ const HeaderCategories = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">
-            Header Categories
+            Categories
           </h1>
           <p className="text-gray-500 mt-1">Manage top-level categories</p>
         </div>
@@ -272,7 +274,7 @@ const HeaderCategories = () => {
           onClick={openAddModal}
           className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
           <Plus className="w-5 h-5" />
-          Add New Header
+          Add New Category
         </button>
       </div>
 
@@ -290,7 +292,7 @@ const HeaderCategories = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search header categories..."
+              placeholder="Search categories..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
@@ -350,7 +352,7 @@ const HeaderCategories = () => {
               ) : categories.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="text-center py-8 text-gray-500">
-                    No header categories found
+                    No categories found
                   </td>
                 </tr>
               ) : (
@@ -462,7 +464,7 @@ const HeaderCategories = () => {
               className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
               <div className="p-6 border-b border-gray-100 flex justify-between items-center shrink-0">
                 <h2 className="text-lg font-bold text-gray-900">
-                  {editingItem ? "Edit Header Category" : "Add Header Category"}
+                  {editingItem ? "Edit Category" : "Add Category"}
                 </h2>
                 <button
                   onClick={() => setIsAddModalOpen(false)}
@@ -518,13 +520,18 @@ const HeaderCategories = () => {
                     <div className="flex flex-col items-center gap-2">
                       <div
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-24 h-24 rounded-full bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-indigo-500 overflow-hidden transition-colors">
+                        className="w-24 h-24 rounded-full bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-indigo-500 overflow-hidden transition-colors relative group">
                         {previewUrl ? (
-                          <img
-                            src={previewUrl}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                          />
+                          <>
+                            <img
+                              src={previewUrl}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <Upload className="w-6 h-6 text-white" />
+                            </div>
+                          </>
                         ) : (
                           <div className="text-center">
                             <Upload className="w-8 h-8 text-gray-400 mx-auto" />
@@ -541,7 +548,20 @@ const HeaderCategories = () => {
                         onChange={handleImageChange}
                         accept="image/*"
                       />
-                      <span className="text-xs text-gray-500">Custom Image</span>
+                      {previewUrl ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImageFile(null);
+                            setPreviewUrl(null);
+                          }}
+                          className="px-2.5 py-1 text-xs font-bold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-200/50">
+                          Remove Image
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-500 font-medium">Custom Image</span>
+                      )}
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 text-center">
@@ -553,10 +573,10 @@ const HeaderCategories = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-gray-700">
-                      Header Color
+                      Category Theme Color
                     </label>
                     <span className="text-xs text-gray-400">
-                      Used for this header&apos;s theme
+                      Used for this category&apos;s theme
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
@@ -701,7 +721,7 @@ const HeaderCategories = () => {
                   {isSaving && (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
-                  {editingItem ? "Update Header" : "Create Header"}
+                  {editingItem ? "Update Category" : "Create Category"}
                 </button>
               </div>
             </motion.div>

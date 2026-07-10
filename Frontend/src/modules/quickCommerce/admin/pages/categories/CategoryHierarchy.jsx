@@ -29,19 +29,17 @@ const CategoryHierarchy = () => {
   // Stats
   const stats = useMemo(() => {
     let headers = 0;
-    let l2 = 0;
     let subs = 0;
 
     const traverse = (items) => {
       items.forEach((item) => {
-        if (item.type === "header") headers++;
-        if (item.type === "category") l2++;
+        if (item.type === "category") headers++;
         if (item.type === "subcategory") subs++;
         if (item.children) traverse(item.children);
       });
     };
     traverse(categories);
-    return { headers, l2, subs, total: headers + l2 + subs };
+    return { headers, subs, total: headers + subs };
   }, [categories]);
 
   useEffect(() => {
@@ -64,14 +62,11 @@ const CategoryHierarchy = () => {
 
   // Filter Logic
   const filteredHeaders = useMemo(() => {
-    if (!searchTerm) return categories.filter((c) => c.type === "header");
+    if (!searchTerm) return categories.filter((c) => c.type === "category");
 
-    // If searching, we want to show path to matches
-    // But for Miller columns, simple filtering of top level might be confusing
-    // So we'll just filter the current list being viewed
     return categories.filter(
       (c) =>
-        c.type === "header" &&
+        c.type === "category" &&
         c.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [categories, searchTerm]);
@@ -183,14 +178,7 @@ const CategoryHierarchy = () => {
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
               <span>
-                Headers: <b>{stats.headers}</b>
-              </span>
-            </div>
-            <div className="w-px h-4 bg-gray-300"></div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-              <span>
-                Level 2: <b>{stats.l2}</b>
+                Categories: <b>{stats.headers}</b>
               </span>
             </div>
             <div className="w-px h-4 bg-gray-300"></div>
@@ -205,11 +193,11 @@ const CategoryHierarchy = () => {
       </div>
 
       {/* Miller Columns View */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 md:grid-rows-[minmax(0,1fr)] gap-4 overflow-hidden">
-        {/* Column 1: Headers */}
+      <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 md:grid-rows-[minmax(0,1fr)] gap-4 overflow-hidden">
+        {/* Column 1: Categories */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden min-h-0 h-full">
           <ColumnHeader
-            title="Header Categories"
+            title="Categories"
             icon={LayoutGrid}
             count={filteredHeaders.length}
             color="border-l-4 border-l-indigo-500"
@@ -220,7 +208,7 @@ const CategoryHierarchy = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Filter headers..."
+                placeholder="Filter categories..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-gray-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-100 transition-all"
@@ -240,14 +228,14 @@ const CategoryHierarchy = () => {
               </div>
             ) : filteredHeaders.length === 0 ? (
               <div className="p-8 text-center text-gray-400 text-sm">
-                No headers found
+                No categories found
               </div>
             ) : (
               filteredHeaders.map((header) => (
                 <ListItem
                   key={header._id || header.id}
                   item={header}
-                  type="header"
+                  type="category"
                   isSelected={
                     selectedHeader &&
                     (selectedHeader._id || selectedHeader.id) ===
@@ -261,22 +249,22 @@ const CategoryHierarchy = () => {
           </div>
         </div>
 
-        {/* Column 2: Level 2 */}
+        {/* Column 2: Subcategories */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300">
           <ColumnHeader
-            title="Level 2 Categories"
-            icon={Folder}
+            title="Subcategories"
+            icon={Tag}
             count={activeLevel2.length}
-            color="border-l-4 border-l-purple-500"
+            color="border-l-4 border-l-emerald-500"
           />
 
           {!selectedHeader ? (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center bg-gray-50/50">
               <ArrowRight className="w-12 h-12 mb-3 opacity-20" />
               <p className="text-sm">
-                Select a Header Category
+                Select a Category
                 <br />
-                to view its contents
+                to view its subcategories
               </p>
             </div>
           ) : (
@@ -288,65 +276,13 @@ const CategoryHierarchy = () => {
             >
               {activeLevel2.length === 0 ? (
                 <div className="p-8 text-center text-gray-400 text-sm">
-                  No Level 2 categories in <br />
+                  No subcategories in <br />
                   <span className="font-bold text-gray-600">
                     "{selectedHeader.name}"
                   </span>
                 </div>
               ) : (
-                activeLevel2.map((l2) => (
-                  <ListItem
-                    key={l2._id || l2.id}
-                    item={l2}
-                    type="category"
-                    isSelected={
-                      selectedLevel2 &&
-                      (selectedLevel2._id || selectedLevel2.id) ===
-                      (l2._id || l2.id)
-                    }
-                    onClick={() => handleLevel2Select(l2)}
-                    hasChildren={l2.children && l2.children.length > 0}
-                  />
-                ))
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Column 3: Subcategories */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden min-h-0 h-full">
-          <ColumnHeader
-            title="Subcategories"
-            icon={Tag}
-            count={activeSubs.length}
-            color="border-l-4 border-l-emerald-500"
-          />
-
-          {!selectedLevel2 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center bg-gray-50/50">
-              <ArrowRight className="w-12 h-12 mb-3 opacity-20" />
-              <p className="text-sm">
-                Select a Level 2 Category
-                <br />
-                to view subcategories
-              </p>
-            </div>
-          ) : (
-            <div
-              className="flex-1 min-h-0 overflow-y-auto py-2 custom-scrollbar overscroll-contain touch-pan-y"
-              tabIndex={0}
-              onWheel={(e) => e.stopPropagation()}
-              onTouchMove={(e) => e.stopPropagation()}
-            >
-              {activeSubs.length === 0 ? (
-                <div className="p-8 text-center text-gray-400 text-sm">
-                  No subcategories in <br />
-                  <span className="font-bold text-gray-600">
-                    "{selectedLevel2.name}"
-                  </span>
-                </div>
-              ) : (
-                activeSubs.map((sub) => (
+                activeLevel2.map((sub) => (
                   <ListItem
                     key={sub._id || sub.id}
                     item={sub}

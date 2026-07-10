@@ -71,7 +71,7 @@ const SubCategories = () => {
         const allCats = res.data.results || res.data.result || [];
         setCategories(allCats.filter((c) => c.type === "subcategory"));
         setLevel2Categories(allCats.filter((c) => c.type === "category"));
-        setHeaderCategories(allCats.filter((c) => c.type === "header"));
+        setHeaderCategories([]);
       }
     } catch (error) {
       toast.error("Failed to fetch categories");
@@ -83,14 +83,11 @@ const SubCategories = () => {
   const getParentInfo = (parentId) => {
     const id = parentId?._id || parentId;
     const parent = level2Categories.find((c) => (c._id || c.id) === id);
-    if (!parent) return { name: "Unknown", headerName: "Unknown" };
-
-    const headerId = parent.parentId?._id || parent.parentId;
-    const header = headerCategories.find((h) => (h._id || h.id) === headerId);
+    if (!parent) return { name: "Unknown", headerName: "" };
 
     return {
       name: parent.name,
-      headerName: header ? header.name : "Unknown",
+      headerName: "",
     };
   };
 
@@ -252,7 +249,7 @@ const SubCategories = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Subcategories</h1>
           <p className="text-gray-500 mt-1">
-            Manage level 3 categories linked to secondary categories
+            Manage subcategories linked to categories
           </p>
         </div>
         <button
@@ -281,7 +278,7 @@ const SubCategories = () => {
               value={filterLevel2}
               onChange={(e) => setFilterLevel2(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
-              <option value="all">All Level 2 Categories</option>
+              <option value="all">All Categories</option>
               {level2Categories.map((c) => (
                 <option key={c._id || c.id} value={c._id || c.id}>
                   {c.name}
@@ -313,7 +310,7 @@ const SubCategories = () => {
                   Name
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Parent Chain
+                  Parent Category
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Slug
@@ -370,16 +367,8 @@ const SubCategories = () => {
                       <td className="py-3 px-4 font-medium text-gray-900">
                         {cat.name}
                       </td>
-                      <td className="py-3 px-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs text-gray-500 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                            {parentInfo.headerName}
-                          </span>
-                          <span className="text-sm text-gray-700 font-medium pl-2.5 border-l-2 border-gray-200">
-                            {parentInfo.name}
-                          </span>
-                        </div>
+                      <td className="py-3 px-4 text-sm text-gray-700 font-medium">
+                        {parentInfo.name}
                       </td>
                       <td className="py-3 px-4 text-gray-500">{cat.slug}</td>
                       <td className="py-3 px-4">
@@ -466,7 +455,7 @@ const SubCategories = () => {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">
-                    Parent Category (Level 2)
+                    Parent Category
                   </label>
                   <select
                     value={formData.parentId}
@@ -475,24 +464,11 @@ const SubCategories = () => {
                     }
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                     <option value="">Select Parent Category</option>
-                    {level2Categories.map((c) => {
-                      const parentInfo = getParentInfo(c._id || c.id);
-                      // Since getParentInfo uses level2Categories state which might be same as c,
-                      // we actually need header info.
-                      // But getParentInfo looks up in headerCategories which we have.
-                      // However, `c` is the category itself (level 2). We need its parent (header).
-                      const headerId = c.parentId?._id || c.parentId;
-                      const header = headerCategories.find(
-                        (h) => (h._id || h.id) === headerId,
-                      );
-                      const headerName = header ? header.name : "Unknown";
-
-                      return (
-                        <option key={c._id || c.id} value={c._id || c.id}>
-                          {headerName} &gt; {c.name}
-                        </option>
-                      );
-                    })}
+                    {level2Categories.map((c) => (
+                      <option key={c._id || c.id} value={c._id || c.id}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

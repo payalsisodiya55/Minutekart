@@ -1,259 +1,366 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { useHeroTransition } from '../../context/HeroTransitionContext';
 import { resolveQuickImageUrl } from '../../utils/image';
+import { ArrowLeft, Heart } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-/**
- * HeroOverlay
- *
- * Renders a fixed-position product card clone that animates between
- * the tapped card's screen rect and fullscreen (and back).
- *
- * GPU-accelerated: uses only transform + opacity.
- * No layout changes occur during animation.
- */
-
-// easeInOutCubic bezier
-const EASE = 'cubic-bezier(0.65, 0, 0.35, 1)';
-const DURATION = 350; // ms
+const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
+const OPEN_DURATION = 420;
+const CLOSE_DURATION = 360;
 
 const HeroOverlay = () => {
     const { heroState, onExpandComplete, onCollapseComplete } = useHeroTransition();
     const { phase, originRect, product } = heroState;
 
-    const overlayRef = useRef(null);
-    const cardRef = useRef(null);
-    const backdropRef = useRef(null);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isDesktop, setIsDesktop] = useState(false);
 
-    // Whether the overlay DOM should be present at all
     const isVisible = phase === 'expanding' || phase === 'navigating' || phase === 'collapsing';
 
-    // Derived image URL
-    const imageUrl = product
-        ? (resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage)
-        : '';
-
-    const displayPrice = product?.price || product?.salePrice || 0;
-    const originalPrice = product?.originalPrice || product?.mrp || 0;
-    const showDiscount = originalPrice && originalPrice > displayPrice;
-    const discountPercent = showDiscount
-        ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
-        : 0;
-
-    // Run expand animation when phase becomes 'expanding'
+    // Track responsive layout
     useEffect(() => {
-        if (phase !== 'expanding' || !originRect || !cardRef.current || !backdropRef.current) return;
+        if (typeof window === 'undefined') return;
+        const checkSize = () => setIsDesktop(window.innerWidth >= 768);
+        checkSize();
+        window.addEventListener('resize', checkSize);
+        return () => window.removeEventListener('resize', checkSize);
+    }, []);
 
-        const card = cardRef.current;
-        const backdrop = backdropRef.current;
+    // Set transition states based on animation phases
+    useEffect(() => {
+        if (phase === 'expanding') {
+            setIsExpanded(false);
+            const t1 = requestAnimationFrame(() => {
+                const t2 = requestAnimationFrame(() => {
+                    setIsExpanded(true);
+                });
+                return () => cancelAnimationFrame(t2);
+            });
+            return () => cancelAnimationFrame(t1);
+        } else if (phase === 'collapsing') {
+            setIsExpanded(true);
+            const t1 = requestAnimationFrame(() => {
+                const t2 = requestAnimationFrame(() => {
+                    setIsExpanded(false);
+                });
+                return () => cancelAnimationFrame(t2);
+            });
+            return () => cancelAnimationFrame(t1);
+        }
+    }, [phase]);
 
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
+    // Handle animation completion events
+    useEffect(() => {
+        if (!isVisible) return;
 
-        // Starting state: card exactly covers the tapped card
-        const startX = originRect.left;
-        const startY = originRect.top;
-        const startW = originRect.width;
-        const startH = originRect.height;
-
-        // Ending state: fullscreen
-        const endX = 0;
-        const endY = 0;
-        const endW = vw;
-        const endH = vh;
-
-        // Apply start state instantly (no transition yet)
-        card.style.transition = 'none';
-        card.style.left = `${startX}px`;
-        card.style.top = `${startY}px`;
-        card.style.width = `${startW}px`;
-        card.style.height = `${startH}px`;
-        card.style.borderRadius = '14px';
-        card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-        card.style.opacity = '1';
-
-        backdrop.style.transition = 'none';
-        backdrop.style.opacity = '0';
-
-        // Force reflow to apply start state before starting animation
-        card.getBoundingClientRect();
-
-        // Trigger expand animation
-        requestAnimationFrame(() => {
-            card.style.transition = `left ${DURATION}ms ${EASE}, top ${DURATION}ms ${EASE}, width ${DURATION}ms ${EASE}, height ${DURATION}ms ${EASE}, border-radius ${DURATION}ms ${EASE}, box-shadow ${DURATION}ms ${EASE}`;
-            backdrop.style.transition = `opacity ${DURATION}ms ${EASE}`;
-
-            card.style.left = `${endX}px`;
-            card.style.top = `${endY}px`;
-            card.style.width = `${endW}px`;
-            card.style.height = `${endH}px`;
-            card.style.borderRadius = '0px';
-            card.style.boxShadow = '0 0 0 rgba(0,0,0,0)';
-            backdrop.style.opacity = '1';
-        });
-
-        // After animation completes, trigger navigation
+        const duration = phase === 'expanding' ? OPEN_DURATION : CLOSE_DURATION;
         const timer = setTimeout(() => {
-            onExpandComplete();
-        }, DURATION + 20);
+            if (phase === 'expanding') {
+                onExpandComplete();
+            } else if (phase === 'collapsing') {
+                onCollapseComplete();
+            }
+        }, duration + 10);
 
         return () => clearTimeout(timer);
-    }, [phase, originRect]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // Run collapse animation when phase becomes 'collapsing'
-    useEffect(() => {
-        if (phase !== 'collapsing' || !originRect || !cardRef.current || !backdropRef.current) return;
-
-        const card = cardRef.current;
-        const backdrop = backdropRef.current;
-
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-
-        // Start state: fullscreen
-        card.style.transition = 'none';
-        card.style.left = '0px';
-        card.style.top = '0px';
-        card.style.width = `${vw}px`;
-        card.style.height = `${vh}px`;
-        card.style.borderRadius = '0px';
-        card.style.boxShadow = '0 0 0 rgba(0,0,0,0)';
-        card.style.opacity = '1';
-
-        backdrop.style.transition = 'none';
-        backdrop.style.opacity = '1';
-
-        // Force reflow
-        card.getBoundingClientRect();
-
-        requestAnimationFrame(() => {
-            card.style.transition = `left ${DURATION}ms ${EASE}, top ${DURATION}ms ${EASE}, width ${DURATION}ms ${EASE}, height ${DURATION}ms ${EASE}, border-radius ${DURATION}ms ${EASE}, box-shadow ${DURATION}ms ${EASE}, opacity ${DURATION}ms ${EASE}`;
-            backdrop.style.transition = `opacity ${DURATION}ms ${EASE}`;
-
-            card.style.left = `${originRect.left}px`;
-            card.style.top = `${originRect.top}px`;
-            card.style.width = `${originRect.width}px`;
-            card.style.height = `${originRect.height}px`;
-            card.style.borderRadius = '14px';
-            card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-            backdrop.style.opacity = '0';
-        });
-
-        const timer = setTimeout(() => {
-            onCollapseComplete();
-        }, DURATION + 20);
-
-        return () => clearTimeout(timer);
-    }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [phase, isVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!isVisible || !product || !originRect) return null;
 
-    return ReactDOM.createPortal(
-        <div
-            ref={overlayRef}
-            style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 9999,
-                pointerEvents: phase === 'navigating' ? 'none' : 'auto',
-            }}
-        >
-            {/* Backdrop that fades in/out */}
-            <div
-                ref={backdropRef}
-                style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'rgba(0,0,0,0.25)',
-                    opacity: 0,
-                    willChange: 'opacity',
-                }}
-            />
+    const imageUrl = resolveQuickImageUrl(product.image || product.mainImage) || product.image || product.mainImage;
+    const displayPrice = product.price || product.salePrice || 0;
+    const originalPrice = product.originalPrice || product.mrp || 0;
+    const showDiscount = originalPrice && originalPrice > displayPrice;
+    const discountPercent = showDiscount ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) : 0;
 
-            {/* Animated card clone */}
-            <div
-                ref={cardRef}
-                style={{
-                    position: 'absolute',
-                    background: 'white',
-                    overflow: 'hidden',
-                    willChange: 'left, top, width, height, border-radius',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
+    const duration = phase === 'expanding' ? OPEN_DURATION : CLOSE_DURATION;
+    const transitionStyle = { transition: `all ${duration}ms ${EASE}` };
+
+    // Layout configuration values
+    const desktopLeft = 12; // vw
+    const desktopWidth = 76; // vw
+    const desktopTop = 72; // px
+    const desktopHeight = 'calc(100vh - 88px)';
+
+    // 1. Fullscreen / Card Wrapper Styles
+    const containerStyle = {
+        position: 'fixed',
+        zIndex: 9999,
+        left: isExpanded 
+            ? (isDesktop ? `${desktopLeft}vw` : '0px') 
+            : `${originRect.left}px`,
+        top: isExpanded 
+            ? (isDesktop ? `${desktopTop}px` : '0px') 
+            : `${originRect.top}px`,
+        width: isExpanded 
+            ? (isDesktop ? `${desktopWidth}vw` : '100vw') 
+            : `${originRect.width}px`,
+        height: isExpanded 
+            ? (isDesktop ? desktopHeight : '100vh') 
+            : `${originRect.height}px`,
+        borderRadius: isExpanded 
+            ? (isDesktop ? '24px' : '0px') 
+            : '14px',
+        boxShadow: isExpanded 
+            ? '0 25px 50px -12px rgba(0,0,0,0.15)' 
+            : '0 2px 8px rgba(0,0,0,0.04)',
+        background: 'white',
+        border: isExpanded ? 'none' : '1px solid rgba(226, 232, 240, 0.6)',
+        overflow: 'hidden',
+        willChange: 'left, top, width, height, border-radius, box-shadow',
+        display: 'flex',
+        flexDirection: isDesktop && isExpanded ? 'row' : 'column',
+        ...transitionStyle,
+    };
+
+    // 2. Backdrop Overlay
+    const backdropStyle = {
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.45)',
+        backdropFilter: 'blur(4px)',
+        zIndex: 9998,
+        opacity: isExpanded ? 1 : 0,
+        willChange: 'opacity',
+        ...transitionStyle,
+    };
+
+    // 3. Image Section Container
+    const imageContainerStyle = {
+        width: isDesktop && isExpanded ? '42%' : '100%',
+        height: isExpanded 
+            ? (isDesktop ? '100%' : '42vh') 
+            : `${originRect.height * 0.55}px`,
+        background: isExpanded ? '#F8F9FA' : 'transparent',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: isExpanded ? '24px' : '8px',
+        position: 'relative',
+        flexShrink: 0,
+        ...transitionStyle,
+    };
+
+    // 4. Product Info Wrapper
+    const infoContainerStyle = {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        padding: isExpanded ? (isDesktop ? '40px 32px' : '24px') : '8px 10px',
+        background: 'white',
+        ...transitionStyle,
+    };
+
+    return ReactDOM.createPortal(
+        <>
+            {/* Dark background overlay */}
+            <div style={backdropStyle} />
+
+            {/* Animating Product Card */}
+            <div 
+                className="text-slate-800 dark:text-slate-100 dark:bg-neutral-900 border-slate-200/60 dark:border-neutral-800"
+                style={containerStyle}
             >
-                {/* Product image — centered and contained, mirrors card layout */}
-                <div
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: 'white',
-                        overflow: 'hidden',
-                        padding: '12px',
-                    }}
-                >
-                    <img
-                        src={imageUrl}
-                        alt={product.name || ''}
+                {/* Header elements inside card */}
+                {isExpanded && (
+                    <div 
                         style={{
-                            maxWidth: '100%',
+                            position: 'absolute',
+                            top: isDesktop ? '20px' : '16px',
+                            left: isDesktop ? '20px' : '16px',
+                            right: isDesktop ? '20px' : '16px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            zIndex: 10,
+                            pointerEvents: 'none',
+                        }}
+                    >
+                        {/* Back Arrow */}
+                        <div 
+                            style={{
+                                opacity: isExpanded ? 1 : 0,
+                                transform: isExpanded ? 'translateX(0px)' : 'translateX(-12px)',
+                                transition: `all ${duration}ms ${EASE}`,
+                                pointerEvents: 'auto',
+                            }}
+                            className="w-10 h-10 bg-white dark:bg-neutral-800 shadow-md rounded-full flex items-center justify-center border border-slate-100 dark:border-neutral-700"
+                        >
+                            <ArrowLeft size={20} className="text-slate-700 dark:text-slate-200" strokeWidth={2.5} />
+                        </div>
+
+                        {/* Favorite Badge */}
+                        <div 
+                            style={{
+                                opacity: isExpanded ? 1 : 0,
+                                transform: isExpanded ? 'translateX(0px)' : 'translateX(12px)',
+                                transition: `all ${duration}ms ${EASE}`,
+                                pointerEvents: 'auto',
+                            }}
+                            className="w-10 h-10 bg-white dark:bg-neutral-800 shadow-md rounded-full flex items-center justify-center border border-slate-100 dark:border-neutral-700"
+                        >
+                            <Heart size={20} className="text-slate-400 dark:text-neutral-500" strokeWidth={2.5} />
+                        </div>
+                    </div>
+                )}
+
+                {/* Left Column / Top Section: Image Area */}
+                <div style={imageContainerStyle}>
+                    {/* Time Badge (visible only in collapsed card) */}
+                    {!isExpanded && (
+                        <div 
+                            style={{
+                                position: 'absolute',
+                                top: '8px',
+                                left: '8px',
+                                background: '#E5F7ED',
+                                color: '#0c831f',
+                                fontWeight: 'bold',
+                                fontSize: '9px',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                            }}
+                        >
+                            {product.deliveryTime || "10-15 mins"}
+                        </div>
+                    )}
+
+                    <img 
+                        src={imageUrl} 
+                        alt={product.name || ''} 
+                        style={{
                             maxHeight: '100%',
+                            maxWidth: '100%',
                             objectFit: 'contain',
                             mixBlendMode: 'multiply',
                             userSelect: 'none',
-                            pointerEvents: 'none',
-                            // Keep image visually stable — match card's mix-blend
                         }}
-                        draggable={false}
                     />
                 </div>
 
-                {/* Card info overlay — visible only when card is small (not fullscreen) */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        background: 'white',
-                        padding: '6px 8px 8px',
-                        borderTop: '1px solid rgba(0,0,0,0.04)',
-                    }}
-                >
-                    <div style={{
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: '#1e293b',
-                        lineHeight: 1.2,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                    }}>
+                {/* Right Column / Bottom Section: Product Info */}
+                <div style={infoContainerStyle}>
+                    {/* Category Label (Expanded details layout only) */}
+                    {isExpanded && (
+                        <div 
+                            style={{
+                                opacity: isExpanded ? 1 : 0,
+                                transform: isExpanded ? 'translateY(0px)' : 'translateY(8px)',
+                                transition: `all ${duration}ms ${EASE}`,
+                                display: 'inline-block',
+                                marginBottom: '12px',
+                            }}
+                        >
+                            <span className="rounded-full border border-[#0c831f]/20 bg-[#0c831f]/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#0c831f]">
+                                {product.category || "Grocery"}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Product Name */}
+                    <div 
+                        style={{
+                            fontSize: isExpanded ? (isDesktop ? '26px' : '22px') : '12px',
+                            fontWeight: isExpanded ? '800' : 'bold',
+                            color: 'inherit',
+                            lineHeight: 1.25,
+                            margin: 0,
+                            overflow: isExpanded ? 'visible' : 'hidden',
+                            textOverflow: isExpanded ? 'clip' : 'ellipsis',
+                            whiteSpace: isExpanded ? 'normal' : 'nowrap',
+                            ...transitionStyle,
+                        }}
+                    >
                         {product.name}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '2px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>
+
+                    {/* Weight */}
+                    <div 
+                        style={{
+                            fontSize: isExpanded ? '13px' : '10px',
+                            fontWeight: isExpanded ? '600' : 'bold',
+                            color: '#94a3b8',
+                            marginTop: isExpanded ? '6px' : '0px',
+                            ...transitionStyle,
+                        }}
+                    >
+                        {product.weight || "1 unit"}
+                    </div>
+
+                    {/* Price Block */}
+                    <div 
+                        style={{ 
+                            display: 'flex', 
+                            alignItems: 'baseline', 
+                            gap: isExpanded ? '12px' : '6px', 
+                            marginTop: isExpanded ? '16px' : '4px',
+                            ...transitionStyle,
+                        }}
+                    >
+                        <span 
+                            style={{ 
+                                fontSize: isExpanded ? '28px' : '13px', 
+                                fontWeight: '900', 
+                                color: isExpanded ? '#0c831f' : '#0f172a',
+                                ...transitionStyle,
+                            }}
+                        >
                             ₹{displayPrice}
                         </span>
+
                         {showDiscount && (
                             <>
-                                <span style={{ fontSize: '10px', color: '#94a3b8', textDecoration: 'line-through' }}>
+                                <span 
+                                    style={{ 
+                                        fontSize: isExpanded ? '16px' : '10px', 
+                                        color: '#94a3b8', 
+                                        textDecoration: 'line-through',
+                                        fontWeight: 'semibold',
+                                        ...transitionStyle,
+                                    }}
+                                >
                                     ₹{originalPrice}
                                 </span>
-                                <span style={{ fontSize: '10px', color: '#0c831f', fontWeight: 700 }}>
+                                <span 
+                                    style={{ 
+                                        fontSize: isExpanded ? '12px' : '10px', 
+                                        color: '#0c831f', 
+                                        fontWeight: '700',
+                                        ...transitionStyle,
+                                    }}
+                                >
                                     {discountPercent}% OFF
                                 </span>
                             </>
                         )}
                     </div>
+
+                    {/* Collapsed Add Button (Matches card look) */}
+                    {!isExpanded && (
+                        <div 
+                            style={{
+                                marginTop: '8px',
+                                width: '100%',
+                                height: '30px',
+                                border: '1px solid #0c831f',
+                                color: '#0c831f',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '11px',
+                                fontWeight: 'black',
+                                background: 'white',
+                            }}
+                        >
+                            ADD
+                        </div>
+                    )}
                 </div>
             </div>
-        </div>,
+        </>,
         document.body
     );
 };

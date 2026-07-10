@@ -256,7 +256,7 @@ const MainLocationHeader = ({
         if (res.data.success) {
           const dbCats = res.data.results || res.data.result || [];
           const headers = dbCats
-            .filter((cat) => cat.type === "header")
+            .filter((cat) => cat.type === "category")
             .map((cat) => {
               const customImg = cat.image?.url || cat.image;
               const resolvedImg = customImg ? resolveQuickImageUrl(customImg) : null;

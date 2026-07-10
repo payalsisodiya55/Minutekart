@@ -233,7 +233,7 @@ export const useQuickHomeData = ({ currentLocation }) => {
           newDataCache.categoryMap = catMap;
           newDataCache.subcategoryMap = subMap;
 
-          const formattedHeaders = dbCats.filter((cat) => cat.type === "header").map((cat) => {
+          const formattedHeaders = dbCats.filter((cat) => cat.type === "category").map((cat) => {
             const catName = cat.name;
             const meta = CATEGORY_METADATA[catName] || CATEGORY_METADATA[catName.charAt(0).toUpperCase() + catName.slice(1).toLowerCase()] || CATEGORY_METADATA[catName.toUpperCase()] || {
               icon: Sparkles, theme: DEFAULT_CATEGORY_THEME, banner: { title: catName.toUpperCase(), subtitle: "TOP PICKS", floatingElements: "sparkles" }
