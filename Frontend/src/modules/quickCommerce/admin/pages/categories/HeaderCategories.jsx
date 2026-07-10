@@ -71,11 +71,24 @@ const HeaderCategories = () => {
     handlingFees: 0,
     headerColor: "#FF1E1E",
     sortOrder: 0,
+    banner: "",
   });
 
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
+
+  const [bannerFile, setBannerFile] = useState(null);
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState(null);
+  const bannerFileInputRef = useRef(null);
+
+  const handleBannerChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBannerFile(file);
+      setBannerPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   // Map our icon ids to MUI icon components so admin UI
   // previews the same icons used in the customer app.
@@ -190,6 +203,12 @@ const HeaderCategories = () => {
         data.append("image", previewUrl || "");
       }
 
+      if (bannerFile) {
+        data.append("banner", bannerFile);
+      } else {
+        data.append("banner", bannerPreviewUrl || "");
+      }
+
       if (editingItem) {
         await adminApi.updateCategory(editingItem._id || editingItem.id, data);
         toast.success("Category updated");
@@ -199,6 +218,10 @@ const HeaderCategories = () => {
       }
       setIsAddModalOpen(false);
       setEditingItem(null);
+      setImageFile(null);
+      setPreviewUrl(null);
+      setBannerFile(null);
+      setBannerPreviewUrl(null);
       fetchCategories(page);
     } catch (error) {
       console.error(error);
@@ -236,9 +259,12 @@ const HeaderCategories = () => {
       handlingFees: 0,
       headerColor: "#FF1E1E",
       sortOrder: 0,
+      banner: "",
     });
     setImageFile(null);
     setPreviewUrl(null);
+    setBannerFile(null);
+    setBannerPreviewUrl(null);
     setIsAddModalOpen(true);
   };
 
@@ -256,8 +282,11 @@ const HeaderCategories = () => {
       handlingFees: item.handlingFees || 0,
       headerColor: item.headerColor || "#FF1E1E",
       sortOrder: item.sortOrder || 0,
+      banner: item.banner || "",
     });
     setPreviewUrl(item.image?.url || item.image || null);
+    setBannerFile(null);
+    setBannerPreviewUrl(item.banner || null);
     setIsAddModalOpen(true);
   };
 
@@ -567,6 +596,51 @@ const HeaderCategories = () => {
                   <p className="text-xs text-gray-500 text-center">
                     Choose an SVG icon or upload a custom image
                   </p>
+                </div>
+
+                {/* Category Banner (Landscape) */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 flex justify-between">
+                    <span>Category Banner (Landscape - Optional)</span>
+                    {bannerPreviewUrl && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBannerFile(null);
+                          setBannerPreviewUrl(null);
+                          setFormData(prev => ({ ...prev, banner: "" }));
+                        }}
+                        className="text-xs text-red-500 hover:text-red-700 font-medium"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </label>
+                  <div
+                    onClick={() => bannerFileInputRef.current?.click()}
+                    className="w-full h-24 rounded-lg bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-indigo-500 overflow-hidden transition-colors">
+                    {bannerPreviewUrl ? (
+                      <img
+                        src={bannerPreviewUrl}
+                        alt="Banner Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center py-2">
+                        <Upload className="w-6 h-6 text-gray-400 mx-auto" />
+                        <span className="text-xs text-gray-500 mt-1 block">
+                          Upload Landscape Banner
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    ref={bannerFileInputRef}
+                    className="hidden"
+                    onChange={handleBannerChange}
+                    accept="image/*"
+                  />
                 </div>
 
                 {/* Header Color Picker */}

@@ -1063,6 +1063,7 @@ const CategoryProductsPage = () => {
             ? panelData.category?.banner
             : panelData.subCategories.find(s => s.id === subCategoryId)?.banner;
             
+        const resolvedBannerUrl = resolveQuickImageUrl(bannerUrl);
         const isPanelLoading = panelLoading || panelData.isLoading;
 
         return (
@@ -1084,10 +1085,10 @@ const CategoryProductsPage = () => {
                     </div>
                 )}
 
-                {bannerUrl && (
+                {resolvedBannerUrl && (
                     <div className="mb-3.5 rounded-xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-neutral-800/80">
                         <img 
-                            src={resolveQuickImageUrl(bannerUrl) || bannerUrl} 
+                            src={resolvedBannerUrl} 
                             alt="Category Banner" 
                             className="w-full h-auto object-cover max-h-[140px] md:max-h-[185px]"
                         />
