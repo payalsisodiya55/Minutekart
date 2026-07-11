@@ -610,34 +610,36 @@ const ProductCard = React.memo(
             {/* Image Section */}
             <div className="relative w-full h-[98px] md:h-[118px] mt-1 mb-1.5 bg-transparent flex items-center justify-center">
               {allImages.length > 1 ? (
-                <div className="w-full h-full relative overflow-hidden">
-                  {/* Slide-controlled image list container */}
-                  <div 
-                    className="w-full h-full flex transition-transform duration-300 touch-pan-y"
-                    style={{ transform: `translateX(-${currentImgIdx * 100}%)`, willChange: 'transform' }}
-                    ref={swipe.containerRef}
-                    {...swipe.bind}
-                  >
-                    {allImages.map((imgUrl, imgIdx) => (
-                      <div 
-                        key={imgIdx} 
-                        className="w-full h-full flex-shrink-0 flex items-center justify-center p-0.5 md:p-1"
-                      >
-                        <img
-                          ref={imgIdx === 0 ? imageRef : null}
-                          src={resolveQuickImageUrl(imgUrl) || imgUrl}
-                          srcSet={getCloudinarySrcSet(imgUrl)}
-                          sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
-                          alt={`${product.name} - ${imgIdx + 1}`}
-                          className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
-                          loading="lazy"
-                        />
-                      </div>
-                    ))}
+                <>
+                  <div className="w-full h-full relative overflow-hidden">
+                    {/* Slide-controlled image list container */}
+                    <div 
+                      className="w-full h-full flex transition-transform duration-300 touch-pan-y"
+                      style={{ transform: `translateX(-${currentImgIdx * 100}%)`, willChange: 'transform' }}
+                      ref={swipe.containerRef}
+                      {...swipe.bind}
+                    >
+                      {allImages.map((imgUrl, imgIdx) => (
+                        <div 
+                          key={imgIdx} 
+                          className="w-full h-full flex-shrink-0 flex items-center justify-center p-0.5 md:p-1"
+                        >
+                          <img
+                            ref={imgIdx === 0 ? imageRef : null}
+                            src={resolveQuickImageUrl(imgUrl) || imgUrl}
+                            srcSet={getCloudinarySrcSet(imgUrl)}
+                            sizes="(max-width: 768px) 150px, (max-width: 1024px) 200px, 250px"
+                            alt={`${product.name} - ${imgIdx + 1}`}
+                            className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Dot Indicators */}
-                  <div className="absolute bottom-0 left-2 flex items-center gap-1 z-10 pointer-events-none">
+                  <div className="absolute bottom-[-4px] left-2 flex items-center gap-1 z-10 pointer-events-none">
                     {allImages.map((_, dotIdx) => (
                       <div
                         key={dotIdx}
@@ -650,7 +652,7 @@ const ProductCard = React.memo(
                       />
                     ))}
                   </div>
-                </div>
+                </>
               ) : (
                 <img
                   ref={imageRef}
