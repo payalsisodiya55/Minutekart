@@ -135,6 +135,11 @@ const CartPage = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [savedRecipient, setSavedRecipient] = useState(null);
+  const [isSomeoneElseModalOpen, setIsSomeoneElseModalOpen] = useState(false);
+  const [recipientPhone, setRecipientPhone] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientError, setRecipientError] = useState("");
 
   const handleMoveToWishlist = async (item) => {
     try {
@@ -400,8 +405,8 @@ const CartPage = () => {
           city: selectedAddress.city || "",
           state: selectedAddress.state || "Madhya Pradesh",
           zipCode: selectedAddress.zipCode || selectedAddress.postalCode || "",
-          name: selectedAddress.name || user?.name || "",
-          phone: selectedAddress.phone || user?.phone || "",
+          name: savedRecipient ? savedRecipient.name : (selectedAddress.name || user?.name || ""),
+          phone: savedRecipient ? savedRecipient.phone : (selectedAddress.phone || user?.phone || ""),
           location: selectedAddress.location,
         },
         paymentMode: selectedPayment === "online" ? "ONLINE" : "COD",
@@ -1108,6 +1113,43 @@ const CartPage = () => {
           </div>
         </section>
 
+        {/* Ordering for someone else card */}
+        <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
+                Ordering for someone else?
+              </h3>
+              {savedRecipient ? (
+                <p className="text-xs text-[#0c831f] dark:text-emerald-400 font-bold mt-1">
+                  Delivering to {savedRecipient.name} ({savedRecipient.phone})
+                </p>
+              ) : (
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                  Add details to coordinate delivery directly
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => {
+                if (savedRecipient) {
+                  setRecipientName(savedRecipient.name);
+                  setRecipientPhone(savedRecipient.phone);
+                } else {
+                  setRecipientName("");
+                  setRecipientPhone("");
+                }
+                setRecipientError("");
+                setIsSomeoneElseModalOpen(true);
+              }}
+              className="text-xs font-bold text-[#0c831f] dark:text-emerald-400 hover:underline cursor-pointer bg-transparent border-0"
+            >
+              {savedRecipient ? "Edit" : "Add details"}
+            </button>
+          </div>
+        </section>
+
+
         <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -1300,6 +1342,121 @@ const CartPage = () => {
                 </p>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order for someone else Modal */}
+      {isSomeoneElseModalOpen && (
+        <div className="fixed inset-0 z-[600] flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
+          <div
+            className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-fade-in"
+            onClick={() => setIsSomeoneElseModalOpen(false)}
+          />
+          <div className="relative z-[610] w-full max-w-md rounded-[28px] bg-white dark:bg-neutral-900 p-6 shadow-2xl border border-transparent dark:border-neutral-800 animate-slide-up">
+            {/* Top round Close Button outside */}
+            <button
+              onClick={() => setIsSomeoneElseModalOpen(false)}
+              className="absolute -top-12 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-black text-white flex items-center justify-center hover:bg-neutral-800 cursor-pointer shadow-lg border-0"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="text-left mb-5">
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                Order for someone else
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                We&apos;ll directly coordinate with the receiver to deliver your order
+              </p>
+            </div>
+
+            {/* Delivery Address Box */}
+            <div className="bg-slate-50 dark:bg-neutral-850/40 rounded-2xl p-4 border border-slate-100 dark:border-neutral-800/60 mb-5 text-left">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-450 dark:text-slate-500">
+                Delivery address
+              </span>
+              <div className="flex items-start justify-between gap-4 mt-2">
+                <div className="flex gap-2">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+                    <MapPin size={16} className="text-slate-500 dark:text-slate-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5">
+                      {selectedAddress?.label || "Home"}
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
+                      {selectedAddress?.street || selectedAddress?.address}, {selectedAddress?.city}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsSomeoneElseModalOpen(false);
+                    setIsAddressModalOpen(true);
+                  }}
+                  className="text-xs font-bold text-[#0c831f] dark:text-emerald-400 hover:underline cursor-pointer bg-transparent border-0 shrink-0"
+                >
+                  Change
+                </button>
+              </div>
+            </div>
+
+            {/* Add Receiver Details */}
+            <div className="space-y-4 text-left">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-450 dark:text-slate-500">
+                Add receiver details
+              </h4>
+
+              <div className="space-y-3">
+                <div>
+                  <input
+                    type="tel"
+                    placeholder="Receiver's phone number*"
+                    value={recipientPhone}
+                    maxLength="10"
+                    onChange={(e) => setRecipientPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    className="w-full h-11 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3.5 text-xs font-bold text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Receiver's Name*"
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    className="w-full h-11 rounded-xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3.5 text-xs font-bold text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {recipientError && (
+              <p className="text-xs text-rose-500 font-bold mt-3 text-center">
+                {recipientError}
+              </p>
+            )}
+
+            {/* Save Button */}
+            <button
+              onClick={() => {
+                if (!recipientPhone || recipientPhone.length !== 10) {
+                  setRecipientError("Please enter a valid 10-digit phone number.");
+                  return;
+                }
+                if (!recipientName.trim()) {
+                  setRecipientError("Please enter the receiver's name.");
+                  return;
+                }
+                setSavedRecipient({ name: recipientName.trim(), phone: recipientPhone });
+                setIsSomeoneElseModalOpen(false);
+                showToast("Receiver details saved!", "success");
+              }}
+              className="w-full h-12 rounded-xl bg-[#0c831f] dark:bg-emerald-600 text-white font-extrabold text-xs hover:bg-[#0b721b] dark:hover:bg-emerald-700 transition-all mt-6 cursor-pointer border-0 flex items-center justify-center"
+            >
+              Save details
+            </button>
           </div>
         </div>
       )}
