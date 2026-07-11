@@ -35,7 +35,6 @@ const CategoryProductCard = ({ product }) => {
     const { animateAddToCart, animateRemoveFromCart } = useCartAnimation();
     const { triggerHeroExpand } = useHeroTransition();
     const navigate = useNavigate();
-    const [currentImgIdx, setCurrentImgIdx] = useState(0);
     const imageRef = React.useRef(null);
     const cardRef = React.useRef(null);
 
@@ -67,6 +66,9 @@ const CategoryProductCard = ({ product }) => {
         });
         return urls;
     }, [product.image, product.mainImage, product.galleryImages]);
+
+    const swipe = useCarouselSwipe(allImages);
+    const { currentImgIdx, setCurrentImgIdx } = swipe;
     
     const cartItem = cart.find(item => item.id === product.id || item.productId === product.id);
     const quantity = cartItem ? cartItem.quantity : 0;
@@ -105,25 +107,18 @@ const CategoryProductCard = ({ product }) => {
             {/* Product Image */}
             <div ref={imageRef} className="relative w-full h-[98px] md:h-[114px] bg-transparent flex items-center justify-center p-0 overflow-hidden mb-0.5">
                 {allImages.length > 1 ? (
-                    <div className="w-full h-full relative">
+                    <div className="w-full h-full relative overflow-hidden">
+                        {/* Slide-controlled image list container */}
                         <div 
-                            className="w-full h-full overflow-x-auto flex snap-x snap-mandatory scrollbar-none"
-                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                            onScroll={(e) => {
-                                const scrollLeft = e.currentTarget.scrollLeft;
-                                const width = e.currentTarget.clientWidth;
-                                if (width > 0) {
-                                    const newIndex = Math.round(scrollLeft / width);
-                                    if (newIndex !== currentImgIdx) {
-                                        setCurrentImgIdx(newIndex);
-                                    }
-                                }
-                            }}
+                            className="w-full h-full flex transition-transform duration-300"
+                            style={{ transform: `translateX(-${currentImgIdx * 100}%)`, willChange: 'transform' }}
+                            ref={swipe.containerRef}
+                            {...swipe.bind}
                         >
                             {allImages.map((imgUrl, imgIdx) => (
                                 <div 
                                     key={imgIdx} 
-                                    className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center p-0"
+                                    className="w-full h-full flex-shrink-0 flex items-center justify-center p-0"
                                 >
                                     <img
                                         src={resolveQuickImageUrl(imgUrl) || imgUrl}

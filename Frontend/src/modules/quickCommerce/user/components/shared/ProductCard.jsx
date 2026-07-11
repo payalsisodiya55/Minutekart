@@ -32,6 +32,198 @@ const OfferBadge = ({ text, className, isBestOffer }) => {
   );
 };
 
+const useCarouselSwipe = (allImages) => {
+  const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
+  const touchStartX = React.useRef(0);
+  const touchStartY = React.useRef(0);
+  const isSwiping = React.useRef(false);
+  const hasDragged = React.useRef(false);
+  const containerRef = React.useRef(null);
+  const currentIdxRef = React.useRef(currentImgIdx);
+  const timeoutRef = React.useRef(null);
+  const mouseListenersRef = React.useRef(null);
+
+  React.useEffect(() => {
+    currentIdxRef.current = currentImgIdx;
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translateX(-${currentImgIdx * 100}%)`;
+    }
+  }, [currentImgIdx]);
+
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (mouseListenersRef.current) {
+        window.removeEventListener('mousemove', mouseListenersRef.current.onMouseMove);
+        window.removeEventListener('mouseup', mouseListenersRef.current.onMouseUp);
+      }
+    };
+  }, []);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isSwiping.current = true;
+    hasDragged.current = false;
+    if (containerRef.current) {
+      containerRef.current.style.transition = 'none';
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isSwiping.current) return;
+    const deltaX = e.touches[0].clientX - touchStartX.current;
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+      hasDragged.current = true;
+    }
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+
+      if (containerRef.current) {
+        const baseTranslate = -currentIdxRef.current * 100;
+        const width = containerRef.current.clientWidth || 100;
+        const percentDelta = (deltaX / width) * 100;
+
+        let finalTranslate = baseTranslate + percentDelta;
+        if (currentIdxRef.current === 0 && deltaX > 0) {
+          finalTranslate = percentDelta * 0.3;
+        } else if (currentIdxRef.current === allImages.length - 1 && deltaX < 0) {
+          finalTranslate = baseTranslate + percentDelta * 0.3;
+        }
+
+        containerRef.current.style.transform = `translateX(${finalTranslate}%)`;
+      }
+    } else {
+      isSwiping.current = false;
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!isSwiping.current) return;
+    isSwiping.current = false;
+
+    const endX = e.changedTouches[0] ? e.changedTouches[0].clientX : touchStartX.current;
+    const deltaX = endX - touchStartX.current;
+
+    if (containerRef.current) {
+      containerRef.current.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
+      const width = containerRef.current.clientWidth || 100;
+      const threshold = width * 0.25;
+
+      let newIdx = currentIdxRef.current;
+      if (deltaX < -threshold) {
+        newIdx = Math.min(currentIdxRef.current + 1, allImages.length - 1);
+      } else if (deltaX > threshold) {
+        newIdx = Math.max(currentIdxRef.current - 1, 0);
+      }
+
+      containerRef.current.style.transform = `translateX(-${newIdx * 100}%)`;
+      currentIdxRef.current = newIdx;
+
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        setCurrentImgIdx(newIdx);
+      }, 300);
+    }
+  };
+
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    touchStartX.current = e.clientX;
+    touchStartY.current = e.clientY;
+    isSwiping.current = true;
+    hasDragged.current = false;
+    if (containerRef.current) {
+      containerRef.current.style.transition = 'none';
+    }
+
+    const onMouseMove = (moveEvent) => {
+      if (!isSwiping.current) return;
+      const deltaX = moveEvent.clientX - touchStartX.current;
+      const deltaY = moveEvent.clientY - touchStartY.current;
+
+      if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+        hasDragged.current = true;
+      }
+
+      if (containerRef.current) {
+        const baseTranslate = -currentIdxRef.current * 100;
+        const width = containerRef.current.clientWidth || 100;
+        const percentDelta = (deltaX / width) * 100;
+
+        let finalTranslate = baseTranslate + percentDelta;
+        if (currentIdxRef.current === 0 && deltaX > 0) {
+          finalTranslate = percentDelta * 0.3;
+        } else if (currentIdxRef.current === allImages.length - 1 && deltaX < 0) {
+          finalTranslate = baseTranslate + percentDelta * 0.3;
+        }
+
+        containerRef.current.style.transform = `translateX(${finalTranslate}%)`;
+      }
+    };
+
+    const onMouseUp = (upEvent) => {
+      if (!isSwiping.current) return;
+      isSwiping.current = false;
+
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      mouseListenersRef.current = null;
+
+      const deltaX = upEvent.clientX - touchStartX.current;
+
+      if (containerRef.current) {
+        containerRef.current.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
+        const width = containerRef.current.clientWidth || 100;
+        const threshold = width * 0.25;
+
+        let newIdx = currentIdxRef.current;
+        if (deltaX < -threshold) {
+          newIdx = Math.min(currentIdxRef.current + 1, allImages.length - 1);
+        } else if (deltaX > threshold) {
+          newIdx = Math.max(currentIdxRef.current - 1, 0);
+        }
+
+        containerRef.current.style.transform = `translateX(-${newIdx * 100}%)`;
+        currentIdxRef.current = newIdx;
+
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          setCurrentImgIdx(newIdx);
+        }, 300);
+      }
+    };
+
+    mouseListenersRef.current = { onMouseMove, onMouseUp };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
+
+  const handleCarouselClick = (e) => {
+    if (hasDragged.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
+  return {
+    currentImgIdx,
+    setCurrentImgIdx,
+    containerRef,
+    bind: {
+      onTouchStart: handleTouchStart,
+      onTouchMove: handleTouchMove,
+      onTouchEnd: handleTouchEnd,
+      onMouseDown: handleMouseDown,
+      onClick: handleCarouselClick
+    }
+  };
+};
+
 const ProductCard = React.memo(
   ({ product, badge, className, compact = false, neutralBg = false, curvedInfo = false, isBestOffer = false, hideBadge = false, showTimeOnImage = false }) => {
     const navigate = useNavigate();
@@ -43,7 +235,6 @@ const ProductCard = React.memo(
 
     const [showHeartPopup, setShowHeartPopup] = React.useState(false);
     const [showVariantsModal, setShowVariantsModal] = React.useState(false);
-    const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
     const imageRef = React.useRef(null);
 
     const allImages = React.useMemo(() => {
@@ -59,6 +250,9 @@ const ProductCard = React.memo(
       });
       return urls;
     }, [product.image, product.mainImage, product.galleryImages]);
+
+    const swipe = useCarouselSwipe(allImages);
+    const { currentImgIdx, setCurrentImgIdx } = swipe;
 
     const getComparableProductId = React.useCallback(
       (value) => String(value ?? "").split("::")[0],
@@ -361,26 +555,18 @@ const ProductCard = React.memo(
             {/* Image Section */}
             <div className="relative w-full h-[98px] md:h-[118px] mt-1 mb-1.5 bg-transparent flex items-center justify-center">
               {allImages.length > 1 ? (
-                <div className="w-full h-full relative">
-                  {/* Scrollable image list container */}
+                <div className="w-full h-full relative overflow-hidden">
+                  {/* Slide-controlled image list container */}
                   <div 
-                    className="w-full h-full overflow-x-auto flex snap-x snap-mandatory scrollbar-none"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                    onScroll={(e) => {
-                      const scrollLeft = e.currentTarget.scrollLeft;
-                      const width = e.currentTarget.clientWidth;
-                      if (width > 0) {
-                        const newIndex = Math.round(scrollLeft / width);
-                        if (newIndex !== currentImgIdx) {
-                          setCurrentImgIdx(newIndex);
-                        }
-                      }
-                    }}
+                    className="w-full h-full flex transition-transform duration-300"
+                    style={{ transform: `translateX(-${currentImgIdx * 100}%)`, willChange: 'transform' }}
+                    ref={swipe.containerRef}
+                    {...swipe.bind}
                   >
                     {allImages.map((imgUrl, imgIdx) => (
                       <div 
                         key={imgIdx} 
-                        className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center p-0.5 md:p-1"
+                        className="w-full h-full flex-shrink-0 flex items-center justify-center p-0.5 md:p-1"
                       >
                         <img
                           ref={imgIdx === 0 ? imageRef : null}
@@ -530,26 +716,18 @@ const ProductCard = React.memo(
 
               <div className="w-full h-full rounded-md overflow-hidden bg-white dark:bg-neutral-800 flex items-center justify-center transition-transform duration-500 group-hover:scale-105 relative">
                 {allImages.length > 1 ? (
-                  <div className="w-full h-full relative">
-                    {/* Scrollable image list container */}
+                  <div className="w-full h-full relative overflow-hidden">
+                    {/* Slide-controlled image list container */}
                     <div 
-                      className="w-full h-full overflow-x-auto flex snap-x snap-mandatory scrollbar-none"
-                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                      onScroll={(e) => {
-                        const scrollLeft = e.currentTarget.scrollLeft;
-                        const width = e.currentTarget.clientWidth;
-                        if (width > 0) {
-                          const newIndex = Math.round(scrollLeft / width);
-                          if (newIndex !== currentImgIdx) {
-                            setCurrentImgIdx(newIndex);
-                          }
-                        }
-                      }}
+                      className="w-full h-full flex transition-transform duration-300"
+                      style={{ transform: `translateX(-${currentImgIdx * 100}%)`, willChange: 'transform' }}
+                      ref={swipe.containerRef}
+                      {...swipe.bind}
                     >
                       {allImages.map((imgUrl, imgIdx) => (
                         <div 
                           key={imgIdx} 
-                          className="w-full h-full flex-shrink-0 snap-start flex items-center justify-center p-0.5 md:p-1"
+                          className="w-full h-full flex-shrink-0 flex items-center justify-center p-0.5 md:p-1"
                         >
                           <img
                             ref={imgIdx === 0 ? imageRef : null}
