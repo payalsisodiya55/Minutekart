@@ -212,16 +212,21 @@ export const hydrateSectionsList = async (sections = []) => {
     }
   });
 
+  const allDynamicIds = new Set([
+    ...Array.from(dynamicProductCategoryIds),
+    ...Array.from(dynamicProductSubcategoryIds)
+  ]);
+
   const [products, categories] = await Promise.all([
-    (productIds.size || dynamicProductCategoryIds.size || dynamicProductSubcategoryIds.size)
+    (productIds.size || allDynamicIds.size)
       ? QuickProduct.find({ 
           $and: [
             { 
               $or: [
                 { _id: { $in: Array.from(productIds) } },
-                { categoryId: { $in: Array.from(dynamicProductCategoryIds) } },
-                { subcategoryId: { $in: Array.from(dynamicProductSubcategoryIds) } },
-                { headerId: { $in: Array.from(dynamicProductCategoryIds) } }
+                { categoryId: { $in: Array.from(allDynamicIds) } },
+                { subcategoryId: { $in: Array.from(allDynamicIds) } },
+                { headerId: { $in: Array.from(allDynamicIds) } }
               ]
             },
             approvedOrLegacyFilter,
@@ -280,10 +285,15 @@ export const hydrateSectionsList = async (sections = []) => {
         const expandedSubcatIds = new Set();
         sectionSubcatIds.forEach(id => getRecursiveChildIds(id).forEach(cid => expandedSubcatIds.add(cid)));
 
+        const sectionAllIds = new Set([
+          ...Array.from(expandedCatIds),
+          ...Array.from(expandedSubcatIds)
+        ]);
+
         target.items = products.filter(p => 
-          expandedCatIds.has(toIdString(p.categoryId)) || 
-          expandedSubcatIds.has(toIdString(p.subcategoryId)) ||
-          expandedCatIds.has(toIdString(p.headerId))
+          sectionAllIds.has(toIdString(p.categoryId)) || 
+          sectionAllIds.has(toIdString(p.subcategoryId)) ||
+          sectionAllIds.has(toIdString(p.headerId))
         ).slice(0, (target.rows || 1) * (target.columns || 4) || 20);
       }
       
