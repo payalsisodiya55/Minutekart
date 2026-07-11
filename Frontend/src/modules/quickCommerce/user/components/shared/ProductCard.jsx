@@ -402,18 +402,18 @@ const ProductCard = React.memo(
           return;
         }
 
-        const result = await addToCart(targetProduct);
-        if (result?.ok === false) {
-          showToast(result.error || "Cannot add item to cart", "error");
-          return;
-        }
-
         if (imageRef.current) {
           const resolvedSrc = resolveQuickImageUrl(targetProduct.image || targetProduct.mainImage) || targetProduct.image || targetProduct.mainImage;
           animateAddToCart(
             imageRef.current.getBoundingClientRect(),
             resolvedSrc,
           );
+        }
+
+        const result = await addToCart(targetProduct);
+        if (result?.ok === false) {
+          showToast(result.error || "Cannot add item to cart", "error");
+          return;
         }
       },
       [animateAddToCart, product, addToCart, showToast],
