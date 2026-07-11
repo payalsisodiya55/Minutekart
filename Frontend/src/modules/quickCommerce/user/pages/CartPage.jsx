@@ -18,18 +18,23 @@ import {
   Bike,
   Heart,
   X,
+  Tag,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@core/context/SettingsContext";
 import { useToast } from "@shared/components/ui/Toast";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import { useProfile } from "@food/context/ProfileContext";
+import { useAuth } from "@core/context/AuthContext";
 import ProductCard from "../components/shared/ProductCard";
 import { customerApi } from "../services/customerApi";
 import emptyBoxAnimation from "../assets/lottie/Empty box.json";
 import {
   getQuickCategoriesPath,
   getQuickCheckoutPath,
+  getQuickOrderDetailPath,
 } from "../utils/routes";
 import { resolveQuickImageUrl } from "../utils/image";
 
@@ -118,7 +123,18 @@ const CartPage = () => {
   const { showToast } = useToast();
   const { settings } = useSettings();
   const { addToWishlist } = useWishlist();
+  const {
+    addresses: profileAddresses,
+  } = useProfile();
+  const { user, isAuthenticated } = useAuth();
+
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [coupons, setCoupons] = useState([]);
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const handleMoveToWishlist = async (item) => {
     try {
@@ -298,6 +314,186 @@ const CartPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (profileAddresses?.length > 0) {
+      const def = profileAddresses.find(a => a.isDefault) || profileAddresses[0];
+      setSelectedAddress(def);
+    }
+  }, [profileAddresses]);
+
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const res = await customerApi.getActiveCoupons();
+        if (res.data.success) {
+          const list = res.data.result || res.data.results || [];
+          const now = new Date();
+          const validCoupons = list.filter(c => {
+            const from = c.validFrom ? new Date(c.validFrom) : null;
+            const till = c.validTill ? new Date(c.validTill) : null;
+            return c.isActive !== false && (!from || from <= now) && (!till || till >= now);
+          });
+          setCoupons(validCoupons);
+        }
+      } catch (err) {
+        console.error("Error fetching coupons:", err);
+      }
+    };
+    fetchCoupons();
+  }, []);
+
+  const handleApplyCoupon = async (coupon) => {
+    try {
+      const payload = {
+        code: coupon.code,
+        cartTotal,
+        items: cart,
+        customerId: user?._id,
+      };
+      const res = await customerApi.validateCoupon(payload);
+      if (res.data.success) {
+        const data = res.data.result;
+        setSelectedCoupon({
+          ...coupon,
+          ...data,
+        });
+        setIsCouponModalOpen(false);
+        showToast(`Coupon ${coupon.code} applied!`, "success");
+      } else {
+        showToast(res.data.message || "Unable to apply coupon", "error");
+      }
+    } catch (error) {
+      showToast(
+        error.response?.data?.message || "Unable to apply coupon",
+        "error",
+      );
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!isAuthenticated) {
+      showToast("Please login to place an order", "error");
+      navigate("/user/auth/login", { state: { from: window.location.pathname } });
+      return;
+    }
+
+    if (!cart.length) {
+      showToast("Cart is empty", "error");
+      return;
+    }
+
+    if (!selectedAddress) {
+      showToast("Please select a delivery address", "error");
+      return;
+    }
+
+    setIsPlacingOrder(true);
+    try {
+      const orderData = {
+        items: cart.map(item => ({
+          productId: String(item.id || item._id).split("::")[0],
+          quantity: Math.max(1, Number(item.quantity || 1)),
+        })),
+        address: {
+          street: selectedAddress.street || selectedAddress.address || "",
+          additionalDetails: selectedAddress.additionalDetails || selectedAddress.landmark || "",
+          city: selectedAddress.city || "",
+          state: selectedAddress.state || "Madhya Pradesh",
+          zipCode: selectedAddress.zipCode || selectedAddress.postalCode || "",
+          name: selectedAddress.name || user?.name || "",
+          phone: selectedAddress.phone || user?.phone || "",
+          location: selectedAddress.location,
+        },
+        paymentMode: selectedPayment === "online" ? "ONLINE" : "COD",
+        discountTotal: selectedCoupon ? selectedCoupon.discountAmount || selectedCoupon.discount || 0 : 0,
+        taxTotal: gstAmount,
+        platformFee: platformFee,
+        timeSlot: "now",
+      };
+
+      const response = await customerApi.createOrder(orderData);
+      if (response.data.success) {
+        const order = response.data.result;
+        const placedOrderId = order?.orderId || order?.orderNumber || order?.id || order?._id || "";
+
+        // Online Payment
+        if (selectedPayment === "online" && response.data.razorpay) {
+          const razorpayData = response.data.razorpay;
+          const userName = user?.name || "Customer";
+          const userEmail = user?.email || "customer@example.com";
+          const formattedPhone = String(user?.phone || "").replace(/\D/g, "").slice(-10);
+
+          try {
+            const { initRazorpayPayment } = await import("@food/utils/razorpay");
+            await initRazorpayPayment({
+              key: razorpayData.key,
+              amount: razorpayData.amount,
+              currency: razorpayData.currency || "INR",
+              order_id: razorpayData.orderId,
+              name: "Minutekart",
+              description: `Order ${placedOrderId} - ₹${(razorpayData.amount / 100).toFixed(2)}`,
+              prefill: {
+                name: userName,
+                email: userEmail,
+                contact: formattedPhone
+              },
+              handler: async (paymentResponse) => {
+                try {
+                  const verifyRes = await customerApi.verifyPayment(order._id || placedOrderId, {
+                    razorpayOrderId: paymentResponse.razorpay_order_id,
+                    razorpayPaymentId: paymentResponse.razorpay_payment_id,
+                    razorpaySignature: paymentResponse.razorpay_signature
+                  });
+
+                  if (verifyRes.data.success) {
+                    clearCart();
+                    showToast("Order placed successfully.", "success");
+                    navigate(getQuickOrderDetailPath(placedOrderId));
+                  } else {
+                    showToast("Payment verification failed", "error");
+                    navigate(getQuickOrderDetailPath(placedOrderId));
+                  }
+                } catch (verifyError) {
+                  showToast("Payment verification failed", "error");
+                  navigate(getQuickOrderDetailPath(placedOrderId));
+                }
+              },
+              modal: {
+                ondismiss: async () => {
+                  showToast("Payment cancelled. Order cancelled.", "warning");
+                  try { await customerApi.cancelOrder(placedOrderId); } catch (e) {}
+                  navigate(getQuickOrderDetailPath(placedOrderId));
+                }
+              }
+            });
+            return;
+          } catch (rzpErr) {
+            console.error("Razorpay init error:", rzpErr);
+            showToast("Failed to initialize payment gateway", "error");
+            try { await customerApi.cancelOrder(placedOrderId); } catch (e) {}
+            navigate(getQuickOrderDetailPath(placedOrderId));
+            return;
+          }
+        }
+
+        // COD Order
+        clearCart();
+        showToast("Order placed — waiting for seller to accept.", "success");
+        navigate(getQuickOrderDetailPath(placedOrderId));
+      } else {
+        showToast(response.data.message || "Failed to place order", "error");
+      }
+    } catch (err) {
+      console.error("Place order failed:", err);
+      showToast(
+        err.response?.data?.message || "Failed to place order. Please try again.",
+        "error"
+      );
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
   const handleClearAll = async () => {
     setShowClearConfirm(false);
     await clearCart();
@@ -319,7 +515,10 @@ const CartPage = () => {
       feeSettings: quickBillingSettings,
       categoryFeeMap,
     });
-  const grandTotal = baseGrandTotal + selectedTip;
+  const discountAmount = selectedCoupon
+    ? selectedCoupon.discountAmount || selectedCoupon.discount || 0
+    : 0;
+  const grandTotal = Math.max(0, baseGrandTotal + selectedTip - discountAmount);
   const paymentMethods = [
     ...(settings?.onlineEnabled === false
       ? []
@@ -650,6 +849,91 @@ const CartPage = () => {
           </section>
         )}
 
+        {/* Delivery Address Card */}
+        <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <MapPin className="text-[#0c831f] dark:text-emerald-400" size={20} />
+              <h3 className="font-extrabold text-slate-900 dark:text-white text-[14px]">
+                Delivery Address
+              </h3>
+            </div>
+            {profileAddresses?.length > 0 && (
+              <button
+                onClick={() => setIsAddressModalOpen(true)}
+                className="text-xs font-bold text-[#0c831f] dark:text-emerald-400 hover:underline cursor-pointer bg-transparent border-0"
+              >
+                Change
+              </button>
+            )}
+          </div>
+
+          {selectedAddress ? (
+            <div>
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                  {selectedAddress.label || "Home"}
+                </p>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {selectedAddress.street || selectedAddress.address}, {selectedAddress.city} - {selectedAddress.zipCode || selectedAddress.postalCode}
+              </p>
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-xs text-slate-500">No saved addresses found.</p>
+              <button
+                onClick={() => navigate("/quick/addresses")}
+                className="mt-2 text-xs font-bold text-[#0c831f] hover:underline cursor-pointer bg-transparent border-0"
+              >
+                + Add Address
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* Available Coupons Card */}
+        <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Tag className="text-[#0c831f] dark:text-emerald-400" size={20} />
+              <h3 className="font-extrabold text-slate-900 dark:text-white text-[14px]">
+                Available Coupons
+              </h3>
+            </div>
+            {coupons.length > 0 && (
+              <button
+                onClick={() => setIsCouponModalOpen(true)}
+                className="text-xs font-bold text-[#0c831f] dark:text-emerald-400 hover:underline cursor-pointer bg-transparent border-0"
+              >
+                See All
+              </button>
+            )}
+          </div>
+          {selectedCoupon ? (
+            <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 p-3 rounded-xl">
+              <div>
+                <p className="font-bold text-emerald-800 dark:text-emerald-400 text-xs">
+                  {selectedCoupon.code} applied!
+                </p>
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-500 mt-0.5 font-semibold">
+                  You saved ₹{discountAmount}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedCoupon(null)}
+                className="text-xs font-bold text-rose-500 hover:underline cursor-pointer bg-transparent border-0"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Apply a coupon to save on this order
+            </p>
+          )}
+        </section>
+
         {/* Bill Details Section */}
         <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-4 shadow-sm border border-slate-100 dark:border-neutral-800">
           <h3 className="text-[14px] font-extrabold text-slate-900 dark:text-white mb-4">
@@ -746,6 +1030,16 @@ const CartPage = () => {
               </div>
             )}
 
+            {/* Coupon discount (if > 0) */}
+            {discountAmount > 0 && (
+              <div className="flex items-center justify-between text-[#0c831f] dark:text-emerald-400 font-semibold">
+                <div className="flex items-center gap-2">
+                  <Tag size={16} className="text-[#0c831f] dark:text-emerald-400 shrink-0" />
+                  <span className="border-b border-dotted border-emerald-300 dark:border-emerald-800 pb-0.5">Coupon Discount</span>
+                </div>
+                <span>-₹{discountAmount}</span>
+              </div>
+            )}
 
             {/* Grand Total */}
             <div className="border-t border-slate-100 dark:border-neutral-800 pt-3">
@@ -879,59 +1173,136 @@ const CartPage = () => {
           </div>
         </section>
 
-        <Link
-          to={checkoutPath}
-          state={{ selectedPayment, selectedTip }}
-          className="block mt-4"
-        >
-          <section className="rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm transition-all hover:shadow-md active:scale-[0.99] border border-transparent dark:border-neutral-800">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
-                  Checkout
-                </p>
-                <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
-                  Address, payment and seller confirmation
-                </h2>
-                <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  Review delivery details on the next screen and place the order to push it into the matched seller dashboard.
-                </p>
-              </div>
-              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0c831f]/10 dark:bg-emerald-900/20 text-[#0c831f] dark:text-emerald-400">
-                <ChevronRight size={18} />
-              </div>
-            </div>
-          </section>
-        </Link>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-[520] border-t border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,23,42,0.08)]">
-        <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-              To pay
-            </p>
-            <p className="truncate text-2xl font-bold text-slate-900 dark:text-white">
-              {"\u20B9"}
-              {grandTotal}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {selectedPaymentMethod ? selectedPaymentMethod.label : "Includes delivery charges"}
-            </p>
-          </div>
-
-          <Link
-            to={checkoutPath}
-            state={{ selectedPayment, selectedTip }}
-            className="block w-full flex-1 sm:min-w-[220px]"
+      <div className="fixed bottom-0 left-0 right-0 z-[520] border-t border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-4 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="mx-auto max-w-3xl">
+          <Button
+            onClick={handlePlaceOrder}
+            disabled={isPlacingOrder}
+            className="h-12 w-full rounded-2xl bg-[#0c831f] dark:bg-emerald-600 px-4 text-sm font-extrabold text-white hover:bg-[#0b721b] dark:hover:bg-emerald-700 cursor-pointer flex items-center justify-center"
           >
-            <Button className="h-12 w-full rounded-2xl bg-[#0c831f] dark:bg-emerald-600 px-4 text-sm text-white whitespace-normal sm:whitespace-nowrap hover:bg-[#0b721b] dark:hover:bg-emerald-700">
-              <ShoppingBag size={18} className="mr-2" />
-              Proceed to Checkout
-            </Button>
-          </Link>
+            <ShoppingBag size={18} className="mr-2" />
+            {isPlacingOrder ? "Placing Order..." : `Place Order | \u20B9${grandTotal}`}
+          </Button>
         </div>
       </div>
+
+      {/* Coupon Selection Modal */}
+      {isCouponModalOpen && (
+        <div className="fixed inset-0 z-[600] flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
+          <div
+            className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-fade-in"
+            onClick={() => setIsCouponModalOpen(false)}
+          />
+          <div className="relative z-[610] w-full max-w-md rounded-[28px] bg-white dark:bg-neutral-900 p-6 shadow-2xl border border-transparent dark:border-neutral-800 max-h-[80vh] overflow-y-auto animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                Apply Coupon
+              </h3>
+              <button
+                onClick={() => setIsCouponModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer bg-transparent border-0"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="space-y-3">
+              {coupons.map((coupon) => (
+                <div
+                  key={coupon._id}
+                  className="p-4 border border-slate-100 dark:border-neutral-850 rounded-2xl flex items-center justify-between"
+                >
+                  <div className="min-w-0 flex-1 mr-3">
+                    <span className="bg-[#f0fdf4] dark:bg-emerald-950 text-[#0c831f] dark:text-emerald-400 border border-[#0c831f]/20 font-black text-xs px-2.5 py-1 rounded-[8px] tracking-wide inline-block">
+                      {coupon.code}
+                    </span>
+                    <p className="text-xs font-black text-slate-800 dark:text-slate-200 mt-2 truncate">
+                      {coupon.title || coupon.description}
+                    </p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                      {coupon.description}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleApplyCoupon(coupon)}
+                    className="bg-[#0c831f] text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-[#0b721b] cursor-pointer shrink-0 border-0"
+                  >
+                    Apply
+                  </button>
+                </div>
+              ))}
+              {!coupons.length && (
+                <p className="text-xs text-slate-500 text-center py-4">
+                  No active coupons available at this moment.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Address Selection Modal */}
+      {isAddressModalOpen && (
+        <div className="fixed inset-0 z-[600] flex items-end sm:items-center justify-center px-4 pb-6 sm:pb-0">
+          <div
+            className="absolute inset-0 bg-black/45 backdrop-blur-sm animate-fade-in"
+            onClick={() => setIsAddressModalOpen(false)}
+          />
+          <div className="relative z-[610] w-full max-w-md rounded-[28px] bg-white dark:bg-neutral-900 p-6 shadow-2xl border border-transparent dark:border-neutral-800 max-h-[80vh] overflow-y-auto animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                Select Delivery Address
+              </h3>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setIsAddressModalOpen(false);
+                    navigate("/quick/addresses");
+                  }}
+                  className="text-xs font-bold text-[#0c831f] hover:underline cursor-pointer bg-transparent border-0"
+                >
+                  + Add New
+                </button>
+                <button
+                  onClick={() => setIsAddressModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer bg-transparent border-0"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {profileAddresses?.map((addr) => (
+                <div
+                  key={addr._id || addr.id}
+                  onClick={() => {
+                    setSelectedAddress(addr);
+                    setIsAddressModalOpen(false);
+                  }}
+                  className={`p-4 border rounded-2xl cursor-pointer transition-all ${
+                    selectedAddress?.id === addr.id || selectedAddress?._id === addr._id
+                      ? "border-[#0c831f] bg-green-50/50 dark:bg-emerald-950/10"
+                      : "border-slate-200 dark:border-neutral-800 hover:border-slate-300"
+                  }`}
+                >
+                  <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
+                    {addr.label || "Home"}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {addr.street || addr.address}, {addr.city} - {addr.zipCode || addr.postalCode}
+                  </p>
+                </div>
+              ))}
+              {!profileAddresses?.length && (
+                <p className="text-xs text-slate-500 text-center py-4">
+                  No saved addresses. Please add a new one.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

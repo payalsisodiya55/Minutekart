@@ -358,123 +358,300 @@ const AddressesPage = () => {
 
             {/* Add Address Modal */}
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Add New Address</DialogTitle>
-                        <DialogDescription>
+                <DialogContent className="w-[92vw] sm:max-w-[440px] max-h-[85vh] overflow-y-auto p-6 rounded-[28px] border-none shadow-2xl bg-white dark:bg-neutral-900 scrollbar-none">
+                    <DialogHeader className="text-left">
+                        <DialogTitle className="text-xl font-extrabold text-slate-900 dark:text-white">
+                            Add New Address
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                             Enter your delivery details below.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label>Address Type</Label>
+
+                    <div className="space-y-4 py-3">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-bold text-slate-650 dark:text-slate-400">Address Type</Label>
                             <div className="flex gap-2">
-                                <Button type="button" variant="outline" className={`flex-1 ${addForm.type === 'home' ? 'border-[#0c831f] text-[#0c831f] bg-green-50' : ''}`} onClick={() => setAddForm(f => ({ ...f, type: 'home' }))}>Home</Button>
-                                <Button type="button" variant="outline" className={`flex-1 ${addForm.type === 'work' ? 'border-[#0c831f] text-[#0c831f] bg-green-50' : ''}`} onClick={() => setAddForm(f => ({ ...f, type: 'work' }))}>Work</Button>
-                                <Button type="button" variant="outline" className={`flex-1 ${addForm.type === 'other' ? 'border-[#0c831f] text-[#0c831f] bg-green-50' : ''}`} onClick={() => setAddForm(f => ({ ...f, type: 'other' }))}>Other</Button>
+                                <button
+                                    type="button"
+                                    onClick={() => setAddForm(f => ({ ...f, type: 'home' }))}
+                                    className={`flex-1 py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                        addForm.type === 'home'
+                                            ? 'border-[#0c831f] bg-green-50 text-[#0c831f] dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-800'
+                                            : 'border-slate-200 bg-white text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-slate-400'
+                                    }`}
+                                >
+                                    <Home size={14} /> Home
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setAddForm(f => ({ ...f, type: 'work' }))}
+                                    className={`flex-1 py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                        addForm.type === 'work'
+                                            ? 'border-[#0c831f] bg-green-50 text-[#0c831f] dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-800'
+                                            : 'border-slate-200 bg-white text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-slate-400'
+                                    }`}
+                                >
+                                    <Briefcase size={14} /> Work
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setAddForm(f => ({ ...f, type: 'other' }))}
+                                    className={`flex-1 py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                        addForm.type === 'other'
+                                            ? 'border-[#0c831f] bg-green-50 text-[#0c831f] dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-800'
+                                            : 'border-slate-200 bg-white text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-slate-400'
+                                    }`}
+                                >
+                                    <MapPin size={14} /> Other
+                                </button>
                             </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="name">Full Name</Label>
-                            <Input id="name" placeholder="John Doe" value={addForm.name} onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))} />
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="name" className="text-xs font-bold text-slate-650 dark:text-slate-400">Full Name</Label>
+                            <Input
+                                id="name"
+                                placeholder="John Doe"
+                                value={addForm.name}
+                                onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))}
+                                className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                            />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="phone">Phone Number</Label>
-                            <Input id="phone" placeholder="+91 98765 43210" value={addForm.phone} onChange={e => setAddForm(f => ({ ...f, phone: e.target.value }))} />
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="phone" className="text-xs font-bold text-slate-650 dark:text-slate-400">Phone Number</Label>
+                            <Input
+                                id="phone"
+                                placeholder="+91 98765 43210"
+                                value={addForm.phone}
+                                onChange={e => setAddForm(f => ({ ...f, phone: e.target.value }))}
+                                className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                            />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="address">Address</Label>
-                            <Textarea id="address" placeholder="Flat No, Building, Street" value={addForm.address} onChange={e => setAddForm(f => ({ ...f, address: e.target.value }))} />
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="address" className="text-xs font-bold text-slate-650 dark:text-slate-400">Address</Label>
+                            <Textarea
+                                id="address"
+                                placeholder="Flat No, Building, Street"
+                                value={addForm.address}
+                                onChange={e => setAddForm(f => ({ ...f, address: e.target.value }))}
+                                className="rounded-xl border border-slate-200 dark:border-neutral-800 px-3.5 py-2.5 text-sm min-h-[70px] bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                            />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="landmark">Nearest Landmark (optional)</Label>
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="landmark" className="text-xs font-bold text-slate-650 dark:text-slate-400">Nearest Landmark (optional)</Label>
                             <Input
                                 id="landmark"
                                 placeholder="Near City Mall, Opp. Temple"
                                 value={addForm.landmark}
                                 onChange={e => setAddForm(f => ({ ...f, landmark: e.target.value }))}
+                                className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
                             />
                         </div>
+
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="city">City</Label>
-                                <Input id="city" placeholder="New Delhi" value={addForm.city} onChange={e => setAddForm(f => ({ ...f, city: e.target.value }))} />
+                            <div className="space-y-1.5">
+                                <Label htmlFor="city" className="text-xs font-bold text-slate-650 dark:text-slate-400">City</Label>
+                                <Input
+                                    id="city"
+                                    placeholder="New Delhi"
+                                    value={addForm.city}
+                                    onChange={e => setAddForm(f => ({ ...f, city: e.target.value }))}
+                                    className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                                />
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="state">State</Label>
-                                <Input id="state" placeholder="Delhi" value={addForm.state} onChange={e => setAddForm(f => ({ ...f, state: e.target.value }))} />
+                            <div className="space-y-1.5">
+                                <Label htmlFor="state" className="text-xs font-bold text-slate-650 dark:text-slate-400">State</Label>
+                                <Input
+                                    id="state"
+                                    placeholder="Delhi"
+                                    value={addForm.state}
+                                    onChange={e => setAddForm(f => ({ ...f, state: e.target.value }))}
+                                    className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                                />
                             </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="pincode">Pincode</Label>
-                            <Input id="pincode" placeholder="110075" value={addForm.pincode} onChange={e => setAddForm(f => ({ ...f, pincode: e.target.value }))} />
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="pincode" className="text-xs font-bold text-slate-650 dark:text-slate-400">Pincode</Label>
+                            <Input
+                                id="pincode"
+                                placeholder="110075"
+                                value={addForm.pincode}
+                                onChange={e => setAddForm(f => ({ ...f, pincode: e.target.value }))}
+                                className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                            />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddOpen(false)} disabled={saving}>Cancel</Button>
-                        <Button className="bg-[#0c831f] hover:bg-[#0b721b]" onClick={handleSaveNewAddress} disabled={saving}>{saving ? 'Saving...' : 'Save Address'}</Button>
-                    </DialogFooter>
+
+                    <div className="flex gap-3 mt-6">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsAddOpen(false)}
+                            disabled={saving}
+                            className="flex-1 h-11 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold cursor-pointer"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSaveNewAddress}
+                            disabled={saving}
+                            className="flex-1 h-11 rounded-xl bg-[#0c831f] text-white hover:bg-[#0b721b] text-xs font-bold cursor-pointer"
+                        >
+                            {saving ? 'Saving...' : 'Save Address'}
+                        </Button>
+                    </div>
                 </DialogContent>
             </Dialog>
 
             {/* Edit Address Modal */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Edit Address</DialogTitle>
-                        <DialogDescription>
-                            Update your delivery details.
+                <DialogContent className="w-[92vw] sm:max-w-[440px] max-h-[85vh] overflow-y-auto p-6 rounded-[28px] border-none shadow-2xl bg-white dark:bg-neutral-900 scrollbar-none">
+                    <DialogHeader className="text-left">
+                        <DialogTitle className="text-xl font-extrabold text-slate-900 dark:text-white">
+                            Edit Address
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Update your delivery details below.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label>Address Type</Label>
+
+                    <div className="space-y-4 py-3">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-bold text-slate-650 dark:text-slate-400">Address Type</Label>
                             <div className="flex gap-2">
-                                <Button type="button" variant="outline" className={`flex-1 ${editForm.type === 'home' ? 'border-[#0c831f] text-[#0c831f] bg-green-50' : ''}`} onClick={() => setEditForm(f => ({ ...f, type: 'home' }))}>Home</Button>
-                                <Button type="button" variant="outline" className={`flex-1 ${editForm.type === 'work' ? 'border-[#0c831f] text-[#0c831f] bg-green-50' : ''}`} onClick={() => setEditForm(f => ({ ...f, type: 'work' }))}>Work</Button>
-                                <Button type="button" variant="outline" className={`flex-1 ${editForm.type === 'other' ? 'border-[#0c831f] text-[#0c831f] bg-green-50' : ''}`} onClick={() => setEditForm(f => ({ ...f, type: 'other' }))}>Other</Button>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditForm(f => ({ ...f, type: 'home' }))}
+                                    className={`flex-1 py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                        editForm.type === 'home'
+                                            ? 'border-[#0c831f] bg-green-50 text-[#0c831f] dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-800'
+                                            : 'border-slate-200 bg-white text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-slate-400'
+                                    }`}
+                                >
+                                    <Home size={14} /> Home
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditForm(f => ({ ...f, type: 'work' }))}
+                                    className={`flex-1 py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                        editForm.type === 'work'
+                                            ? 'border-[#0c831f] bg-green-50 text-[#0c831f] dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-800'
+                                            : 'border-slate-200 bg-white text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-slate-400'
+                                    }`}
+                                >
+                                    <Briefcase size={14} /> Work
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setEditForm(f => ({ ...f, type: 'other' }))}
+                                    className={`flex-1 py-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                        editForm.type === 'other'
+                                            ? 'border-[#0c831f] bg-green-50 text-[#0c831f] dark:bg-emerald-950/20 dark:text-emerald-450 dark:border-emerald-800'
+                                            : 'border-slate-200 bg-white text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-slate-400'
+                                    }`}
+                                >
+                                    <MapPin size={14} /> Other
+                                </button>
                             </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-name">Full Name</Label>
-                            <Input id="edit-name" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} />
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="edit-name" className="text-xs font-bold text-slate-650 dark:text-slate-400">Full Name</Label>
+                            <Input
+                                id="edit-name"
+                                value={editForm.name}
+                                onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                                className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                            />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-phone">Phone Number</Label>
-                            <Input id="edit-phone" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="edit-phone" className="text-xs font-bold text-slate-650 dark:text-slate-400">Phone Number</Label>
+                            <Input
+                                id="edit-phone"
+                                value={editForm.phone}
+                                onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
+                                className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                            />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-address">Address</Label>
-                            <Textarea id="edit-address" value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))} />
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="edit-address" className="text-xs font-bold text-slate-650 dark:text-slate-400">Address</Label>
+                            <Textarea
+                                id="edit-address"
+                                value={editForm.address}
+                                onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))}
+                                className="rounded-xl border border-slate-200 dark:border-neutral-800 px-3.5 py-2.5 text-sm min-h-[70px] bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                            />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-landmark">Nearest Landmark (optional)</Label>
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="edit-landmark" className="text-xs font-bold text-slate-650 dark:text-slate-400">Nearest Landmark (optional)</Label>
                             <Input
                                 id="edit-landmark"
                                 placeholder="Near City Mall, Opp. Temple"
                                 value={editForm.landmark}
                                 onChange={e => setEditForm(f => ({ ...f, landmark: e.target.value }))}
+                                className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
                             />
                         </div>
+
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-city">City</Label>
-                                <Input id="edit-city" placeholder="New Delhi" value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))} />
+                            <div className="space-y-1.5">
+                                <Label htmlFor="edit-city" className="text-xs font-bold text-slate-650 dark:text-slate-400">City</Label>
+                                <Input
+                                    id="edit-city"
+                                    placeholder="New Delhi"
+                                    value={editForm.city}
+                                    onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))}
+                                    className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                                />
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="edit-state">State</Label>
-                                <Input id="edit-state" placeholder="Delhi" value={editForm.state} onChange={e => setEditForm(f => ({ ...f, state: e.target.value }))} />
+                            <div className="space-y-1.5">
+                                <Label htmlFor="edit-state" className="text-xs font-bold text-slate-650 dark:text-slate-400">State</Label>
+                                <Input
+                                    id="edit-state"
+                                    placeholder="Delhi"
+                                    value={editForm.state}
+                                    onChange={e => setEditForm(f => ({ ...f, state: e.target.value }))}
+                                    className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                                />
                             </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-pincode">Pincode</Label>
-                            <Input id="edit-pincode" placeholder="110075" value={editForm.pincode} onChange={e => setEditForm(f => ({ ...f, pincode: e.target.value }))} />
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="edit-pincode" className="text-xs font-bold text-slate-650 dark:text-slate-400">Pincode</Label>
+                            <Input
+                                id="edit-pincode"
+                                placeholder="110075"
+                                value={editForm.pincode}
+                                onChange={e => setEditForm(f => ({ ...f, pincode: e.target.value }))}
+                                className="rounded-xl border border-slate-200 dark:border-neutral-800 h-10.5 px-3.5 text-sm bg-white dark:bg-neutral-900 focus-visible:ring-emerald-500 focus-visible:border-emerald-500"
+                            />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditOpen(false)} disabled={updating}>Cancel</Button>
-                        <Button className="bg-[#0c831f] hover:bg-[#0b721b]" onClick={handleUpdateAddress} disabled={updating}>{updating ? 'Updating...' : 'Update Address'}</Button>
-                    </DialogFooter>
+
+                    <div className="flex gap-3 mt-6">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsEditOpen(false)}
+                            disabled={updating}
+                            className="flex-1 h-11 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold cursor-pointer"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleUpdateAddress}
+                            disabled={updating}
+                            className="flex-1 h-11 rounded-xl bg-[#0c831f] text-white hover:bg-[#0b721b] text-xs font-bold cursor-pointer"
+                        >
+                            {updating ? 'Updating...' : 'Update Address'}
+                        </Button>
+                    </div>
                 </DialogContent>
             </Dialog>
 
