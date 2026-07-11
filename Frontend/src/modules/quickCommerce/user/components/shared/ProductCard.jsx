@@ -348,7 +348,7 @@ const ProductCard = React.memo(
           <div
             className={cn(
               "flex flex-col h-full w-full rounded-[14px] transition-all duration-300 product-card-container",
-              "bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-2.5",
+              "bg-white dark:bg-neutral-900 border border-slate-100 dark:border-neutral-800 shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-2",
               "hover:shadow-md",
             )}>
             {/* Time Badge at top left */}
@@ -359,7 +359,7 @@ const ProductCard = React.memo(
             </div>
 
             {/* Image Section */}
-            <div className="relative w-full h-[90px] md:h-[110px] mt-1.5 mb-2 bg-transparent flex items-center justify-center">
+            <div className="relative w-full h-[98px] md:h-[118px] mt-1 mb-1.5 bg-transparent flex items-center justify-center">
               {allImages.length > 1 ? (
                 <div className="w-full h-full relative">
                   {/* Scrollable image list container */}
@@ -425,18 +425,18 @@ const ProductCard = React.memo(
 
             {/* Content Section */}
             <div className="flex flex-col flex-1 overflow-hidden">
-              <div className="space-y-0.5 mt-1">
-                <h3 className="text-[12.5px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.3] truncate">
+              <div className="space-y-0 mt-0.5">
+                <h3 className="text-[12.5px] md:text-[13px] font-semibold text-slate-800 dark:text-white leading-[1.2] truncate">
                   {product.name}
                 </h3>
                 {product.weight && (
-                  <p className="text-[9px] md:text-[10px] text-slate-500 font-medium">
+                  <p className="text-[9px] md:text-[10px] text-slate-500 font-medium leading-none">
                     {product.weight}
                   </p>
                 )}
               </div>
               
-              <div className="mt-auto pt-2.5 flex items-center justify-between gap-1">
+              <div className="mt-auto pt-1.5 flex items-center justify-between gap-1">
                 <div className="flex flex-col justify-center">
                   <span className="text-[13px] md:text-[15px] font-extrabold text-slate-900 dark:text-white leading-none">
                     ₹{Number(displayPrice || 0).toLocaleString()}
@@ -482,7 +482,7 @@ const ProductCard = React.memo(
               "hover:shadow-md",
             )}>
             {/* Top Image Section */}
-            <div className="relative overflow-hidden w-full h-[115px] md:h-[135px] p-1 md:p-2 bg-white dark:bg-neutral-800">
+            <div className="relative overflow-hidden w-full h-[122px] md:h-[142px] p-0.5 md:p-1 bg-white dark:bg-neutral-800">
               {/* Badge (Professional Tag) */}
               {!hideBadge && (badge || product.discount || discountPercent > 0) && (
                 <div className={cn("absolute z-10", isBestOffer ? "top-1.5 left-1.5 md:top-2 md:left-2" : "top-1.5 left-1.5")}>

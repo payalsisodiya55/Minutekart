@@ -81,11 +81,11 @@ const CategoryProductCard = ({ product }) => {
         <div
             ref={cardRef}
             onClick={handleCardTap}
-            className="flex flex-col bg-white dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-800 rounded-[14px] pt-1.5 px-2 md:px-2.5 pb-2.5 relative group select-none shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:shadow-[0_6px_16px_rgba(0,0,0,0.04)] h-full justify-between cursor-pointer active:scale-[0.97]"
+            className="flex flex-col bg-white dark:bg-neutral-900 border border-slate-200/60 dark:border-neutral-800 rounded-[14px] pt-1 px-1.5 md:px-2 pb-2 relative group select-none shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:shadow-[0_6px_16px_rgba(0,0,0,0.04)] h-full justify-between cursor-pointer active:scale-[0.97]"
             style={{ WebkitTapHighlightColor: 'transparent' }}
         >
             {/* Top section: Time badge & Wishlist */}
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-0.5">
                 <div className="bg-[#E5F7ED] dark:bg-emerald-950/40 text-[#0c831f] dark:text-emerald-400 font-bold text-[9px] md:text-[10px] px-1.5 md:px-2 py-0.5 rounded-[4px] inline-flex items-center justify-center leading-tight">
                     {product.deliveryTime || "10-15 mins"}
                 </div>
@@ -103,7 +103,7 @@ const CategoryProductCard = ({ product }) => {
             </div>
 
             {/* Product Image */}
-            <div ref={imageRef} className="relative w-full h-[90px] md:h-[105px] bg-transparent flex items-center justify-center p-0 overflow-hidden mb-1">
+            <div ref={imageRef} className="relative w-full h-[98px] md:h-[114px] bg-transparent flex items-center justify-center p-0 overflow-hidden mb-0.5">
                 {allImages.length > 1 ? (
                     <div className="w-full h-full relative">
                         <div 
@@ -174,7 +174,7 @@ const CategoryProductCard = ({ product }) => {
 
                 <div>
                     {/* Price Line */}
-                    <div className="flex items-baseline gap-1.5 mt-1">
+                    <div className="flex items-baseline gap-1.5 mt-0.5">
                         <span className="text-[13px] md:text-[14px] font-extrabold text-slate-900 dark:text-white leading-none">
                             ₹{displayPrice}
                         </span>
@@ -191,7 +191,7 @@ const CategoryProductCard = ({ product }) => {
                     </div>
 
                     {/* ADD Button or Quantity Counter */}
-                    <div className="mt-1.5">
+                    <div className="mt-1">
                         {quantity === 0 ? (
                             <button
                                 onClick={() => {
@@ -201,12 +201,12 @@ const CategoryProductCard = ({ product }) => {
                                         animateAddToCart(imageRef.current.getBoundingClientRect(), resolvedSrc);
                                     }
                                 }}
-                                className="w-full bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] font-black text-[12px] h-[30px] rounded-[8px] shadow-sm hover:bg-[#0c831f]/5 active:scale-95 transition-all cursor-pointer flex items-center justify-center uppercase"
+                                className="w-full bg-white dark:bg-neutral-800 border border-[#0c831f] text-[#0c831f] font-black text-[12px] h-[26px] rounded-[8px] shadow-sm hover:bg-[#0c831f]/5 active:scale-95 transition-all cursor-pointer flex items-center justify-center uppercase"
                             >
                                 ADD
                             </button>
                         ) : (
-                            <div className="w-full flex items-center justify-between bg-[#0c831f] text-white rounded-[8px] shadow-sm overflow-hidden h-[30px]">
+                            <div className="w-full flex items-center justify-between bg-[#0c831f] text-white rounded-[8px] shadow-sm overflow-hidden h-[26px]">
                                 <button
                                     onClick={() => {
                                         if (imageRef.current) {
