@@ -808,13 +808,19 @@ const CartPage = () => {
         {/* You might also like section */}
         {!similarLoading && similarProducts.length > 0 && (
           <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
-            <h3 className="mb-4 text-[14px] font-extrabold text-slate-900 dark:text-white">
+            <h3 className="mb-4 text-base font-extrabold text-slate-900 dark:text-white">
               You might also like
             </h3>
 
             <div className="grid grid-cols-3 gap-2">
               {similarProducts.slice(0, 3).map((item) => (
-                <ProductCard key={item.id} product={item} compact={true} />
+                <ProductCard 
+                  key={item.id} 
+                  product={item} 
+                  compact={true} 
+                  hideBadge={true} 
+                  showTimeOnImage={true} 
+                />
               ))}
             </div>
 
