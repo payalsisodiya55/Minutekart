@@ -32,7 +32,7 @@ const OfferBadge = ({ text, className, isBestOffer }) => {
   );
 };
 
-const useCarouselSwipe = (allImages) => {
+export const useCarouselSwipe = (allImages) => {
   const [currentImgIdx, setCurrentImgIdx] = React.useState(0);
   const touchStartX = React.useRef(0);
   const touchStartY = React.useRef(0);
@@ -42,6 +42,7 @@ const useCarouselSwipe = (allImages) => {
   const currentIdxRef = React.useRef(currentImgIdx);
   const timeoutRef = React.useRef(null);
   const mouseListenersRef = React.useRef(null);
+  const gestureDirection = React.useRef('none'); // 'none', 'horizontal', 'vertical'
 
   React.useEffect(() => {
     currentIdxRef.current = currentImgIdx;
@@ -60,32 +61,53 @@ const useCarouselSwipe = (allImages) => {
     };
   }, []);
 
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-    isSwiping.current = true;
-    hasDragged.current = false;
-    if (containerRef.current) {
-      containerRef.current.style.transition = 'none';
-    }
-  };
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-  const handleTouchMove = (e) => {
-    if (!isSwiping.current) return;
-    const deltaX = e.touches[0].clientX - touchStartX.current;
-    const deltaY = e.touches[0].clientY - touchStartY.current;
+    const handleTouchStart = (e) => {
+      if (e.touches.length > 1) return;
+      const touch = e.touches[0];
+      touchStartX.current = touch.clientX;
+      touchStartY.current = touch.clientY;
+      isSwiping.current = true;
+      hasDragged.current = false;
+      gestureDirection.current = 'none';
+      container.style.transition = 'none';
+    };
 
-    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
-      hasDragged.current = true;
-    }
+    const handleTouchMove = (e) => {
+      if (!isSwiping.current) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartX.current;
+      const deltaY = touch.clientY - touchStartY.current;
 
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (e.cancelable) e.preventDefault();
-      e.stopPropagation();
+      if (gestureDirection.current === 'none') {
+        const threshold = 8;
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+        if (absX >= threshold || absY >= threshold) {
+          if (absX > absY) {
+            gestureDirection.current = 'horizontal';
+          } else {
+            gestureDirection.current = 'vertical';
+            isSwiping.current = false;
+            return;
+          }
+        } else {
+          return;
+        }
+      }
 
-      if (containerRef.current) {
+      if (gestureDirection.current === 'horizontal') {
+        hasDragged.current = true;
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+        e.stopPropagation();
+
         const baseTranslate = -currentIdxRef.current * 100;
-        const width = containerRef.current.clientWidth || 100;
+        const width = container.clientWidth || 100;
         const percentDelta = (deltaX / width) * 100;
 
         let finalTranslate = baseTranslate + percentDelta;
@@ -95,23 +117,22 @@ const useCarouselSwipe = (allImages) => {
           finalTranslate = baseTranslate + percentDelta * 0.3;
         }
 
-        containerRef.current.style.transform = `translateX(${finalTranslate}%)`;
+        container.style.transform = `translateX(${finalTranslate}%)`;
       }
-    } else {
+    };
+
+    const handleTouchEnd = (e) => {
+      if (!isSwiping.current) return;
       isSwiping.current = false;
-    }
-  };
 
-  const handleTouchEnd = (e) => {
-    if (!isSwiping.current) return;
-    isSwiping.current = false;
+      if (gestureDirection.current !== 'horizontal') return;
 
-    const endX = e.changedTouches[0] ? e.changedTouches[0].clientX : touchStartX.current;
-    const deltaX = endX - touchStartX.current;
+      const touch = e.changedTouches[0] || e.touches[0];
+      const endX = touch ? touch.clientX : touchStartX.current;
+      const deltaX = endX - touchStartX.current;
 
-    if (containerRef.current) {
-      containerRef.current.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
-      const width = containerRef.current.clientWidth || 100;
+      container.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
+      const width = container.clientWidth || 100;
       const threshold = width * 0.25;
 
       let newIdx = currentIdxRef.current;
@@ -121,22 +142,33 @@ const useCarouselSwipe = (allImages) => {
         newIdx = Math.max(currentIdxRef.current - 1, 0);
       }
 
-      containerRef.current.style.transform = `translateX(-${newIdx * 100}%)`;
+      container.style.transform = `translateX(-${newIdx * 100}%)`;
       currentIdxRef.current = newIdx;
 
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         setCurrentImgIdx(newIdx);
       }, 300);
-    }
-  };
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [allImages]);
 
   const handleMouseDown = (e) => {
-    e.preventDefault();
+    if (e.button !== 0) return;
     touchStartX.current = e.clientX;
     touchStartY.current = e.clientY;
     isSwiping.current = true;
     hasDragged.current = false;
+    gestureDirection.current = 'none';
     if (containerRef.current) {
       containerRef.current.style.transition = 'none';
     }
@@ -146,28 +178,54 @@ const useCarouselSwipe = (allImages) => {
       const deltaX = moveEvent.clientX - touchStartX.current;
       const deltaY = moveEvent.clientY - touchStartY.current;
 
-      if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
-        hasDragged.current = true;
+      if (gestureDirection.current === 'none') {
+        const threshold = 10;
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+        if (absX >= threshold || absY >= threshold) {
+          if (absX > absY) {
+            gestureDirection.current = 'horizontal';
+          } else {
+            gestureDirection.current = 'vertical';
+            isSwiping.current = false;
+            return;
+          }
+        } else {
+          return;
+        }
       }
 
-      if (containerRef.current) {
-        const baseTranslate = -currentIdxRef.current * 100;
-        const width = containerRef.current.clientWidth || 100;
-        const percentDelta = (deltaX / width) * 100;
+      if (gestureDirection.current === 'horizontal') {
+        hasDragged.current = true;
+        moveEvent.preventDefault();
+        moveEvent.stopPropagation();
 
-        let finalTranslate = baseTranslate + percentDelta;
-        if (currentIdxRef.current === 0 && deltaX > 0) {
-          finalTranslate = percentDelta * 0.3;
-        } else if (currentIdxRef.current === allImages.length - 1 && deltaX < 0) {
-          finalTranslate = baseTranslate + percentDelta * 0.3;
+        if (containerRef.current) {
+          const baseTranslate = -currentIdxRef.current * 100;
+          const width = containerRef.current.clientWidth || 100;
+          const percentDelta = (deltaX / width) * 100;
+
+          let finalTranslate = baseTranslate + percentDelta;
+          if (currentIdxRef.current === 0 && deltaX > 0) {
+            finalTranslate = percentDelta * 0.3;
+          } else if (currentIdxRef.current === allImages.length - 1 && deltaX < 0) {
+            finalTranslate = baseTranslate + percentDelta * 0.3;
+          }
+
+          containerRef.current.style.transform = `translateX(${finalTranslate}%)`;
         }
-
-        containerRef.current.style.transform = `translateX(${finalTranslate}%)`;
+      } else {
+        isSwiping.current = false;
       }
     };
 
     const onMouseUp = (upEvent) => {
-      if (!isSwiping.current) return;
+      if (!isSwiping.current) {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        mouseListenersRef.current = null;
+        return;
+      }
       isSwiping.current = false;
 
       window.removeEventListener('mousemove', onMouseMove);
@@ -176,7 +234,7 @@ const useCarouselSwipe = (allImages) => {
 
       const deltaX = upEvent.clientX - touchStartX.current;
 
-      if (containerRef.current) {
+      if (containerRef.current && gestureDirection.current === 'horizontal') {
         containerRef.current.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)';
         const width = containerRef.current.clientWidth || 100;
         const threshold = width * 0.25;
@@ -215,9 +273,6 @@ const useCarouselSwipe = (allImages) => {
     setCurrentImgIdx,
     containerRef,
     bind: {
-      onTouchStart: handleTouchStart,
-      onTouchMove: handleTouchMove,
-      onTouchEnd: handleTouchEnd,
       onMouseDown: handleMouseDown,
       onClick: handleCarouselClick
     }
@@ -558,7 +613,7 @@ const ProductCard = React.memo(
                 <div className="w-full h-full relative overflow-hidden">
                   {/* Slide-controlled image list container */}
                   <div 
-                    className="w-full h-full flex transition-transform duration-300"
+                    className="w-full h-full flex transition-transform duration-300 touch-pan-y"
                     style={{ transform: `translateX(-${currentImgIdx * 100}%)`, willChange: 'transform' }}
                     ref={swipe.containerRef}
                     {...swipe.bind}
@@ -719,7 +774,7 @@ const ProductCard = React.memo(
                   <div className="w-full h-full relative overflow-hidden">
                     {/* Slide-controlled image list container */}
                     <div 
-                      className="w-full h-full flex transition-transform duration-300"
+                      className="w-full h-full flex transition-transform duration-300 touch-pan-y"
                       style={{ transform: `translateX(-${currentImgIdx * 100}%)`, willChange: 'transform' }}
                       ref={swipe.containerRef}
                       {...swipe.bind}

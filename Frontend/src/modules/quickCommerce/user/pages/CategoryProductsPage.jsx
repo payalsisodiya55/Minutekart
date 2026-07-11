@@ -15,6 +15,7 @@ import { useLocation as useAppLocation } from '../context/LocationContext';
 import { useCartAnimation } from '../context/CartAnimationContext';
 import { resolveQuickImageUrl } from '../utils/image';
 import { useHeroTransition } from '../context/HeroTransitionContext';
+import { useCarouselSwipe } from '../components/shared/ProductCard';
 
 const QUICK_THEME_STORAGE_KEY = "food.quick.headerColor";
 const QUICK_HEADER_RETURN_STORAGE_KEY = "food.quick.headerReturn";
@@ -110,7 +111,7 @@ const CategoryProductCard = ({ product }) => {
                     <div className="w-full h-full relative overflow-hidden">
                         {/* Slide-controlled image list container */}
                         <div 
-                            className="w-full h-full flex transition-transform duration-300"
+                            className="w-full h-full flex transition-transform duration-300 touch-pan-y"
                             style={{ transform: `translateX(-${currentImgIdx * 100}%)`, willChange: 'transform' }}
                             ref={swipe.containerRef}
                             {...swipe.bind}
