@@ -24,9 +24,11 @@ const SimilarProductsPage = () => {
         if (!productId) return;
         setIsLoading(true);
 
+        const baseProductId = String(productId).split("::")[0];
+
         try {
             // 1. Fetch current product details to get its subcategory and seller
-            const response = await customerApi.getProductDetails(productId);
+            const response = await customerApi.getProductDetails(baseProductId);
             const result =
                 response?.data?.result ||
                 response?.data?.data ||
@@ -71,7 +73,7 @@ const SimilarProductsPage = () => {
                     }));
 
                     // Filter out the current product itself
-                    const filteredProds = formattedProds.filter(p => String(p.id) !== String(productId));
+                    const filteredProds = formattedProds.filter(p => String(p.id).split("::")[0] !== baseProductId);
                     setProducts(filteredProds);
                 }
             }

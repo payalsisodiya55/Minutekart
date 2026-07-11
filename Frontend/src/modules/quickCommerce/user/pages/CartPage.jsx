@@ -178,7 +178,7 @@ const CartPage = () => {
     }
 
     const referenceProduct = cart[0];
-    const catId = referenceProduct.categoryId?._id || referenceProduct.categoryId || referenceProduct.subcategoryId?._id || referenceProduct.subcategoryId || referenceProduct.headerId?._id || referenceProduct.headerId;
+    const catId = referenceProduct.subcategoryId?._id || referenceProduct.subcategoryId || referenceProduct.categoryId?._id || referenceProduct.categoryId || referenceProduct.headerId?._id || referenceProduct.headerId;
     const storeId = referenceProduct.sellerId || referenceProduct.storeId || (referenceProduct.seller?._id || referenceProduct.seller?.id);
 
     if (!catId) {
@@ -215,8 +215,9 @@ const CartPage = () => {
             deliveryTime: "8-15 mins"
           }));
 
-          const cartProductIds = new Set(cart.map(item => String(item.id || item._id)));
-          const filtered = formattedProds.filter(p => !cartProductIds.has(String(p.id)));
+          const getBaseId = (id) => String(id || "").split("::")[0];
+          const cartProductBaseIds = new Set(cart.map(item => getBaseId(item.id || item._id)));
+          const filtered = formattedProds.filter(p => !cartProductBaseIds.has(getBaseId(p.id)));
           setSimilarProducts(filtered);
         }
       } catch (error) {
