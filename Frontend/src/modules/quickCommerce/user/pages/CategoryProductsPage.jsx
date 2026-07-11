@@ -1046,7 +1046,7 @@ const CategoryProductsPage = () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
         };
-    }, [selectedSubCategory, catId, activeTransition.active, isProductDetailOpen]);
+    }, [selectedSubCategory, catId, activeTransition, isProductDetailOpen, subCategories, mainCategories]);
 
     const productsById = React.useMemo(() => {
         const map = {};
