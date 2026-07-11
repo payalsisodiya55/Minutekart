@@ -16,6 +16,8 @@ import {
   Share2,
   Receipt,
   Bike,
+  Heart,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@core/context/SettingsContext";
@@ -169,6 +171,14 @@ const CartPage = () => {
   const [categoryFeeMap, setCategoryFeeMap] = useState({});
   const [similarProducts, setSimilarProducts] = useState([]);
   const [similarLoading, setSimilarLoading] = useState(false);
+  const [selectedTip, setSelectedTip] = useState(0);
+  const [customTip, setCustomTip] = useState("");
+  const tipAmounts = [
+    { value: 0, label: "No Tip" },
+    { value: 10, label: "₹10" },
+    { value: 20, label: "₹20" },
+    { value: 30, label: "₹30" },
+  ];
 
   useEffect(() => {
     let cancelled = false;
@@ -302,13 +312,14 @@ const CartPage = () => {
     const price = Number(item.price);
     return total + (mrp > price ? (mrp - price) * item.quantity : 0);
   }, 0);
-  const { deliveryFee, handlingFee, platformFee, gstAmount, grandTotal } =
+  const { deliveryFee, handlingFee, platformFee, gstAmount, grandTotal: baseGrandTotal } =
     calculateQuickCartPricing({
       subtotal: cartTotal,
       cartItems: cart,
       feeSettings: quickBillingSettings,
       categoryFeeMap,
     });
+  const grandTotal = baseGrandTotal + selectedTip;
   const paymentMethods = [
     ...(settings?.onlineEnabled === false
       ? []
@@ -724,6 +735,17 @@ const CartPage = () => {
                 <span className="font-semibold text-slate-800 dark:text-slate-200">{"\u20B9"}{gstAmount}</span>
               </div>
             )}
+            {/* Delivery Partner Tip (if > 0) */}
+            {selectedTip > 0 && (
+              <div className="flex items-center justify-between text-pink-600 dark:text-pink-400 font-semibold">
+                <div className="flex items-center gap-2">
+                  <Heart size={16} className="text-pink-500 fill-pink-500 shrink-0" />
+                  <span className="border-b border-dotted border-pink-300 dark:border-pink-800 pb-0.5">Delivery Partner Tip</span>
+                </div>
+                <span>+₹{selectedTip}</span>
+              </div>
+            )}
+
 
             {/* Grand Total */}
             <div className="border-t border-slate-100 dark:border-neutral-800 pt-3">
@@ -733,6 +755,61 @@ const CartPage = () => {
                 </span>
                 <span className="font-bold text-slate-900 dark:text-white">{"\u20B9"}{grandTotal}</span>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Tip for Partner */}
+        <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
+          <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-neutral-850 dark:to-neutral-900/60 rounded-[20px] p-4 border border-pink-100/50 dark:border-neutral-800/40">
+            <div className="flex items-center gap-2 mb-3">
+              <Heart size={18} className="text-pink-500 fill-pink-500" />
+              <h3 className="font-black text-slate-800 dark:text-white text-sm">
+                Tip your delivery partner
+              </h3>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
+              100% of the tip goes to them
+            </p>
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              {tipAmounts.map((tip) => (
+                <button
+                  key={tip.value}
+                  onClick={() => {
+                    setSelectedTip(tip.value);
+                    setCustomTip("");
+                  }}
+                  className={`py-2 rounded-xl border-2 transition-all font-bold text-xs cursor-pointer ${
+                    selectedTip === tip.value && !customTip
+                      ? "border-pink-500 bg-pink-100 text-pink-700 dark:bg-pink-900/45 dark:text-pink-400"
+                      : "border-pink-200/60 bg-white text-slate-700 hover:border-pink-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-slate-300 dark:hover:border-neutral-600"
+                  }`}
+                >
+                  {tip.label}
+                </button>
+              ))}
+            </div>
+            <div className="relative">
+              <input
+                type="number"
+                min="1"
+                placeholder="Enter custom tip amount (₹)"
+                value={customTip}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, "");
+                  setCustomTip(val);
+                  setSelectedTip(val ? Number(val) : 0);
+                }}
+                className="w-full h-10 rounded-xl border border-pink-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xs font-bold text-slate-700 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-pink-400 dark:focus:border-pink-500 transition-colors"
+              />
+              {customTip && (
+                <button
+                  onClick={() => { setCustomTip(""); setSelectedTip(0); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
           </div>
         </section>
@@ -804,7 +881,7 @@ const CartPage = () => {
 
         <Link
           to={checkoutPath}
-          state={{ selectedPayment }}
+          state={{ selectedPayment, selectedTip }}
           className="block mt-4"
         >
           <section className="rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm transition-all hover:shadow-md active:scale-[0.99] border border-transparent dark:border-neutral-800">
@@ -845,7 +922,7 @@ const CartPage = () => {
 
           <Link
             to={checkoutPath}
-            state={{ selectedPayment }}
+            state={{ selectedPayment, selectedTip }}
             className="block w-full flex-1 sm:min-w-[220px]"
           >
             <Button className="h-12 w-full rounded-2xl bg-[#0c831f] dark:bg-emerald-600 px-4 text-sm text-white whitespace-normal sm:whitespace-nowrap hover:bg-[#0b721b] dark:hover:bg-emerald-700">
