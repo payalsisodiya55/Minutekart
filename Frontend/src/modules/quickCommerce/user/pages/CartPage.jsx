@@ -12,11 +12,14 @@ import {
   ShoppingBag,
   Timer,
   Trash2,
+  Search,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@core/context/SettingsContext";
 import { useToast } from "@shared/components/ui/Toast";
 import { useCart } from "../context/CartContext";
+import { useWishlist } from "../context/WishlistContext";
 import { customerApi } from "../services/customerApi";
 import emptyBoxAnimation from "../assets/lottie/Empty box.json";
 import {
@@ -109,7 +112,54 @@ const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, cartTotal, clearCart, loading } = useCart();
   const { showToast } = useToast();
   const { settings } = useSettings();
+  const { addToWishlist } = useWishlist();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const handleMoveToWishlist = async (item) => {
+    try {
+      await addToWishlist(item);
+      removeFromCart(item.id || item._id);
+      showToast(`Moved ${item.name} to wishlist`, "success");
+    } catch (error) {
+      showToast("Failed to move item to wishlist", "error");
+    }
+  };
+
+  const getDynamicDeliveryTime = () => {
+    const times = cart
+      .map((item) => {
+        const match = String(item.deliveryTime || "").match(/(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+      })
+      .filter(Boolean);
+
+    if (times.length > 0) {
+      const minTime = Math.min(...times);
+      return `${minTime} minutes`;
+    }
+    return "10 minutes"; // Default fallback
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Minutekart Cart",
+          text: "Check out my cart items on Minutekart!",
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        showToast("Cart link copied to clipboard!", "success");
+      } catch (err) {
+        showToast("Failed to copy link", "error");
+      }
+    }
+  };
   const [quickBillingSettings, setQuickBillingSettings] = useState(
     DEFAULT_QUICK_BILLING_SETTINGS,
   );
@@ -283,29 +333,44 @@ const CartPage = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] dark:bg-neutral-950 pb-[calc(9rem+env(safe-area-inset-bottom))]">
-      <div className="mx-auto max-w-3xl px-4 py-5">
-        <div className="mb-4 flex items-center justify-between">
+      {/* Sticky Full-width Header */}
+      <header className="sticky top-0 z-[500] bg-white dark:bg-neutral-900 border-b border-slate-100 dark:border-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="mx-auto max-w-3xl px-4 py-3 flex items-center justify-between">
+          {/* Left: Back Button & Title */}
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={handleBack}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white dark:bg-neutral-900 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-neutral-800"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-neutral-800 text-slate-800 dark:text-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-neutral-700 hover:bg-slate-50 transition-colors cursor-pointer"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={16} />
             </button>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">Your Cart</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{itemCount} item{itemCount === 1 ? "" : "s"}</p>
-            </div>
+            <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Checkout</h1>
           </div>
 
-          <button
-            onClick={() => setShowClearConfirm(true)}
-            className="text-sm font-semibold text-rose-500 transition-colors hover:text-rose-600"
-          >
-            Clear all
-          </button>
+          {/* Right: Search & Share Actions */}
+          <div className="flex items-center gap-2">
+            <Link
+              to="/quick/search"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-neutral-800 text-slate-800 dark:text-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-neutral-700 hover:bg-slate-50 transition-colors"
+            >
+              <Search size={16} />
+            </Link>
+            
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex items-center gap-1.5 px-3 py-1.5 h-9 rounded-full bg-white dark:bg-neutral-800 text-slate-800 dark:text-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100 dark:border-neutral-700 hover:bg-slate-50 transition-colors text-xs font-black cursor-pointer"
+            >
+              <Share2 size={13} />
+              Share
+            </button>
+          </div>
         </div>
+      </header>
+
+      {/* Main Content Container */}
+      <div className="mx-auto max-w-3xl px-4 py-4">
 
         {/* Clear cart confirmation */}
         {showClearConfirm && (
@@ -340,87 +405,83 @@ const CartPage = () => {
           </div>
         )}
 
-        <section className="mb-4 rounded-[24px] bg-[#e9f7ec] dark:bg-emerald-900/20 p-4 shadow-sm border border-transparent dark:border-emerald-800/30">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.24em] text-[#0c831f] dark:text-emerald-400">
-                Delivery in 10 minutes
-              </p>
-              <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
-                Shipment from your nearby store
-              </h2>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                Fast doorstep delivery with live seller-side processing.
-              </p>
-            </div>
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-neutral-800 text-[#0c831f] dark:text-emerald-400 shadow-sm border border-transparent dark:border-neutral-700">
+        {/* Grouped Delivery + Products Card */}
+        <section className="mb-4 rounded-[28px] bg-white dark:bg-neutral-900 shadow-sm border border-slate-100 dark:border-neutral-800 overflow-hidden">
+          {/* Grouped Delivery Header */}
+          <div className="p-4 flex items-center gap-4 bg-slate-50/50 dark:bg-neutral-850 border-b border-slate-100 dark:border-neutral-800">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#e9f7ec] dark:bg-emerald-950 text-[#0c831f] dark:text-emerald-400 border border-[#c6f0d3] dark:border-emerald-800/30">
               <Timer size={20} />
             </div>
+            <div>
+              <h2 className="text-sm font-extrabold text-slate-800 dark:text-white leading-tight">
+                Delivery in {getDynamicDeliveryTime()}
+              </h2>
+              <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 mt-0.5">
+                Shipment of {itemCount} item{itemCount === 1 ? "" : "s"}
+              </p>
+            </div>
           </div>
-        </section>
 
-        <div className="space-y-3">
-          {cart.map((item) => (
-            <article
-              key={item.id || item._id}
-              className="rounded-[24px] bg-white dark:bg-neutral-900 p-4 shadow-sm border border-transparent dark:border-neutral-800"
-            >
-              <div className="flex gap-4">
-                <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-50 dark:bg-neutral-800">
-                  <img
-                    src={resolveQuickImageUrl(item.mainImage || item.image) || item.mainImage || item.image || "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=200&auto=format&fit=crop"}
-                    alt={item.name}
-                    className="h-full w-full object-contain p-2 dark:mix-blend-normal"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=200&auto=format&fit=crop";
-                    }}
-                  />
-                </div>
+          {/* Grouped Product List */}
+          <div className="divide-y divide-slate-100 dark:divide-neutral-850">
+            {cart.map((item) => {
+              const mrp = Number(item.mrp || item.originalPrice || item.price);
+              const price = Number(item.price);
+              const showDiscount = mrp > price;
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h2 className="line-clamp-2 text-base font-semibold text-slate-900 dark:text-white">
+              return (
+                <div
+                  key={item.id || item._id}
+                  className="p-4 flex gap-3 items-start"
+                >
+                  {/* Left: Product Image */}
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-neutral-800 border border-slate-100 dark:border-neutral-800">
+                    <img
+                      src={resolveQuickImageUrl(item.mainImage || item.image) || item.mainImage || item.image || "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=200&auto=format&fit=crop"}
+                      alt={item.name}
+                      className="h-full w-full object-contain p-1 dark:mix-blend-normal"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=200&auto=format&fit=crop";
+                      }}
+                    />
+                  </div>
+
+                  {/* Center: Info Area */}
+                  <div className="flex-1 min-w-0 flex flex-col justify-between min-h-[64px]">
+                    <div>
+                      <h3 className="line-clamp-2 text-[13px] font-bold text-slate-800 dark:text-white leading-tight">
                         {item.name}
-                      </h2>
-                      <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                      </h3>
+                      <p className="mt-0.5 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
                         {item.weight || item.unit || "1 unit"}
                       </p>
                     </div>
 
                     <button
-                      onClick={() => handleRemove(item)}
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-slate-400 transition-colors hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-500 dark:hover:text-rose-400"
+                      type="button"
+                      onClick={() => handleMoveToWishlist(item)}
+                      className="mt-1 text-[11px] font-bold text-slate-400 hover:text-[#0c831f] dark:hover:text-emerald-400 transition-colors text-left w-fit cursor-pointer"
                     >
-                      <Trash2 size={16} />
+                      Move to wishlist
                     </button>
                   </div>
 
-                  <div className="mt-4 flex items-end justify-between gap-3">
-                    <div>
-                      <p className="text-lg font-bold text-slate-900 dark:text-white">
-                        {"\u20B9"}
-                        {Number(item.price || 0) * Number(item.quantity || 0)}
-                      </p>
-                      {item.quantity > 1 && (
-                        <p className="text-xs text-slate-400 dark:text-slate-500">
-                          {"\u20B9"}
-                          {item.price} each
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="inline-flex items-center gap-3 rounded-full bg-slate-100 dark:bg-neutral-800 px-2 py-1">
+                  {/* Right: Quantity Selector & Price Stack */}
+                  <div className="flex flex-col items-end shrink-0 mt-0.5">
+                    {/* Square-ish Green Quantity Counter Block */}
+                    <div className="flex items-center justify-between bg-[#0c831f] text-white rounded-lg shadow-sm overflow-hidden h-[26px] w-[70px]">
                       <button
+                        type="button"
                         onClick={() => updateQuantity(item.id || item._id, -1)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-neutral-700 text-slate-700 dark:text-slate-300 shadow-sm"
+                        className="w-6 h-full flex items-center justify-center hover:bg-[#096317] transition-colors cursor-pointer"
                       >
-                        <Minus size={14} strokeWidth={3} />
+                        <Minus size={9} strokeWidth={3} />
                       </button>
-                      <span className="min-w-[18px] text-center text-sm font-bold text-slate-900 dark:text-white">
+                      <span className="text-[11px] font-black text-center flex-1 select-none">
                         {item.quantity}
                       </span>
                       <button
+                        type="button"
                         onClick={() => {
                           const stock = Number(item.stock ?? Infinity);
                           if (item.quantity >= stock) {
@@ -430,17 +491,29 @@ const CartPage = () => {
                           updateQuantity(item.id || item._id, 1);
                         }}
                         disabled={item.quantity >= Number(item.stock ?? Infinity)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-neutral-700 text-slate-700 dark:text-slate-300 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-6 h-full flex items-center justify-center hover:bg-[#096317] disabled:opacity-40 transition-colors cursor-pointer"
                       >
-                        <Plus size={14} strokeWidth={3} />
+                        <Plus size={9} strokeWidth={3} />
                       </button>
+                    </div>
+
+                    {/* Price details directly below button with small gap */}
+                    <div className="flex items-center gap-1 mt-1 justify-end">
+                      {showDiscount && (
+                        <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 line-through">
+                          {"\u20B9"}{mrp * item.quantity}
+                        </span>
+                      )}
+                      <span className="text-[13px] font-extrabold text-slate-900 dark:text-white">
+                        {"\u20B9"}{price * item.quantity}
+                      </span>
                     </div>
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        </section>
 
         <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
           <div className="flex items-center justify-between">
