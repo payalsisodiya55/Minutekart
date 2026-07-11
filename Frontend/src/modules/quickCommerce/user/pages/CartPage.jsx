@@ -14,12 +14,15 @@ import {
   Trash2,
   Search,
   Share2,
+  Receipt,
+  Bike,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@core/context/SettingsContext";
 import { useToast } from "@shared/components/ui/Toast";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import ProductCard from "../components/shared/ProductCard";
 import { customerApi } from "../services/customerApi";
 import emptyBoxAnimation from "../assets/lottie/Empty box.json";
 import {
@@ -164,6 +167,72 @@ const CartPage = () => {
     DEFAULT_QUICK_BILLING_SETTINGS,
   );
   const [categoryFeeMap, setCategoryFeeMap] = useState({});
+  const [similarProducts, setSimilarProducts] = useState([]);
+  const [similarLoading, setSimilarLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!cart || cart.length === 0) {
+      setSimilarProducts([]);
+      return;
+    }
+
+    const referenceProduct = cart[0];
+    const catId = referenceProduct.categoryId?._id || referenceProduct.categoryId || referenceProduct.subcategoryId?._id || referenceProduct.subcategoryId || referenceProduct.headerId?._id || referenceProduct.headerId;
+    const storeId = referenceProduct.sellerId || referenceProduct.storeId || (referenceProduct.seller?._id || referenceProduct.seller?.id);
+
+    if (!catId) {
+      setSimilarProducts([]);
+      return;
+    }
+
+    const fetchSimilar = async () => {
+      setSimilarLoading(true);
+      try {
+        const response = await customerApi.getProducts({
+          categoryId: catId,
+          storeId: storeId,
+          limit: 20
+        });
+
+        if (!cancelled && response?.data?.success) {
+          const rawResult = response.data.result;
+          const dbProds = Array.isArray(response.data.results)
+            ? response.data.results
+            : Array.isArray(rawResult?.items)
+              ? rawResult.items
+              : Array.isArray(rawResult)
+                ? rawResult
+                : [];
+
+          const formattedProds = dbProds.map(p => ({
+            ...p,
+            id: p._id || p.id,
+            image: p.mainImage || p.image || "https://images.unsplash.com/photo-1550989460-0adf9ea622e2",
+            price: p.salePrice || p.price,
+            originalPrice: p.price,
+            weight: p.weight || p.unit || "1 unit",
+            deliveryTime: "8-15 mins"
+          }));
+
+          const cartProductIds = new Set(cart.map(item => String(item.id || item._id)));
+          const filtered = formattedProds.filter(p => !cartProductIds.has(String(p.id)));
+          setSimilarProducts(filtered);
+        }
+      } catch (error) {
+        console.error("Error fetching similar products in CartPage:", error);
+        if (!cancelled) setSimilarProducts([]);
+      } finally {
+        if (!cancelled) setSimilarLoading(false);
+      }
+    };
+
+    fetchSimilar();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cart]);
 
   useEffect(() => {
     let mounted = true;
@@ -227,6 +296,11 @@ const CartPage = () => {
   const categoriesPath = getQuickCategoriesPath();
   const checkoutPath = getQuickCheckoutPath();
   const itemCount = cart.reduce((count, item) => count + Number(item.quantity || 0), 0);
+  const totalSavings = cart.reduce((total, item) => {
+    const mrp = Number(item.mrp || item.originalPrice || item.price);
+    const price = Number(item.price);
+    return total + (mrp > price ? (mrp - price) * item.quantity : 0);
+  }, 0);
   const { deliveryFee, handlingFee, platformFee, gstAmount, grandTotal } =
     calculateQuickCartPricing({
       subtotal: cartTotal,
@@ -469,7 +543,7 @@ const CartPage = () => {
                   {/* Right: Quantity Selector & Price Stack */}
                   <div className="flex flex-col items-end shrink-0 mt-0.5">
                     {/* Square-ish Green Quantity Counter Block */}
-                    <div className="flex items-center justify-between bg-[#0c831f] text-white rounded-lg shadow-sm overflow-hidden h-[26px] w-[70px]">
+                    <div className="flex items-center justify-between bg-[#0c831f] text-white rounded-lg shadow-sm overflow-hidden h-[30px] w-[70px]">
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.id || item._id, -1)}
@@ -515,46 +589,148 @@ const CartPage = () => {
           </div>
         </section>
 
-        <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
-                Bill details
-              </p>
-              <h2 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
-                Price breakdown
-              </h2>
-            </div>
-            <span className="rounded-full bg-[#f0fdf4] dark:bg-emerald-900/20 px-3 py-1 text-xs font-bold text-[#0c831f] dark:text-emerald-400 border border-transparent dark:border-emerald-800/30">
-              {itemCount} item{itemCount === 1 ? "" : "s"}
-            </span>
-          </div>
+        {/* You might also like section */}
+        {!similarLoading && similarProducts.length > 0 && (
+          <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-5 shadow-sm border border-transparent dark:border-neutral-800">
+            <h3 className="mb-4 text-[14px] font-extrabold text-slate-900 dark:text-white">
+              You might also like
+            </h3>
 
-          <div className="mt-5 space-y-3 text-sm text-slate-600 dark:text-slate-400">
-            <div className="flex items-center justify-between">
-              <span>Items total</span>
-              <span className="font-semibold text-slate-900 dark:text-white">{"\u20B9"}{cartTotal}</span>
+            <div className="grid grid-cols-3 gap-2">
+              {similarProducts.slice(0, 3).map((item) => (
+                <ProductCard key={item.id} product={item} compact={true} />
+              ))}
             </div>
+
+            {/* See all products button */}
+            {cart.length > 0 && (
+              <div className="mt-4 flex justify-center">
+                <button
+                  onClick={() => navigate(`/quick/product/${cart[0].id || cart[0]._id}/similar`)}
+                  className="w-[94%] mx-auto flex items-center justify-center bg-[#F0F4F8] dark:bg-neutral-800/60 border border-slate-200/30 rounded-[14px] py-1.5 px-4 hover:bg-[#E5ECF2] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Overlapping Thumbnails */}
+                    <div className="flex items-center -space-x-2.5">
+                      {similarProducts.slice(0, 3).map((item, idx) => (
+                        <div
+                          key={item.id || idx}
+                          className="w-8 h-8 rounded-full border-[2px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex items-center justify-center p-0.5 overflow-hidden"
+                          style={{ zIndex: 3 - idx }}
+                        >
+                          <img
+                            src={item.image || item.mainImage}
+                            alt=""
+                            className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1 text-[#3B4C69] dark:text-slate-300 font-bold text-xs">
+                      <span>See all products</span>
+                      <ChevronRight size={12} className="text-[#3B4C69] dark:text-slate-300 stroke-[3] group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Bill Details Section */}
+        <section className="mt-4 rounded-[24px] bg-white dark:bg-neutral-900 p-4 shadow-sm border border-slate-100 dark:border-neutral-800">
+          <h3 className="text-[14px] font-extrabold text-slate-900 dark:text-white mb-4">
+            Bill details
+          </h3>
+
+          <div className="space-y-3.5 text-[13px] text-slate-600 dark:text-slate-400">
+            {/* Items total */}
             <div className="flex items-center justify-between">
-              <span>Delivery fee</span>
-              <span className="font-semibold text-slate-900 dark:text-white">{"\u20B9"}{deliveryFee}</span>
+              <div className="flex items-center gap-2">
+                <Receipt size={16} className="text-slate-500 shrink-0" />
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Items total</span>
+                {totalSavings > 0 && (
+                  <span className="bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded px-1.5 py-0.5 text-[10px] font-black tracking-tight">
+                    Saved ₹{totalSavings}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5">
+                {totalSavings > 0 && (
+                  <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 line-through">
+                    {"\u20B9"}{cartTotal + totalSavings}
+                  </span>
+                )}
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{"\u20B9"}{cartTotal}</span>
+              </div>
             </div>
+
+            {/* Handling charge */}
             <div className="flex items-center justify-between">
-              <span>Handling charge</span>
-              <span className="font-semibold text-slate-900 dark:text-white">{"\u20B9"}{handlingFee}</span>
+              <div className="flex items-center gap-2">
+                <ShoppingBag size={16} className="text-slate-500 shrink-0" />
+                <span className="font-semibold text-slate-700 dark:text-slate-300 border-b border-dotted border-slate-300 dark:border-neutral-700 pb-0.5">
+                  Handling charge
+                </span>
+              </div>
+              <span className="font-semibold text-slate-800 dark:text-slate-200">{"\u20B9"}{handlingFee}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span>Platform fee</span>
-              <span className="font-semibold text-slate-900 dark:text-white">{"\u20B9"}{platformFee}</span>
+
+            {/* Delivery charge */}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bike size={16} className="text-slate-500 shrink-0" />
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 border-b border-dotted border-slate-300 dark:border-neutral-700 pb-0.5">
+                    Delivery charge
+                  </span>
+                </div>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {deliveryFee === 0 ? "FREE" : `\u20B9${deliveryFee}`}
+                </span>
+              </div>
+              {/* Delivery threshold hint */}
+              {deliveryFee > 0 && quickBillingSettings?.freeDeliveryThreshold > 0 && (
+                <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 ml-6">
+                  Shop for {"\u20B9"}{Math.max(0, Number(quickBillingSettings.freeDeliveryThreshold) - cartTotal)} more to get FREE delivery
+                </p>
+              )}
             </div>
-            <div className="flex items-center justify-between">
-              <span>GST</span>
-              <span className="font-semibold text-slate-900 dark:text-white">{"\u20B9"}{gstAmount}</span>
-            </div>
-            <div className="border-t border-dashed border-slate-200 dark:border-slate-700 pt-3">
-              <div className="flex items-center justify-between text-base font-bold text-slate-900 dark:text-white">
-                <span>To pay</span>
-                <span>{"\u20B9"}{grandTotal}</span>
+
+            {/* Platform fee (if > 0) */}
+            {platformFee > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag size={16} className="text-slate-500 shrink-0" />
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 border-b border-dotted border-slate-300 dark:border-neutral-700 pb-0.5">
+                    Platform fee
+                  </span>
+                </div>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{"\u20B9"}{platformFee}</span>
+              </div>
+            )}
+
+            {/* GST (if > 0) */}
+            {gstAmount > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag size={16} className="text-slate-500 shrink-0" />
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 border-b border-dotted border-slate-300 dark:border-neutral-700 pb-0.5">
+                    GST
+                  </span>
+                </div>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{"\u20B9"}{gstAmount}</span>
+              </div>
+            )}
+
+            {/* Grand Total */}
+            <div className="border-t border-slate-100 dark:border-neutral-800 pt-3">
+              <div className="flex items-center justify-between text-[14px]">
+                <span className="font-bold text-slate-900 dark:text-white border-b border-dotted border-slate-400 dark:border-neutral-600 pb-0.5">
+                  Grand total
+                </span>
+                <span className="font-bold text-slate-900 dark:text-white">{"\u20B9"}{grandTotal}</span>
               </div>
             </div>
           </div>
