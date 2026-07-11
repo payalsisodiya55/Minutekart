@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useHeroTransition } from "../context/HeroTransitionContext";
 import {
   ArrowLeft,
+  ChevronRight,
   Clock,
   Heart,
   Loader2,
@@ -931,28 +932,31 @@ const ProductDetailPage = () => {
           <div className="mt-8 flex justify-center">
             <button
               onClick={() => navigate(`/quick/product/${product.id}/similar`)}
-              className="flex items-center justify-between w-full max-w-md rounded-2xl bg-blue-50/50 dark:bg-slate-900/50 border border-blue-100/50 dark:border-slate-800/50 px-5 py-3.5 hover:shadow-sm transition-all"
+              className="w-[94%] mx-auto flex items-center justify-center bg-[#F0F4F8] dark:bg-neutral-800/60 border border-slate-200/30 rounded-[14px] py-1 px-4 mt-3 hover:bg-[#E5ECF2] dark:hover:bg-neutral-800 transition-all cursor-pointer group"
             >
               <div className="flex items-center gap-3">
-                <div className="flex -space-x-3 overflow-hidden">
+                {/* Overlapping Thumbnails */}
+                <div className="flex items-center -space-x-3">
                   {similarProducts.slice(0, 3).map((item, idx) => (
                     <div
                       key={item.id || idx}
-                      className="inline-block h-10 w-10 rounded-full border-2 border-white dark:border-slate-900 bg-white overflow-hidden shadow-sm flex items-center justify-center p-0.5"
+                      className="w-9 h-9 rounded-full border-[2.5px] border-white dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex items-center justify-center p-0.5 overflow-hidden"
+                      style={{ zIndex: 3 - idx }}
                     >
                       <img
                         src={item.image || item.mainImage}
-                        alt={item.name}
-                        className="h-full w-full object-contain"
+                        alt=""
+                        className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
                       />
                     </div>
                   ))}
                 </div>
-                <span className="text-sm font-black text-slate-700 dark:text-slate-300">
-                  See all products
-                </span>
+
+                <div className="flex items-center gap-1.5 text-[#3B4C69] dark:text-slate-300 font-bold text-[14px] tracking-tight">
+                  <span>See all products</span>
+                  <ChevronRight size={14} className="text-[#3B4C69] dark:text-slate-300 stroke-[3] group-hover:translate-x-0.5 transition-transform" />
+                </div>
               </div>
-              <span className="text-[#0c831f] font-black text-lg">›</span>
             </button>
           </div>
         </div>
