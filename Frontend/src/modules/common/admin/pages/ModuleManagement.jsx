@@ -189,23 +189,7 @@ const ModuleManagement = () => {
                 color="green"
               />
 
-              <ModuleCard 
-                title="Home Bakery" 
-                description="Manage home bakeries, custom cakes, and custom orders." 
-                icon={Zap} 
-                enabled={modules.homeBakery} 
-                onToggle={() => handleToggle('homeBakery')}
-                color="pink"
-              />
 
-              <ModuleCard 
-                title="Milk Delivery (Dudhwala)" 
-                description="Manage daily milk subscriptions and deliveries." 
-                icon={Zap} 
-                enabled={modules.dudhwala} 
-                onToggle={() => handleToggle('dudhwala')}
-                color="orange"
-              />
 
               <ModuleCard 
                 title="Cash on Delivery (COD)" 

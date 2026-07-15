@@ -1580,7 +1580,6 @@ export default function LandingPageManagement() {
   const tabs = [
     { id: 'banners', label: 'Homepage Banner', icon: ImageIcon },
     { id: 'under-250', label: '250 Banner', icon: Tag },
-    { id: 'dining', label: 'Dining', icon: UtensilsCrossed },
     { id: 'homepage-video', label: 'Hero video and banner', icon: Layout },
     { id: 'explore-more', label: 'Explore More', icon: Layout },
     { id: 'popular-restaurants', label: 'Popular Restaurant', icon: ChefHat },

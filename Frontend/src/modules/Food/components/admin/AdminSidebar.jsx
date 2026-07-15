@@ -147,8 +147,9 @@ export default function AdminSidebar({ isOpen = false, onClose, onCollapseChange
       const saved = localStorage.getItem('admin_user');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Ensure default role is ADMIN if missing
+        // Normalize role casing
         if (!parsed.role || parsed.role.toLowerCase() === 'admin') parsed.role = 'ADMIN';
+        else if (parsed.role.toLowerCase() === 'sub_admin') parsed.role = 'SUB_ADMIN';
         return parsed;
       }
     } catch (e) {}
@@ -868,22 +869,19 @@ export default function AdminSidebar({ isOpen = false, onClose, onCollapseChange
                   </button>
                   )}
 
-                  {(!adminInfo || adminInfo.role === 'ADMIN') && (
-                    <button
-                      key="global-settings-btn"
+                  <button
+                    key="global-settings-btn"
                     type="button"
                     onClick={() => switchAdminModule("common")}
                     className={cn(
-                      "rounded-lg px-2 py-1.5 text-[11px] font-bold uppercase tracking-wide transition-all",
+                      "rounded-lg px-2 py-1.5 text-[11px] font-bold uppercase tracking-wide transition-all col-span-2",
                       isCommonAdmin
                         ? "bg-violet-600 text-white shadow-[0_6px_20px_rgba(124,58,237,0.35)]"
-                        : "text-neutral-400 hover:text-white",
-                      !enabledModules.dudhwala && "col-span-2"
+                        : "text-neutral-400 hover:text-white"
                     )}
                   >
                     Global Settings
                   </button>
-                  )}
                 </div>
               </div>
             </div>
