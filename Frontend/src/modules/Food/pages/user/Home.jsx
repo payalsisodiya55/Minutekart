@@ -637,7 +637,7 @@ export default function Home() {
           >
             <ServiceUnavailable 
               type={!isModuleEnabled ? "module" : "zone"} 
-              moduleName={activeTab === 'food' ? 'Food Delivery' : activeTab === 'quick' ? 'ChotuuMart' : 'ChotuuDudhwala'}
+              moduleName={activeTab === 'food' ? 'Food Delivery' : activeTab === 'quick' ? 'Minutekart' : 'Minutekart Dudhwala'}
               onRefresh={() => window.location.reload()}
             />
           </motion.div>
@@ -887,7 +887,7 @@ export default function Home() {
                   <div className="flex flex-col gap-1 sm:gap-2">
                     <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white drop-shadow-md tracking-tight leading-tight">
                       Custom Cake Chahiye? <br className="hidden lg:block" />
-                      <span className="text-yellow-200">Bas Chotuu Ko Bataiye!</span> 🎂
+                      <span className="text-yellow-200">Bas Minutekart Ko Bataiye!</span> 🎂
                     </h3>
                     <p className="text-white/95 text-sm sm:text-base font-semibold drop-shadow-sm">
                       Dream it, we bake it! ✨

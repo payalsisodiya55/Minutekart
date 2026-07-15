@@ -9,7 +9,7 @@ export default function ServiceUnavailable({ type = "zone", moduleName = "", onR
     if (type === "module") {
       return {
         title: "Currently Unavailable",
-        desc: `Oops! ${moduleName} is currently undergoing maintenance. Chotuu will be back in action soon! 🛠️`,
+        desc: `Oops! ${moduleName} is currently undergoing maintenance. Minutekart will be back in action soon! 🛠️`,
         icon: <Construction className="w-16 h-16 text-orange-400" />
       };
     }

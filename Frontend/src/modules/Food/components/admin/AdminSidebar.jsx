@@ -865,7 +865,7 @@ export default function AdminSidebar({ isOpen = false, onClose, onCollapseChange
                         : "text-neutral-400 hover:text-white"
                     )}
                   >
-                    ChotuuDudhwala
+                    MinutekartDudhwala
                   </button>
                   )}
 
