@@ -195,7 +195,7 @@ export default function SubAdminManagement() {
                       <TableCell>{admin.email}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {admin.servicesAccess?.map((s) => (
+                          {admin.servicesAccess?.filter(s => s !== 'dudhwala').map((s) => (
                             <span key={s} className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold capitalize border border-slate-200">
                               {s}
                             </span>
